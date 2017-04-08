@@ -1,0 +1,3 @@
+package: github.com/artem-sidorenko/chagen
+import:
+- package: github.com/urfave/cli
