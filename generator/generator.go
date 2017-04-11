@@ -24,8 +24,7 @@ import (
 	"github.com/artem-sidorenko/chagen/data"
 )
 
-const changelogTemplate = `
-Changelog
+const changelogTemplate = `Changelog
 =========
 {{ range .Releases}}
 ## [{{.Release}}]({{.ReleaseURL}}) ({{.Date}})
@@ -35,8 +34,7 @@ Closed issues
 {{- range .Issues}}
 - {{.Name}} [\#{{.ID}}]({{.URL}})
 {{- end}}
-{{ end}}
-`
+{{ end}}`
 
 // Generator is resposible for generation of Changelogs.
 // Each data field represents the data structure, which is consumed by the template.

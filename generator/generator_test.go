@@ -21,52 +21,8 @@ import (
 	"testing"
 
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testdata"
 )
-
-const fullGeneratedChangelog = `
-Changelog
-=========
-
-## [v0.1.0](https://example.com/release/v0.1.0) (2017-04-11)
-
-Closed issues
--------------
-- Test issue of new release [\#10](https://example.com/issue/10)
-
-## [v0.0.1](https://example.com/release/v0.0.1) (2017-04-10)
-
-Closed issues
--------------
-- Test issue [\#1](https://example.com/issue/1)
-
-`
-
-var fullDataStructure = []data.Release{
-	{
-		Release:    "v0.1.0",
-		ReleaseURL: "https://example.com/release/v0.1.0",
-		Date:       "2017-04-11",
-		Issues: []data.Issue{
-			{
-				Name: "Test issue of new release",
-				ID:   "10",
-				URL:  "https://example.com/issue/10",
-			},
-		},
-	},
-	{
-		Release:    "v0.0.1",
-		ReleaseURL: "https://example.com/release/v0.0.1",
-		Date:       "2017-04-10",
-		Issues: []data.Issue{
-			{
-				Name: "Test issue",
-				ID:   "1",
-				URL:  "https://example.com/issue/1",
-			},
-		},
-	},
-}
 
 func TestGenerator_Render(t *testing.T) {
 	type fields struct {
@@ -81,9 +37,9 @@ func TestGenerator_Render(t *testing.T) {
 		{
 			name: "verify testdata structure",
 			fields: fields{
-				Releases: fullDataStructure,
+				Releases: testdata.GeneratorDataStructure,
 			},
-			wantWr:  fullGeneratedChangelog,
+			wantWr:  testdata.GeneratedChangelog,
 			wantErr: false,
 		},
 	}

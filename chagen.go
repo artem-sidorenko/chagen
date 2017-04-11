@@ -19,6 +19,7 @@ package main
 import (
 	"os"
 
+	"github.com/artem-sidorenko/chagen/action"
 	"github.com/urfave/cli"
 )
 
@@ -30,15 +31,37 @@ func main() {
 	app.Name = "chagen"
 	app.Version = version
 	app.Usage = usage
+	app.ArgsUsage = " " // we do not have any args (only flags), so avoid this help message
 	app.Commands = commands()
+	app.Authors = []cli.Author{
+		{
+			Name:  "Artem Sidorenko",
+			Email: "artem@posteo.de",
+		},
+	}
 	app.Run(os.Args)
 }
 
 func commands() []cli.Command {
 	return []cli.Command{
 		{
-			Name:  "generate",
-			Usage: "Generate a changelog",
+			Name:      "generate",
+			Usage:     "Generate a changelog",
+			ArgsUsage: " ", // we do not have any args (only flags), so avoid this help message
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Usage: "File name of changelog, - is accepted for stdout",
+					Value: "CHANGELOG.md",
+				},
+			},
+			Action: func(c *cli.Context) error {
+				err := action.Generate(c.String("file"))
+				if err != nil { // exit 1 and error message if we get any error reported
+					return cli.NewExitError(err, 1)
+				}
+				return nil
+			},
 		},
 	}
 }
