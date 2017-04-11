@@ -23,7 +23,8 @@ import (
 	"github.com/urfave/cli"
 )
 
-const version = "0.0.1-dev"
+var version = "0.0.1-dev"
+
 const usage = "Changelog generator for your projects"
 
 func main() {
