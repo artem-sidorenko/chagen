@@ -21,6 +21,8 @@ import (
 
 	"github.com/artem-sidorenko/chagen/commands"
 
+	"fmt"
+
 	"github.com/urfave/cli"
 )
 
@@ -33,7 +35,8 @@ func main() {
 	app.Name = "chagen"
 	app.Version = version
 	app.Usage = usage
-	app.ArgsUsage = " " // we do not have any args (only flags), so avoid this help message
+	// we do not have any args (only flags), so avoid this help message
+	app.ArgsUsage = " "
 	app.Commands = commands.GetCommands()
 	app.Authors = []cli.Author{
 		{
@@ -41,5 +44,8 @@ func main() {
 			Email: "artem@posteo.de",
 		},
 	}
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		fmt.Printf("Error: %v", err)
+	}
 }
