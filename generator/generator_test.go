@@ -26,7 +26,7 @@ import (
 
 func TestGenerator_Render(t *testing.T) {
 	type fields struct {
-		Releases []data.Release
+		Releases data.Releases
 	}
 	tests := []struct {
 		name    string

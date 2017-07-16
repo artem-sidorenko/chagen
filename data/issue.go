@@ -23,3 +23,6 @@ type Issue struct {
 	URL  string
 	Date string
 }
+
+// Issues is a slice with Issue elements
+type Issues []Issue

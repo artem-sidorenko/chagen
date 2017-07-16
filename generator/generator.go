@@ -39,7 +39,7 @@ Closed issues
 // Generator is resposible for generation of Changelogs.
 // Each data field represents the data structure, which is consumed by the template.
 type Generator struct {
-	Releases []data.Release
+	Releases data.Releases
 }
 
 // Render the content via template and write it to wr.
