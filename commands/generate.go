@@ -14,14 +14,14 @@
    limitations under the License.
 */
 
-// Package action contains the specific implementations for subcommands
-package action
+package commands
 
 import (
 	"os"
 
 	"github.com/artem-sidorenko/chagen/generator"
 	"github.com/artem-sidorenko/chagen/internal/testdata"
+	"github.com/urfave/cli"
 )
 
 // Generate implements the CLI subcommand generate
@@ -47,4 +47,26 @@ func Generate(filename string) error {
 	}
 
 	return nil
+}
+
+func init() {
+	RegisterCommand(cli.Command{
+		Name:      "generate",
+		Usage:     "Generate a changelog",
+		ArgsUsage: " ", // we do not have any args (only flags), so avoid this help message
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "file, f",
+				Usage: "File name of changelog, - is accepted for stdout",
+				Value: "CHANGELOG.md",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			err := Generate(c.String("file"))
+			if err != nil { // exit 1 and error message if we get any error reported
+				return cli.NewExitError(err, 1)
+			}
+			return nil
+		},
+	})
 }
