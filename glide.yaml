@@ -1,3 +1,4 @@
 package: github.com/artem-sidorenko/chagen
 import:
 - package: github.com/urfave/cli
+- package: github.com/google/go-github/github
