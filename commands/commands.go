@@ -14,32 +14,21 @@
    limitations under the License.
 */
 
-package main
+// Package commands contains the specific implementations for subcommands
+package commands
 
 import (
-	"os"
-
-	"github.com/artem-sidorenko/chagen/commands"
-
 	"github.com/urfave/cli"
 )
 
-var version = "0.0.1-dev"
+var commands cli.Commands
 
-const usage = "Changelog generator for your projects"
+// RegisterCommand registers the new subcommand
+func RegisterCommand(c cli.Command) {
+	commands = append(commands, c)
+}
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "chagen"
-	app.Version = version
-	app.Usage = usage
-	app.ArgsUsage = " " // we do not have any args (only flags), so avoid this help message
-	app.Commands = commands.GetCommands()
-	app.Authors = []cli.Author{
-		{
-			Name:  "Artem Sidorenko",
-			Email: "artem@posteo.de",
-		},
-	}
-	app.Run(os.Args)
+// GetCommands returns the registered commands
+func GetCommands() cli.Commands {
+	return commands
 }
