@@ -11,9 +11,13 @@ build: ## Build the development binaries
 	GOOS=darwin GOARCH=amd64 go build -o build/chagen-darwin-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
 	GOOS=windows GOARCH=amd64 go build -o build/chagen-windows-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
 
+prepare-env: ## Prepare the development/test environment
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install
+
 test: ## Run the tests
 	go test $$(go list ./... | grep -v /vendor/)
-	go vet $$(go list ./... | grep -v /vendor/)
+	gometalinter --enable-all --line-length=100 -s vendor ./...
 
 prepare-release: ## Prepare a new release
 ifndef NEW_VERSION

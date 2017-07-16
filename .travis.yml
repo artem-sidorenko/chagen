@@ -10,6 +10,8 @@ matrix:
   allow_failures:
     - go: tip
   fast_finish: true
+install:
+  - make prepare-env
 script:
   - make build
   - make test

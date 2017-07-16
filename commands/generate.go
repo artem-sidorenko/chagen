@@ -25,7 +25,7 @@ import (
 )
 
 // Generate implements the CLI subcommand generate
-func Generate(filename string) error {
+func Generate(filename string) (err error) {
 	gen := generator.Generator{
 		Releases: testdata.GeneratorDataStructure, //for now we use testdata as source
 	}
@@ -33,20 +33,20 @@ func Generate(filename string) error {
 	// use stdout if - is given, otherwise create a new file
 	wr := os.Stdout
 	if filename != "-" {
-		var err error
 		wr, err = os.Create(filename)
 		if err != nil {
-			return err
+			return
 		}
-		defer wr.Close()
+		defer func() {
+			if cerr := wr.Close(); err == nil && cerr != nil {
+				err = cerr
+			}
+		}()
 	}
 
-	err := gen.Render(wr)
-	if err != nil {
-		return err
-	}
+	err = gen.Render(wr)
 
-	return nil
+	return
 }
 
 func init() {
