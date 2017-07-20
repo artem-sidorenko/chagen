@@ -32,10 +32,21 @@ type Tag struct {
 // Tags is a slice with Tag elements
 type Tags []Tag
 
+// Issue describes an issue in the bug tracker
+type Issue struct {
+	ID         int
+	Name       string
+	ClosedDate time.Time
+}
+
+// Issues is a slice with Issue elements
+type Issues []Issue
+
 // Connector describes the interface of connectors to the data sources
 type Connector interface {
 	Init()
 	GetTags() (Tags, error)
+	GetIssues() (Issues, error)
 }
 
 type connector struct {

@@ -20,7 +20,6 @@ import (
 	"errors"
 	"reflect"
 	"testing"
-
 	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
@@ -33,6 +32,8 @@ type testAPIClient struct {
 	RetListTagsErr   error
 	RetGetCommits    map[string]*github.RepositoryCommit
 	RetGetCommitsErr error
+	RetListIssues    []*github.Issue
+	RetListIssuesErr error
 }
 
 // ListTags simulates the github.Client.Repositories.ListTags()
@@ -51,8 +52,20 @@ func (t *testAPIClient) GetCommit(_, _, sha string) (*github.RepositoryCommit, e
 	return t.RetGetCommits[sha], nil
 }
 
+// ListIssues simulates the github.Client.Issues.ListByRepo()
+func (t *testAPIClient) ListIssues(_, _ string) ([]*github.Issue, error) {
+	if t.RetListIssuesErr != nil {
+		return nil, t.RetListIssuesErr
+	}
+	return t.RetListIssues, nil
+}
+
 func getStringPtr(s string) *string {
 	return &s
+}
+
+func getIntPtr(i int) *int {
+	return &i
 }
 
 func getTimePtr(t time.Time) *time.Time {
@@ -76,13 +89,13 @@ func Test_connector_GetTags(t *testing.T) {
 			fields: fields{
 				API: &testAPIClient{
 					RetListTags: []*github.RepositoryTag{
-						&github.RepositoryTag{
+						{
 							Name: getStringPtr("v0.0.1"),
 							Commit: &github.Commit{
 								SHA: getStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
 							},
 						},
-						&github.RepositoryTag{
+						{
 							Name: getStringPtr("v0.0.2"),
 							Commit: &github.Commit{
 								SHA: getStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
@@ -90,7 +103,7 @@ func Test_connector_GetTags(t *testing.T) {
 						},
 					},
 					RetGetCommits: map[string]*github.RepositoryCommit{
-						"7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc": &github.RepositoryCommit{
+						"7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc": {
 							Commit: &github.Commit{
 								SHA: getStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
 								Committer: &github.CommitAuthor{
@@ -98,7 +111,7 @@ func Test_connector_GetTags(t *testing.T) {
 								},
 							},
 						},
-						"b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da": &github.RepositoryCommit{
+						"b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da": {
 							Commit: &github.Commit{
 								SHA: getStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
 								Committer: &github.CommitAuthor{
@@ -138,7 +151,7 @@ func Test_connector_GetTags(t *testing.T) {
 			fields: fields{
 				API: &testAPIClient{
 					RetListTags: []*github.RepositoryTag{
-						&github.RepositoryTag{
+						{
 							Name: getStringPtr("v0.0.1"),
 							Commit: &github.Commit{
 								SHA: getStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
@@ -165,7 +178,77 @@ func Test_connector_GetTags(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("connector.GetTags() = %v, want %v", got, tt.want)
+				t.Errorf("Connector.GetTags() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestConnector_GetIssues(t *testing.T) {
+	type fields struct {
+		API   cgithub.API
+		Owner string
+		Repo  string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    connectors.Issues
+		wantErr error
+	}{
+		{
+			name: "API returns proper data",
+			fields: fields{
+				API: &testAPIClient{
+					RetListIssues: []*github.Issue{
+						{
+							Number:           getIntPtr(1234),
+							Title:            getStringPtr("Test issue title"),
+							PullRequestLinks: &github.PullRequestLinks{},
+							ClosedAt:         getTimePtr(time.Unix(1047483647, 0)),
+						},
+						{
+							Number: getIntPtr(4321),
+							Title:  getStringPtr("Test PR title"),
+							PullRequestLinks: &github.PullRequestLinks{
+								URL: getStringPtr("https://example.com/prs/4321"),
+							},
+						},
+					},
+				},
+			},
+			want: connectors.Issues{
+				connectors.Issue{
+					ID:         1234,
+					Name:       "Test issue title",
+					ClosedDate: time.Unix(1047483647, 0),
+				},
+			},
+		},
+		{
+			name: "ListIssues call fails",
+			fields: fields{
+				API: &testAPIClient{
+					RetListIssuesErr: errors.New("ListIssues failed"),
+				},
+			},
+			wantErr: errors.New("ListIssues failed"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &cgithub.Connector{
+				API:   tt.fields.API,
+				Owner: tt.fields.Owner,
+				Repo:  tt.fields.Repo,
+			}
+			got, err := c.GetIssues()
+			if err != nil && err.Error() != tt.wantErr.Error() {
+				t.Errorf("Connector.GetIssues() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Connector.GetIssues() = %v, want %v", got, tt.want)
 			}
 		})
 	}

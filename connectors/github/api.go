@@ -31,6 +31,7 @@ import (
 type API interface {
 	ListTags(string, string) ([]*github.RepositoryTag, error)
 	GetCommit(string, string, string) (*github.RepositoryCommit, error)
+	ListIssues(string, string) ([]*github.Issue, error)
 }
 
 // APIClient implements the API interface
@@ -60,6 +61,31 @@ func (a *APIClient) GetCommit(owner, repo, sha string) (
 	}
 
 	return
+}
+
+// ListIssues implements the github.Client.Issues.ListByRepo()
+// and returns all closed issues and PRs
+func (a *APIClient) ListIssues(owner, repo string) ([]*github.Issue, error) {
+	opt := &github.IssueListByRepoOptions{
+		State: "closed",
+	}
+
+	var ret []*github.Issue
+	for {
+		issues, resp, err := a.client.Issues.ListByRepo(a.context, owner, repo, opt)
+		if err != nil {
+			return nil, a.formatErrorCode("ListIssues", err)
+		}
+
+		ret = append(ret, issues...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return ret, nil
 }
 
 // formatErrorCode formats the error message for this connector

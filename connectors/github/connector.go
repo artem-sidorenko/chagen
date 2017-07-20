@@ -59,6 +59,30 @@ func (c *Connector) GetTags() (connectors.Tags, error) {
 	return ret, nil
 }
 
+// GetIssues returns the closed issues
+func (c *Connector) GetIssues() (connectors.Issues, error) {
+	issues, err := c.API.ListIssues(c.Owner, c.Repo)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret connectors.Issues
+	for _, issue := range issues {
+		//ensure we have an issue and not PR
+		if issue.PullRequestLinks.GetURL() != "" {
+			continue
+		}
+
+		ret = append(ret, connectors.Issue{
+			ID:         issue.GetNumber(),
+			Name:       issue.GetTitle(),
+			ClosedDate: issue.GetClosedAt(),
+		})
+	}
+
+	return ret, nil
+}
+
 func init() {
 	connectors.RegisterConnector("github", "GitHub", &Connector{})
 }
