@@ -32,6 +32,7 @@ type API interface {
 	ListTags(string, string) ([]*github.RepositoryTag, error)
 	GetCommit(string, string, string) (*github.RepositoryCommit, error)
 	ListIssues(string, string) ([]*github.Issue, error)
+	ListPRs(string, string) ([]*github.PullRequest, error)
 }
 
 // APIClient implements the API interface
@@ -78,6 +79,31 @@ func (a *APIClient) ListIssues(owner, repo string) ([]*github.Issue, error) {
 		}
 
 		ret = append(ret, issues...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return ret, nil
+}
+
+// ListPRs implements the github.Client.PullRequests.List()
+// and returns all closed PRs
+func (a *APIClient) ListPRs(owner, repo string) ([]*github.PullRequest, error) {
+	opt := &github.PullRequestListOptions{
+		State: "closed",
+	}
+
+	var ret []*github.PullRequest
+	for {
+		prs, resp, err := a.client.PullRequests.List(a.context, owner, repo, opt)
+		if err != nil {
+			return nil, a.formatErrorCode("ListPRs", err)
+		}
+
+		ret = append(ret, prs...)
 
 		if resp.NextPage == 0 {
 			break

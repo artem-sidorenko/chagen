@@ -18,6 +18,8 @@
 package github
 
 import (
+	"time"
+
 	"github.com/artem-sidorenko/chagen/connectors"
 )
 
@@ -77,6 +79,30 @@ func (c *Connector) GetIssues() (connectors.Issues, error) {
 			ID:         issue.GetNumber(),
 			Name:       issue.GetTitle(),
 			ClosedDate: issue.GetClosedAt(),
+		})
+	}
+
+	return ret, nil
+}
+
+//GetMRs returns the merged pull requests
+func (c *Connector) GetMRs() (connectors.MRs, error) {
+	prs, err := c.API.ListPRs(c.Owner, c.Repo)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret connectors.MRs
+	for _, pr := range prs {
+		// we need only merged PRs, skip everything else
+		if pr.GetMergedAt() == (time.Time{}) {
+			continue
+		}
+
+		ret = append(ret, connectors.MR{
+			ID:         pr.GetNumber(),
+			Name:       pr.GetTitle(),
+			MergedDate: pr.GetMergedAt(),
 		})
 	}
 

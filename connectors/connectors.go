@@ -42,11 +42,22 @@ type Issue struct {
 // Issues is a slice with Issue elements
 type Issues []Issue
 
+// MR describes a Pull or Merge Request
+type MR struct {
+	ID         int
+	Name       string
+	MergedDate time.Time
+}
+
+// MRs is a slice with MR elements
+type MRs []MR
+
 // Connector describes the interface of connectors to the data sources
 type Connector interface {
 	Init()
 	GetTags() (Tags, error)
 	GetIssues() (Issues, error)
+	GetMRs() (MRs, error)
 }
 
 type connector struct {

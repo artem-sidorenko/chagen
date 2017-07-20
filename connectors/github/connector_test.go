@@ -34,6 +34,8 @@ type testAPIClient struct {
 	RetGetCommitsErr error
 	RetListIssues    []*github.Issue
 	RetListIssuesErr error
+	RetPRs           []*github.PullRequest
+	RetPRsErr        error
 }
 
 // ListTags simulates the github.Client.Repositories.ListTags()
@@ -58,6 +60,14 @@ func (t *testAPIClient) ListIssues(_, _ string) ([]*github.Issue, error) {
 		return nil, t.RetListIssuesErr
 	}
 	return t.RetListIssues, nil
+}
+
+// ListPRs simulated the github.Client.PullRequests.List()
+func (t *testAPIClient) ListPRs(_, _ string) ([]*github.PullRequest, error) {
+	if t.RetPRsErr != nil {
+		return nil, t.RetPRsErr
+	}
+	return t.RetPRs, nil
 }
 
 func getStringPtr(s string) *string {
@@ -249,6 +259,72 @@ func TestConnector_GetIssues(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Connector.GetIssues() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestConnector_GetMRs(t *testing.T) {
+	type fields struct {
+		API   cgithub.API
+		Owner string
+		Repo  string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    connectors.MRs
+		wantErr error
+	}{
+		{
+			name: "API returns proper data",
+			fields: fields{
+				API: &testAPIClient{
+					RetPRs: []*github.PullRequest{
+						{
+							Number:   getIntPtr(1234),
+							Title:    getStringPtr("Test PR title"),
+							MergedAt: getTimePtr(time.Unix(1747483647, 0)),
+						},
+						{
+							Number: getIntPtr(1233),
+							Title:  getStringPtr("Second closed PR title"),
+						},
+					},
+				},
+			},
+			want: connectors.MRs{
+				connectors.MR{
+					ID:         1234,
+					Name:       "Test PR title",
+					MergedDate: time.Unix(1747483647, 0),
+				},
+			},
+		},
+		{
+			name: "ListPRs call fails",
+			fields: fields{
+				API: &testAPIClient{
+					RetPRsErr: errors.New("ListPRs failed"),
+				},
+			},
+			wantErr: errors.New("ListPRs failed"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &cgithub.Connector{
+				API:   tt.fields.API,
+				Owner: tt.fields.Owner,
+				Repo:  tt.fields.Repo,
+			}
+			got, err := c.GetMRs()
+			if err != nil && err.Error() != tt.wantErr.Error() {
+				t.Errorf("Connector.GetMRs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Connector.GetMRs() = %v, want %v", got, tt.want)
 			}
 		})
 	}
