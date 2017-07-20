@@ -19,6 +19,8 @@ package github
 import (
 	"context"
 
+	"fmt"
+
 	"github.com/google/go-github/github"
 )
 
@@ -27,8 +29,8 @@ import (
 // We need this in order to allow unit testing without to fire
 // requests to GitHub during the tests
 type API interface {
-	ListTags(string, string) []*github.RepositoryTag
-	GetCommit(string, string, string) *github.RepositoryCommit
+	ListTags(string, string) ([]*github.RepositoryTag, error)
+	GetCommit(string, string, string) (*github.RepositoryCommit, error)
 }
 
 // APIClient implements the API interface
@@ -39,15 +41,30 @@ type APIClient struct {
 }
 
 // ListTags implements the github.Client.Repositories.ListTags()
-func (a *APIClient) ListTags(owner, repo string) (tags []*github.RepositoryTag) {
-	tags, _, _ = a.client.Repositories.ListTags(a.context, owner, repo, nil) // TODO: error handling
+func (a *APIClient) ListTags(owner, repo string) (tags []*github.RepositoryTag, err error) {
+	tags, _, err = a.client.Repositories.ListTags(a.context, owner, repo, nil)
+	if err != nil {
+		return nil, a.formatErrorCode("ListTags", err)
+	}
+
 	return
 }
 
 // GetCommit implements the github.Client.Repositories.GetCommit()
-func (a *APIClient) GetCommit(owner, repo, sha string) (commit *github.RepositoryCommit) {
-	commit, _, _ = a.client.Repositories.GetCommit(a.context, owner, repo, sha) // TODO: error handling
+func (a *APIClient) GetCommit(owner, repo, sha string) (
+	commit *github.RepositoryCommit, err error) {
+
+	commit, _, err = a.client.Repositories.GetCommit(a.context, owner, repo, sha)
+	if err != nil {
+		return nil, a.formatErrorCode("GetCommit", err)
+	}
+
 	return
+}
+
+// formatErrorCode formats the error message for this connector
+func (a *APIClient) formatErrorCode(query string, err error) error {
+	return fmt.Errorf("GitHub query '%s' failed: %s", query, err)
 }
 
 // NewAPIClient returns the initialized and ready to use APIClient

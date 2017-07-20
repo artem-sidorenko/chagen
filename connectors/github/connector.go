@@ -36,10 +36,19 @@ func (c *Connector) Init() {
 }
 
 // GetTags returns the git tags
-func (c *Connector) GetTags() (ret connectors.Tags) {
-	tags := c.API.ListTags(c.Owner, c.Repo)
+func (c *Connector) GetTags() (connectors.Tags, error) {
+	tags, err := c.API.ListTags(c.Owner, c.Repo)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret connectors.Tags
 	for _, tag := range tags {
-		commit := c.API.GetCommit(c.Owner, c.Repo, tag.Commit.GetSHA())
+		commit, err := c.API.GetCommit(c.Owner, c.Repo, tag.Commit.GetSHA())
+
+		if err != nil {
+			return nil, err
+		}
 
 		ret = append(ret, connectors.Tag{
 			Name:   tag.GetName(),
@@ -47,7 +56,7 @@ func (c *Connector) GetTags() (ret connectors.Tags) {
 			Date:   commit.Commit.Committer.GetDate(),
 		})
 	}
-	return
+	return ret, nil
 }
 
 func init() {

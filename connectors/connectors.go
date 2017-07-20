@@ -35,7 +35,7 @@ type Tags []Tag
 // Connector describes the interface of connectors to the data sources
 type Connector interface {
 	Init()
-	GetTags() Tags
+	GetTags() (Tags, error)
 }
 
 type connector struct {

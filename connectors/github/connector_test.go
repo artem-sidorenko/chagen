@@ -17,6 +17,7 @@
 package github_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -28,18 +29,26 @@ import (
 )
 
 type testAPIClient struct {
-	RetListTags   []*github.RepositoryTag
-	RetGetCommits map[string]*github.RepositoryCommit
+	RetListTags      []*github.RepositoryTag
+	RetListTagsErr   error
+	RetGetCommits    map[string]*github.RepositoryCommit
+	RetGetCommitsErr error
 }
 
 // ListTags simulates the github.Client.Repositories.ListTags()
-func (t *testAPIClient) ListTags(_, _ string) []*github.RepositoryTag {
-	return t.RetListTags
+func (t *testAPIClient) ListTags(_, _ string) ([]*github.RepositoryTag, error) {
+	if t.RetListTagsErr != nil {
+		return nil, t.RetListTagsErr
+	}
+	return t.RetListTags, nil
 }
 
 // GetCommit simlualtes the github.Client.Repositories.GetCommit()
-func (t *testAPIClient) GetCommit(_, _, sha string) *github.RepositoryCommit {
-	return t.RetGetCommits[sha]
+func (t *testAPIClient) GetCommit(_, _, sha string) (*github.RepositoryCommit, error) {
+	if t.RetGetCommitsErr != nil {
+		return nil, t.RetGetCommitsErr
+	}
+	return t.RetGetCommits[sha], nil
 }
 
 func getStringPtr(s string) *string {
@@ -59,7 +68,8 @@ func Test_connector_GetTags(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		wantRet connectors.Tags
+		want    connectors.Tags
+		wantErr error
 	}{
 		{
 			name: "API returns proper data",
@@ -101,7 +111,7 @@ func Test_connector_GetTags(t *testing.T) {
 				Owner: "testowner",
 				Repo:  "restrepo",
 			},
-			wantRet: connectors.Tags{
+			want: connectors.Tags{
 				{
 					Name:   "v0.0.1",
 					Commit: "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc",
@@ -114,6 +124,32 @@ func Test_connector_GetTags(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ListTags call fails",
+			fields: fields{
+				API: &testAPIClient{
+					RetListTagsErr: errors.New("ListTags failed"),
+				},
+			},
+			wantErr: errors.New("ListTags failed"),
+		},
+		{
+			name: "GetCommit call fails",
+			fields: fields{
+				API: &testAPIClient{
+					RetListTags: []*github.RepositoryTag{
+						&github.RepositoryTag{
+							Name: getStringPtr("v0.0.1"),
+							Commit: &github.Commit{
+								SHA: getStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
+							},
+						},
+					},
+					RetGetCommitsErr: errors.New("GetCommit failed"),
+				},
+			},
+			wantErr: errors.New("GetCommit failed"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -122,8 +158,14 @@ func Test_connector_GetTags(t *testing.T) {
 				Owner: tt.fields.Owner,
 				Repo:  tt.fields.Repo,
 			}
-			if gotRet := c.GetTags(); !reflect.DeepEqual(gotRet, tt.wantRet) {
-				t.Errorf("connector.GetTags() = %v, want %v", gotRet, tt.wantRet)
+			got, err := c.GetTags()
+			if err != nil && err.Error() != tt.wantErr.Error() {
+				t.Errorf("Connector.GetTags() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("connector.GetTags() = %v, want %v", got, tt.want)
 			}
 		})
 	}
