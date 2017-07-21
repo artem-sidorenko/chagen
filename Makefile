@@ -17,7 +17,7 @@ prepare-env: ## Prepare the development/test environment
 
 test: ## Run the tests
 	go test $$(go list ./... | grep -v /vendor/)
-	gometalinter --enable-all --line-length=100 -s vendor ./...
+	gometalinter --enable-all --disable=dupl --deadline=300s --line-length=100 -s vendor ./...
 
 prepare-release: ## Prepare a new release
 ifndef NEW_VERSION

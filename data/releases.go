@@ -23,3 +23,6 @@ type Release struct {
 	Date       string
 	Issues     []Issue
 }
+
+// Releases is a slice with Release elements
+type Releases []Release
