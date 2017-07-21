@@ -1,4 +1,7 @@
 package: github.com/artem-sidorenko/chagen
 import:
 - package: github.com/urfave/cli
-- package: github.com/google/go-github/github
+- package: github.com/google/go-github
+  subpackages:
+  - github
+- package: golang.org/x/oauth2
