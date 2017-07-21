@@ -20,8 +20,14 @@ package github
 import (
 	"time"
 
+	"os"
+
 	"github.com/artem-sidorenko/chagen/connectors"
 )
+
+// AccessTokenEnvVar contains the name of environment variable
+// which sets the authentication access token
+const AccessTokenEnvVar = "CHAGEN_GITHUB_TOKEN"
 
 // Connector implements the GitHub connector
 type Connector struct {
@@ -32,7 +38,7 @@ type Connector struct {
 
 // Init takes the initialization of connector, e.g. reading environment vars etc
 func (c *Connector) Init() {
-	c.API = NewAPIClient()
+	c.API = NewAPIClient(os.Getenv(AccessTokenEnvVar))
 	c.Owner = "artem-sidorenko"
 	c.Repo = "chef-cups"
 }
