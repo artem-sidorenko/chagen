@@ -21,7 +21,10 @@ import (
 
 	"fmt"
 
+	"net/http"
+
 	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 // API builds a wrapper around GitHub API from
@@ -133,9 +136,21 @@ func (a *APIClient) formatErrorCode(query string, err error) error {
 }
 
 // NewAPIClient returns the initialized and ready to use APIClient
-func NewAPIClient() *APIClient {
+// Uses AccessToken for authentication if not empty
+func NewAPIClient(AccessToken string) *APIClient {
+	ctx := context.Background()
+
+	var tc *http.Client
+
+	if AccessToken != "" {
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: AccessToken},
+		)
+		tc = oauth2.NewClient(ctx, ts)
+	}
+
 	return &APIClient{
-		context: context.Background(),
-		client:  github.NewClient(nil),
+		context: ctx,
+		client:  github.NewClient(tc),
 	}
 }
