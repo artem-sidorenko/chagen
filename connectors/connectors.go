@@ -37,6 +37,7 @@ type Issue struct {
 	ID         int
 	Name       string
 	ClosedDate time.Time
+	URL        string
 }
 
 // Issues is a slice with Issue elements

@@ -216,6 +216,7 @@ func TestConnector_GetIssues(t *testing.T) {
 							Title:            getStringPtr("Test issue title"),
 							PullRequestLinks: &github.PullRequestLinks{},
 							ClosedAt:         getTimePtr(time.Unix(1047483647, 0)),
+							HTMLURL:          getStringPtr("http://example.com/issues/1234"),
 						},
 						{
 							Number: getIntPtr(4321),
@@ -232,6 +233,7 @@ func TestConnector_GetIssues(t *testing.T) {
 					ID:         1234,
 					Name:       "Test issue title",
 					ClosedDate: time.Unix(1047483647, 0),
+					URL:        "http://example.com/issues/1234",
 				},
 			},
 		},

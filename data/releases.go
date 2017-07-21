@@ -44,6 +44,7 @@ func NewReleases(
 			relIssues = append(relIssues, Issue{
 				ID:   is.ID,
 				Name: is.Name,
+				URL:  is.URL,
 			})
 		}
 

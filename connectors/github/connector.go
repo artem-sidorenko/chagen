@@ -85,6 +85,7 @@ func (c *Connector) GetIssues() (connectors.Issues, error) {
 			ID:         issue.GetNumber(),
 			Name:       issue.GetTitle(),
 			ClosedDate: issue.GetClosedAt(),
+			URL:        issue.GetHTMLURL(),
 		})
 	}
 
