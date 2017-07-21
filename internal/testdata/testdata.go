@@ -45,7 +45,7 @@ var GeneratorDataStructure = data.Releases{
 		Issues: data.Issues{
 			{
 				Name: "Test issue of new release",
-				ID:   "10",
+				ID:   10,
 				URL:  "https://example.com/issue/10",
 			},
 		},
@@ -57,7 +57,7 @@ var GeneratorDataStructure = data.Releases{
 		Issues: data.Issues{
 			{
 				Name: "Test issue",
-				ID:   "1",
+				ID:   1,
 				URL:  "https://example.com/issue/1",
 			},
 		},

@@ -16,13 +16,44 @@
 
 package data
 
+import (
+	"github.com/artem-sidorenko/chagen/connectors"
+)
+
 // Release desribes a release with it data
 type Release struct {
 	Release    string
 	ReleaseURL string
 	Date       string
-	Issues     []Issue
+	Issues     Issues
 }
 
 // Releases is a slice with Release elements
 type Releases []Release
+
+// NewReleases builds the Releases structure
+// using given data from connector
+func NewReleases(
+	tags connectors.Tags,
+	issues connectors.Issues) (ret Releases) {
+
+	for _, tag := range tags {
+		var relIssues Issues
+
+		for _, is := range issues {
+			relIssues = append(relIssues, Issue{
+				ID:   is.ID,
+				Name: is.Name,
+			})
+		}
+
+		rel := Release{
+			Release:    tag.Name,
+			ReleaseURL: "",
+			Date:       tag.Date.Format("02.01.2006"),
+			Issues:     relIssues,
+		}
+		ret = append(ret, rel)
+	}
+	return
+}

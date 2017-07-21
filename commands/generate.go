@@ -19,15 +19,35 @@ package commands
 import (
 	"os"
 
+	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/generator"
-	"github.com/artem-sidorenko/chagen/internal/testdata"
 	"github.com/urfave/cli"
 )
 
 // Generate implements the CLI subcommand generate
 func Generate(filename string) (err error) {
+	connector, err := connectors.GetConnector("github")
+	if err != nil {
+		return
+	}
+
+	connector.Init()
+
+	tags, err := connector.GetTags()
+	if err != nil {
+		return
+	}
+
+	issues, err := connector.GetIssues()
+	if err != nil {
+		return
+	}
+
+	releases := data.NewReleases(tags, issues)
+
 	gen := generator.Generator{
-		Releases: testdata.GeneratorDataStructure, //for now we use testdata as source
+		Releases: releases,
 	}
 
 	// use stdout if - is given, otherwise create a new file

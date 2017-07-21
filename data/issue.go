@@ -18,10 +18,9 @@ package data
 
 // Issue represents a specific issue
 type Issue struct {
+	ID   int
 	Name string
-	ID   string
 	URL  string
-	Date string
 }
 
 // Issues is a slice with Issue elements
