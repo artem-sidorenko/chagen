@@ -29,10 +29,22 @@ const changelogTemplate = `Changelog
 {{ range .Releases}}
 ## [{{.Release}}]({{.ReleaseURL}}) ({{.Date}})
 
+{{- if .Issues}}
+
 Closed issues
 -------------
 {{- range .Issues}}
 - {{.Name}} [\#{{.ID}}]({{.URL}})
+{{- end}}
+{{- end}}
+
+{{- if .MRs}}
+
+Merged pull requests
+--------------------
+{{- range .MRs}}
+- {{.Name}} [\#{{.ID}}]({{.URL}}) ([{{.Author}}]({{.AuthorURL}}))
+{{- end}}
 {{- end}}
 {{ end}}`
 

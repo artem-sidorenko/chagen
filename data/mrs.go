@@ -16,12 +16,14 @@
 
 package data
 
-// Issue represents a specific issue
-type Issue struct {
-	ID   int
-	Name string
-	URL  string
+// MR represents a specific merge or pull request
+type MR struct {
+	ID        int
+	Name      string
+	URL       string
+	Author    string
+	AuthorURL string
 }
 
-// Issues is a slice with Issue elements
-type Issues []Issue
+// MRs is a slice with MR elements
+type MRs []MR

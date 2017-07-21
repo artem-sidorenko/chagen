@@ -36,6 +36,7 @@ type API interface {
 	GetCommit(string, string, string) (*github.RepositoryCommit, error)
 	ListIssues(string, string) ([]*github.Issue, error)
 	ListPRs(string, string) ([]*github.PullRequest, error)
+	GetReleaseByTag(string, string, string) (*github.RepositoryRelease, error)
 }
 
 // APIClient implements the API interface
@@ -128,6 +129,21 @@ func (a *APIClient) ListPRs(owner, repo string) ([]*github.PullRequest, error) {
 	}
 
 	return ret, nil
+}
+
+// GetReleaseByTag implements the github.Client.RepositoriesService.GetReleaseByTag
+// and returns a release if possible. Returns nil if no release is found
+func (a *APIClient) GetReleaseByTag(owner, repo, tag string) (*github.RepositoryRelease, error) {
+	release, resp, err := a.client.Repositories.GetReleaseByTag(a.context, owner, repo, tag)
+	if err != nil {
+		// no release was found for this tag, this is no error for us
+		if resp.StatusCode == 404 {
+			return nil, nil
+		}
+		return nil, a.formatErrorCode("GetReleaseByTag", err)
+	}
+
+	return release, nil
 }
 
 // formatErrorCode formats the error message for this connector

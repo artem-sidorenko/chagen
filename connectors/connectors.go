@@ -27,6 +27,7 @@ type Tag struct {
 	Name   string
 	Commit string
 	Date   time.Time
+	URL    string
 }
 
 // Tags is a slice with Tag elements
@@ -37,6 +38,7 @@ type Issue struct {
 	ID         int
 	Name       string
 	ClosedDate time.Time
+	URL        string
 }
 
 // Issues is a slice with Issue elements
@@ -46,6 +48,9 @@ type Issues []Issue
 type MR struct {
 	ID         int
 	Name       string
+	URL        string
+	Author     string
+	AuthorURL  string
 	MergedDate time.Time
 }
 
