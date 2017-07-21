@@ -43,13 +43,26 @@ type APIClient struct {
 }
 
 // ListTags implements the github.Client.Repositories.ListTags()
-func (a *APIClient) ListTags(owner, repo string) (tags []*github.RepositoryTag, err error) {
-	tags, _, err = a.client.Repositories.ListTags(a.context, owner, repo, nil)
-	if err != nil {
-		return nil, a.formatErrorCode("ListTags", err)
+func (a *APIClient) ListTags(owner, repo string) ([]*github.RepositoryTag, error) {
+	opt := &github.ListOptions{}
+
+	var ret []*github.RepositoryTag
+	for {
+		tags, resp, err := a.client.Repositories.ListTags(a.context, owner, repo, nil)
+		if err != nil {
+			return nil, a.formatErrorCode("ListTags", err)
+		}
+
+		ret = append(ret, tags...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+
+		opt.Page = resp.NextPage
 	}
 
-	return
+	return ret, nil
 }
 
 // GetCommit implements the github.Client.Repositories.GetCommit()
