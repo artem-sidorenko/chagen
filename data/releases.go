@@ -50,7 +50,7 @@ func NewReleases(
 
 		rel := Release{
 			Release:    tag.Name,
-			ReleaseURL: "",
+			ReleaseURL: tag.URL,
 			Date:       tag.Date.Format("02.01.2006"),
 			Issues:     relIssues,
 		}

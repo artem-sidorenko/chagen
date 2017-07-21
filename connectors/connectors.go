@@ -27,6 +27,7 @@ type Tag struct {
 	Name   string
 	Commit string
 	Date   time.Time
+	URL    string
 }
 
 // Tags is a slice with Tag elements

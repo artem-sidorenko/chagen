@@ -22,6 +22,9 @@ import (
 
 	"os"
 
+	"net/url"
+	"path"
+
 	"github.com/artem-sidorenko/chagen/connectors"
 )
 
@@ -31,9 +34,10 @@ const AccessTokenEnvVar = "CHAGEN_GITHUB_TOKEN"
 
 // Connector implements the GitHub connector
 type Connector struct {
-	API   API
-	Owner string
-	Repo  string
+	API        API
+	Owner      string
+	Repo       string
+	ProjectURL string
 }
 
 // Init takes the initialization of connector, e.g. reading environment vars etc
@@ -41,6 +45,7 @@ func (c *Connector) Init() {
 	c.API = NewAPIClient(os.Getenv(AccessTokenEnvVar))
 	c.Owner = "artem-sidorenko"
 	c.Repo = "chef-cups"
+	c.ProjectURL = "https://github.com/artem-sidorenko/chef-cups"
 }
 
 // GetTags returns the git tags
@@ -52,16 +57,36 @@ func (c *Connector) GetTags() (connectors.Tags, error) {
 
 	var ret connectors.Tags
 	for _, tag := range tags {
+		tagName := tag.GetName()
 		commit, err := c.API.GetCommit(c.Owner, c.Repo, tag.Commit.GetSHA())
-
 		if err != nil {
 			return nil, err
 		}
 
+		release, err := c.API.GetReleaseByTag(c.Owner, c.Repo, tagName)
+		if err != nil {
+			return nil, err
+		}
+
+		// if GitHub release for this tag was found -> use it
+		// generate otherwise a link to the git tag view in the file tree
+		var tagURL string
+		if release != nil {
+			tagURL = release.GetHTMLURL()
+		} else {
+			u, err := url.Parse(c.ProjectURL)
+			if err != nil {
+				return nil, err
+			}
+			u.Path = path.Join(u.Path, "/tree/"+tagName)
+			tagURL = u.String()
+		}
+
 		ret = append(ret, connectors.Tag{
-			Name:   tag.GetName(),
+			Name:   tagName,
 			Commit: commit.Commit.GetSHA(),
 			Date:   commit.Commit.Committer.GetDate(),
+			URL:    tagURL,
 		})
 	}
 	return ret, nil

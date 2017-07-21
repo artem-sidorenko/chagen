@@ -28,14 +28,16 @@ import (
 )
 
 type testAPIClient struct {
-	RetListTags      []*github.RepositoryTag
-	RetListTagsErr   error
-	RetGetCommits    map[string]*github.RepositoryCommit
-	RetGetCommitsErr error
-	RetListIssues    []*github.Issue
-	RetListIssuesErr error
-	RetPRs           []*github.PullRequest
-	RetPRsErr        error
+	RetListTags           []*github.RepositoryTag
+	RetListTagsErr        error
+	RetGetCommits         map[string]*github.RepositoryCommit
+	RetGetCommitsErr      error
+	RetListIssues         []*github.Issue
+	RetListIssuesErr      error
+	RetPRs                []*github.PullRequest
+	RetPRsErr             error
+	RetGetReleaseByTag    map[string]*github.RepositoryRelease
+	RetGetReleaseByTagErr error
 }
 
 // ListTags simulates the github.Client.Repositories.ListTags()
@@ -62,12 +64,20 @@ func (t *testAPIClient) ListIssues(_, _ string) ([]*github.Issue, error) {
 	return t.RetListIssues, nil
 }
 
-// ListPRs simulated the github.Client.PullRequests.List()
+// ListPRs simulates the github.Client.PullRequests.List()
 func (t *testAPIClient) ListPRs(_, _ string) ([]*github.PullRequest, error) {
 	if t.RetPRsErr != nil {
 		return nil, t.RetPRsErr
 	}
 	return t.RetPRs, nil
+}
+
+// GetReleaseByTag simulates the github.Client.RepositoriesService.GetReleaseByTag
+func (t *testAPIClient) GetReleaseByTag(_, _, tag string) (*github.RepositoryRelease, error) {
+	if t.RetGetReleaseByTagErr != nil {
+		return nil, t.RetGetReleaseByTagErr
+	}
+	return t.RetGetReleaseByTag[tag], nil
 }
 
 func getStringPtr(s string) *string {
@@ -84,9 +94,10 @@ func getTimePtr(t time.Time) *time.Time {
 
 func Test_connector_GetTags(t *testing.T) {
 	type fields struct {
-		API   cgithub.API
-		Owner string
-		Repo  string
+		API        cgithub.API
+		Owner      string
+		Repo       string
+		ProjectURL string
 	}
 	tests := []struct {
 		name    string
@@ -112,6 +123,12 @@ func Test_connector_GetTags(t *testing.T) {
 							},
 						},
 					},
+					RetGetReleaseByTag: map[string]*github.RepositoryRelease{
+						"v0.0.1": {
+							TagName: getStringPtr("v0.0.1"),
+							HTMLURL: getStringPtr("https://example.com/releases/v0.0.1"),
+						},
+					},
 					RetGetCommits: map[string]*github.RepositoryCommit{
 						"7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc": {
 							Commit: &github.Commit{
@@ -131,19 +148,22 @@ func Test_connector_GetTags(t *testing.T) {
 						},
 					},
 				},
-				Owner: "testowner",
-				Repo:  "restrepo",
+				Owner:      "testowner",
+				Repo:       "restrepo",
+				ProjectURL: "https://example.com/testowner/restrepo",
 			},
 			want: connectors.Tags{
 				{
 					Name:   "v0.0.1",
 					Commit: "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc",
 					Date:   time.Unix(2147483647, 0),
+					URL:    "https://example.com/releases/v0.0.1",
 				},
 				{
 					Name:   "v0.0.2",
 					Commit: "b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da",
 					Date:   time.Unix(2047483647, 0),
+					URL:    "https://example.com/testowner/restrepo/tree/v0.0.2",
 				},
 			},
 		},
@@ -177,9 +197,10 @@ func Test_connector_GetTags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &cgithub.Connector{
-				API:   tt.fields.API,
-				Owner: tt.fields.Owner,
-				Repo:  tt.fields.Repo,
+				API:        tt.fields.API,
+				Owner:      tt.fields.Owner,
+				Repo:       tt.fields.Repo,
+				ProjectURL: tt.fields.ProjectURL,
 			}
 			got, err := c.GetTags()
 			if err != nil && err.Error() != tt.wantErr.Error() {
