@@ -48,6 +48,9 @@ type Issues []Issue
 type MR struct {
 	ID         int
 	Name       string
+	URL        string
+	Author     string
+	AuthorURL  string
 	MergedDate time.Time
 }
 

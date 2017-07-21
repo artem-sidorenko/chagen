@@ -44,7 +44,12 @@ func Generate(filename string) (err error) {
 		return
 	}
 
-	releases := data.NewReleases(tags, issues)
+	mrs, err := connector.GetMRs()
+	if err != nil {
+		return
+	}
+
+	releases := data.NewReleases(tags, issues, mrs)
 
 	gen := generator.Generator{
 		Releases: releases,

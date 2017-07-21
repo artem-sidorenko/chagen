@@ -135,6 +135,9 @@ func (c *Connector) GetMRs() (connectors.MRs, error) {
 			ID:         pr.GetNumber(),
 			Name:       pr.GetTitle(),
 			MergedDate: pr.GetMergedAt(),
+			URL:        pr.GetHTMLURL(),
+			Author:     pr.User.GetLogin(),
+			AuthorURL:  pr.User.GetHTMLURL(),
 		})
 	}
 

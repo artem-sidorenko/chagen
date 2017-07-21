@@ -305,8 +305,13 @@ func TestConnector_GetMRs(t *testing.T) {
 				API: &testAPIClient{
 					RetPRs: []*github.PullRequest{
 						{
-							Number:   getIntPtr(1234),
-							Title:    getStringPtr("Test PR title"),
+							Number:  getIntPtr(1234),
+							Title:   getStringPtr("Test PR title"),
+							HTMLURL: getStringPtr("https://example.com/pulls/1234"),
+							User: &github.User{
+								Login:   getStringPtr("test-user"),
+								HTMLURL: getStringPtr("https://example.com/users/test-user"),
+							},
 							MergedAt: getTimePtr(time.Unix(1747483647, 0)),
 						},
 						{
@@ -320,6 +325,9 @@ func TestConnector_GetMRs(t *testing.T) {
 				connectors.MR{
 					ID:         1234,
 					Name:       "Test PR title",
+					URL:        "https://example.com/pulls/1234",
+					Author:     "test-user",
+					AuthorURL:  "https://example.com/users/test-user",
 					MergedDate: time.Unix(1747483647, 0),
 				},
 			},
