@@ -38,16 +38,19 @@ func Generate(filename string) (err error) {
 	if err != nil {
 		return
 	}
+	tags.Sort()
 
 	issues, err := connector.GetIssues()
 	if err != nil {
 		return
 	}
+	issues.Sort()
 
 	mrs, err := connector.GetMRs()
 	if err != nil {
 		return
 	}
+	mrs.Sort()
 
 	releases := data.NewReleases(tags, issues, mrs)
 

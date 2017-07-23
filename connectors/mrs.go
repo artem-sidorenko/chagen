@@ -17,6 +17,7 @@
 package connectors
 
 import (
+	"sort"
 	"time"
 )
 
@@ -32,3 +33,23 @@ type MR struct {
 
 // MRs is a slice with MR elements
 type MRs []MR
+
+// Len implements the Sort.Interface
+func (m *MRs) Len() int {
+	return len(*m)
+}
+
+// Less implements the Sort.Interface
+func (m *MRs) Less(i, j int) bool {
+	return (*m)[i].MergedDate.Before((*m)[j].MergedDate)
+}
+
+// Swap implements the Sort.Interface
+func (m *MRs) Swap(i, j int) {
+	(*m)[i], (*m)[j] = (*m)[j], (*m)[i]
+}
+
+// Sort implements sorting of available MRs
+func (m *MRs) Sort() {
+	sort.Sort(m)
+}

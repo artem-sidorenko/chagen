@@ -17,6 +17,7 @@
 package connectors
 
 import (
+	"sort"
 	"time"
 )
 
@@ -30,3 +31,23 @@ type Tag struct {
 
 // Tags is a slice with Tag elements
 type Tags []Tag
+
+// Len implements the Sort.Interface
+func (t *Tags) Len() int {
+	return len(*t)
+}
+
+// Less implements the Sort.Interface
+func (t *Tags) Less(i, j int) bool {
+	return (*t)[i].Date.Before((*t)[j].Date)
+}
+
+// Swap implements the Sort.Interface
+func (t *Tags) Swap(i, j int) {
+	(*t)[i], (*t)[j] = (*t)[j], (*t)[i]
+}
+
+// Sort implements sorting of available Tags
+func (t *Tags) Sort() {
+	sort.Sort(t)
+}

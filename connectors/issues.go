@@ -17,6 +17,7 @@
 package connectors
 
 import (
+	"sort"
 	"time"
 )
 
@@ -30,3 +31,23 @@ type Issue struct {
 
 // Issues is a slice with Issue elements
 type Issues []Issue
+
+// Len implements the Sort.Interface
+func (is *Issues) Len() int {
+	return len(*is)
+}
+
+// Less implements the Sort.Interface
+func (is *Issues) Less(i, j int) bool {
+	return (*is)[i].ClosedDate.Before((*is)[j].ClosedDate)
+}
+
+// Swap implements the Sort.Interface
+func (is *Issues) Swap(i, j int) {
+	(*is)[i], (*is)[j] = (*is)[j], (*is)[i]
+}
+
+// Sort implements sorting of available Issues
+func (is *Issues) Sort() {
+	sort.Sort(is)
+}
