@@ -54,6 +54,8 @@ func Generate(filename string) (err error) {
 
 	releases := data.NewReleases(tags, issues, mrs)
 
+	releases.Sort()
+
 	gen := generator.Generator{
 		Releases: releases,
 	}

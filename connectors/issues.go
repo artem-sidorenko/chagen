@@ -51,3 +51,13 @@ func (is *Issues) Swap(i, j int) {
 func (is *Issues) Sort() {
 	sort.Sort(is)
 }
+
+// Filter filters and returns new slice of Issues, where ClosedDate is between given dates
+func (is *Issues) Filter(fromDate, toDate time.Time) (ret Issues) {
+	for _, issue := range *is {
+		if issue.ClosedDate.After(fromDate) && issue.ClosedDate.Before(toDate) {
+			ret = append(ret, issue)
+		}
+	}
+	return
+}
