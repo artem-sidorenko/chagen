@@ -68,9 +68,10 @@ func TestNewReleases(t *testing.T) {
 			},
 			wantRet: data.Releases{
 				data.Release{
-					Release:    "v0.0.1",
-					Date:       "12.03.2003",
-					ReleaseURL: "https://example.com/tags/v0.0.1",
+					Release:       "v0.0.1",
+					DateFormatted: "12.03.2003",
+					Date:          time.Unix(1047483647, 0),
+					ReleaseURL:    "https://example.com/tags/v0.0.1",
 					Issues: data.Issues{
 						data.Issue{
 							ID:   1,
@@ -96,6 +97,86 @@ func TestNewReleases(t *testing.T) {
 			gotRet := data.NewReleases(tt.args.tags, tt.args.issues, tt.args.mrs)
 			if !reflect.DeepEqual(gotRet, tt.wantRet) {
 				t.Errorf("NewReleases() = %v, want %v", gotRet, tt.wantRet)
+			}
+		})
+	}
+}
+
+func TestReleases_Sort(t *testing.T) {
+	tests := []struct {
+		name string
+		r    *data.Releases
+		want *data.Releases
+	}{
+		{
+			name: "Releases are already sorted",
+			r: &data.Releases{
+				{
+					Release: "v0.0.1",
+					Date:    time.Unix(1047483647, 0),
+				},
+				{
+					Release: "v0.0.2",
+					Date:    time.Unix(1247483647, 0),
+				},
+				{
+					Release: "v0.0.3",
+					Date:    time.Unix(1347483647, 0),
+				},
+			},
+			want: &data.Releases{
+				{
+					Release: "v0.0.3",
+					Date:    time.Unix(1347483647, 0),
+				},
+				{
+					Release: "v0.0.2",
+					Date:    time.Unix(1247483647, 0),
+				},
+				{
+					Release: "v0.0.1",
+					Date:    time.Unix(1047483647, 0),
+				},
+			},
+		},
+		{
+			name: "Releases are not sorted",
+			r: &data.Releases{
+				{
+					Release: "v0.0.2",
+					Date:    time.Unix(1247483647, 0),
+				},
+				{
+					Release: "v0.0.1",
+					Date:    time.Unix(1047483647, 0),
+				},
+				{
+					Release: "v0.0.3",
+					Date:    time.Unix(1347483647, 0),
+				},
+			},
+			want: &data.Releases{
+				{
+					Release: "v0.0.3",
+					Date:    time.Unix(1347483647, 0),
+				},
+				{
+					Release: "v0.0.2",
+					Date:    time.Unix(1247483647, 0),
+				},
+				{
+					Release: "v0.0.1",
+					Date:    time.Unix(1047483647, 0),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.r.Sort()
+
+			if !reflect.DeepEqual(tt.r, tt.want) {
+				t.Errorf("Releases.Sort(), Releases = %v, want %v", tt.r, tt.want)
 			}
 		})
 	}

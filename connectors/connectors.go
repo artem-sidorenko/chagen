@@ -1,61 +1,9 @@
-/*
-   Copyright 2017 Artem Sidorenko <artem@posteo.de>
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
-
 // Package connectors contains different connectors for fetching the data
 package connectors
 
 import (
 	"fmt"
-	"time"
 )
-
-// Tag describes a git tag
-type Tag struct {
-	Name   string
-	Commit string
-	Date   time.Time
-	URL    string
-}
-
-// Tags is a slice with Tag elements
-type Tags []Tag
-
-// Issue describes an issue in the bug tracker
-type Issue struct {
-	ID         int
-	Name       string
-	ClosedDate time.Time
-	URL        string
-}
-
-// Issues is a slice with Issue elements
-type Issues []Issue
-
-// MR describes a Pull or Merge Request
-type MR struct {
-	ID         int
-	Name       string
-	URL        string
-	Author     string
-	AuthorURL  string
-	MergedDate time.Time
-}
-
-// MRs is a slice with MR elements
-type MRs []MR
 
 // Connector describes the interface of connectors to the data sources
 type Connector interface {

@@ -49,9 +49,9 @@ Closed issues
 // GeneratorDataStructure contains the data structure for changelog generator
 var GeneratorDataStructure = data.Releases{
 	{
-		Release:    "v0.1.0",
-		ReleaseURL: "https://example.com/release/v0.1.0",
-		Date:       "2017-04-13",
+		Release:       "v0.1.0",
+		ReleaseURL:    "https://example.com/release/v0.1.0",
+		DateFormatted: "2017-04-13",
 		Issues: data.Issues{
 			{
 				Name: "Test issue of new release",
@@ -70,9 +70,9 @@ var GeneratorDataStructure = data.Releases{
 		},
 	},
 	{
-		Release:    "v0.0.12",
-		ReleaseURL: "https://example.com/release/v0.0.12",
-		Date:       "2017-04-11",
+		Release:       "v0.0.12",
+		ReleaseURL:    "https://example.com/release/v0.0.12",
+		DateFormatted: "2017-04-11",
 		MRs: data.MRs{
 			{
 				Name:      "Thing",
@@ -84,9 +84,9 @@ var GeneratorDataStructure = data.Releases{
 		},
 	},
 	{
-		Release:    "v0.0.1",
-		ReleaseURL: "https://example.com/release/v0.0.1",
-		Date:       "2017-04-10",
+		Release:       "v0.0.1",
+		ReleaseURL:    "https://example.com/release/v0.0.1",
+		DateFormatted: "2017-04-10",
 		Issues: data.Issues{
 			{
 				Name: "Test issue",
