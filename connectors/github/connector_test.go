@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/connectors"
 	cgithub "github.com/artem-sidorenko/chagen/connectors/github"
+	"github.com/artem-sidorenko/chagen/data"
 	"github.com/google/go-github/github"
 )
 
@@ -102,7 +102,7 @@ func Test_connector_GetTags(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    connectors.Tags
+		want    data.Tags
 		wantErr error
 	}{
 		{
@@ -152,7 +152,7 @@ func Test_connector_GetTags(t *testing.T) {
 				Repo:       "restrepo",
 				ProjectURL: "https://example.com/testowner/restrepo",
 			},
-			want: connectors.Tags{
+			want: data.Tags{
 				{
 					Name:   "v0.0.1",
 					Commit: "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc",
@@ -224,7 +224,7 @@ func TestConnector_GetIssues(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    connectors.Issues
+		want    data.Issues
 		wantErr error
 	}{
 		{
@@ -249,8 +249,8 @@ func TestConnector_GetIssues(t *testing.T) {
 					},
 				},
 			},
-			want: connectors.Issues{
-				connectors.Issue{
+			want: data.Issues{
+				data.Issue{
 					ID:         1234,
 					Name:       "Test issue title",
 					ClosedDate: time.Unix(1047483647, 0),
@@ -296,7 +296,7 @@ func TestConnector_GetMRs(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    connectors.MRs
+		want    data.MRs
 		wantErr error
 	}{
 		{
@@ -321,8 +321,8 @@ func TestConnector_GetMRs(t *testing.T) {
 					},
 				},
 			},
-			want: connectors.MRs{
-				connectors.MR{
+			want: data.MRs{
+				data.MR{
 					ID:         1234,
 					Name:       "Test PR title",
 					URL:        "https://example.com/pulls/1234",

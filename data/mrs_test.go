@@ -14,25 +14,25 @@
    limitations under the License.
 */
 
-package connectors_test
+package data_test
 
 import (
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/data"
 )
 
 func TestMRs_Sort(t *testing.T) {
 	tests := []struct {
 		name string
-		m    *connectors.MRs
-		want *connectors.MRs
+		m    *data.MRs
+		want *data.MRs
 	}{
 		{
 			name: "MRs are already sorted",
-			m: &connectors.MRs{
+			m: &data.MRs{
 				{
 					Name:       "MR 1",
 					MergedDate: time.Unix(1047483647, 0),
@@ -46,7 +46,7 @@ func TestMRs_Sort(t *testing.T) {
 					MergedDate: time.Unix(1347483647, 0),
 				},
 			},
-			want: &connectors.MRs{
+			want: &data.MRs{
 				{
 					Name:       "MR 1",
 					MergedDate: time.Unix(1047483647, 0),
@@ -63,7 +63,7 @@ func TestMRs_Sort(t *testing.T) {
 		},
 		{
 			name: "MRs are not sorted",
-			m: &connectors.MRs{
+			m: &data.MRs{
 				{
 					Name:       "MR 2",
 					MergedDate: time.Unix(1247483647, 0),
@@ -77,7 +77,7 @@ func TestMRs_Sort(t *testing.T) {
 					MergedDate: time.Unix(1347483647, 0),
 				},
 			},
-			want: &connectors.MRs{
+			want: &data.MRs{
 				{
 					Name:       "MR 1",
 					MergedDate: time.Unix(1047483647, 0),
@@ -111,13 +111,13 @@ func TestMRs_Filter(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		m       *connectors.MRs
+		m       *data.MRs
 		args    args
-		wantRet connectors.MRs
+		wantRet data.MRs
 	}{
 		{
 			name: "Filtering of MRs",
-			m: &connectors.MRs{
+			m: &data.MRs{
 				{
 					Name:       "MR 1",
 					MergedDate: time.Unix(1047483647, 0),
@@ -135,7 +135,7 @@ func TestMRs_Filter(t *testing.T) {
 				fromDate: time.Unix(1057483647, 0),
 				toDate:   time.Unix(1337483647, 0),
 			},
-			wantRet: connectors.MRs{
+			wantRet: data.MRs{
 				{
 					Name:       "MR 2",
 					MergedDate: time.Unix(1247483647, 0),

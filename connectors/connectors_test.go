@@ -22,14 +22,15 @@ import (
 	"testing"
 
 	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/data"
 )
 
 type testConnector struct{}
 
-func (t *testConnector) Init()                                 {}
-func (t *testConnector) GetTags() (connectors.Tags, error)     { return nil, nil }
-func (t *testConnector) GetIssues() (connectors.Issues, error) { return nil, nil }
-func (t *testConnector) GetMRs() (connectors.MRs, error)       { return nil, nil }
+func (t *testConnector) Init()                           {}
+func (t *testConnector) GetTags() (data.Tags, error)     { return nil, nil }
+func (t *testConnector) GetIssues() (data.Issues, error) { return nil, nil }
+func (t *testConnector) GetMRs() (data.MRs, error)       { return nil, nil }
 
 func TestGetConnector(t *testing.T) {
 	connectors.RegisterConnector("testexisting", "TestExisting", &testConnector{})

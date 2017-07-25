@@ -21,15 +21,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
 )
 
 func TestNewReleases(t *testing.T) {
 	type args struct {
-		tags   connectors.Tags
-		issues connectors.Issues
-		mrs    connectors.MRs
+		tags   data.Tags
+		issues data.Issues
+		mrs    data.MRs
 	}
 	tests := []struct {
 		name    string
@@ -39,24 +38,24 @@ func TestNewReleases(t *testing.T) {
 		{
 			name: "proper data with all elements",
 			args: args{
-				tags: connectors.Tags{
-					connectors.Tag{
+				tags: data.Tags{
+					data.Tag{
 						Name:   "v0.0.1",
 						Date:   time.Unix(1047483647, 0),
 						Commit: "b6a735dcb420a82865abe8c194900e59f6af9dea",
 						URL:    "https://example.com/tags/v0.0.1",
 					},
 				},
-				issues: connectors.Issues{
-					connectors.Issue{
+				issues: data.Issues{
+					data.Issue{
 						Name:       "Issue number one",
 						ClosedDate: time.Unix(1047482647, 0),
 						ID:         1,
 						URL:        "https://example.com/issues/1",
 					},
 				},
-				mrs: connectors.MRs{
-					connectors.MR{
+				mrs: data.MRs{
+					data.MR{
 						Name:       "Test merge request",
 						ID:         2,
 						MergedDate: time.Unix(1047480647, 0),
@@ -74,18 +73,20 @@ func TestNewReleases(t *testing.T) {
 					ReleaseURL:    "https://example.com/tags/v0.0.1",
 					Issues: data.Issues{
 						data.Issue{
-							ID:   1,
-							Name: "Issue number one",
-							URL:  "https://example.com/issues/1",
+							ID:         1,
+							Name:       "Issue number one",
+							ClosedDate: time.Unix(1047482647, 0),
+							URL:        "https://example.com/issues/1",
 						},
 					},
 					MRs: data.MRs{
 						data.MR{
-							ID:        2,
-							Name:      "Test merge request",
-							URL:       "https://example.com/mrs/2",
-							Author:    "testauthor",
-							AuthorURL: "https://example.com/authors/testauthor",
+							ID:         2,
+							Name:       "Test merge request",
+							URL:        "https://example.com/mrs/2",
+							MergedDate: time.Unix(1047480647, 0),
+							Author:     "testauthor",
+							AuthorURL:  "https://example.com/authors/testauthor",
 						},
 					},
 				},
