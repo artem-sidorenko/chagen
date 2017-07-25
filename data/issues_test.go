@@ -14,25 +14,25 @@
    limitations under the License.
 */
 
-package connectors_test
+package data_test
 
 import (
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/data"
 )
 
 func TestIssues_Sort(t *testing.T) {
 	tests := []struct {
 		name string
-		is   *connectors.Issues
-		want *connectors.Issues
+		is   *data.Issues
+		want *data.Issues
 	}{
 		{
 			name: "Issues are already sorted",
-			is: &connectors.Issues{
+			is: &data.Issues{
 				{
 					Name:       "Issue 1",
 					ClosedDate: time.Unix(1047483647, 0),
@@ -46,7 +46,7 @@ func TestIssues_Sort(t *testing.T) {
 					ClosedDate: time.Unix(1347483647, 0),
 				},
 			},
-			want: &connectors.Issues{
+			want: &data.Issues{
 				{
 					Name:       "Issue 1",
 					ClosedDate: time.Unix(1047483647, 0),
@@ -63,7 +63,7 @@ func TestIssues_Sort(t *testing.T) {
 		},
 		{
 			name: "Issues are not sorted",
-			is: &connectors.Issues{
+			is: &data.Issues{
 				{
 					Name:       "Issue 2",
 					ClosedDate: time.Unix(1247483647, 0),
@@ -77,7 +77,7 @@ func TestIssues_Sort(t *testing.T) {
 					ClosedDate: time.Unix(1347483647, 0),
 				},
 			},
-			want: &connectors.Issues{
+			want: &data.Issues{
 				{
 					Name:       "Issue 1",
 					ClosedDate: time.Unix(1047483647, 0),
@@ -111,13 +111,13 @@ func TestIssues_Filter(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		is      *connectors.Issues
+		is      *data.Issues
 		args    args
-		wantRet connectors.Issues
+		wantRet data.Issues
 	}{
 		{
 			name: "Filtering of issues",
-			is: &connectors.Issues{
+			is: &data.Issues{
 				{
 					Name:       "Issue 1",
 					ClosedDate: time.Unix(1047483647, 0),
@@ -135,7 +135,7 @@ func TestIssues_Filter(t *testing.T) {
 				fromDate: time.Unix(1057483647, 0),
 				toDate:   time.Unix(1337483647, 0),
 			},
-			wantRet: connectors.Issues{
+			wantRet: data.Issues{
 				{
 					Name:       "Issue 2",
 					ClosedDate: time.Unix(1247483647, 0),

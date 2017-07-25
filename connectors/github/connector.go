@@ -26,6 +26,7 @@ import (
 	"path"
 
 	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/data"
 )
 
 // AccessTokenEnvVar contains the name of environment variable
@@ -49,13 +50,13 @@ func (c *Connector) Init() {
 }
 
 // GetTags returns the git tags
-func (c *Connector) GetTags() (connectors.Tags, error) {
+func (c *Connector) GetTags() (data.Tags, error) {
 	tags, err := c.API.ListTags(c.Owner, c.Repo)
 	if err != nil {
 		return nil, err
 	}
 
-	var ret connectors.Tags
+	var ret data.Tags
 	for _, tag := range tags {
 		tagName := tag.GetName()
 		commit, err := c.API.GetCommit(c.Owner, c.Repo, tag.Commit.GetSHA())
@@ -82,7 +83,7 @@ func (c *Connector) GetTags() (connectors.Tags, error) {
 			tagURL = u.String()
 		}
 
-		ret = append(ret, connectors.Tag{
+		ret = append(ret, data.Tag{
 			Name:   tagName,
 			Commit: commit.Commit.GetSHA(),
 			Date:   commit.Commit.Committer.GetDate(),
@@ -93,20 +94,20 @@ func (c *Connector) GetTags() (connectors.Tags, error) {
 }
 
 // GetIssues returns the closed issues
-func (c *Connector) GetIssues() (connectors.Issues, error) {
+func (c *Connector) GetIssues() (data.Issues, error) {
 	issues, err := c.API.ListIssues(c.Owner, c.Repo)
 	if err != nil {
 		return nil, err
 	}
 
-	var ret connectors.Issues
+	var ret data.Issues
 	for _, issue := range issues {
 		//ensure we have an issue and not PR
 		if issue.PullRequestLinks.GetURL() != "" {
 			continue
 		}
 
-		ret = append(ret, connectors.Issue{
+		ret = append(ret, data.Issue{
 			ID:         issue.GetNumber(),
 			Name:       issue.GetTitle(),
 			ClosedDate: issue.GetClosedAt(),
@@ -118,20 +119,20 @@ func (c *Connector) GetIssues() (connectors.Issues, error) {
 }
 
 //GetMRs returns the merged pull requests
-func (c *Connector) GetMRs() (connectors.MRs, error) {
+func (c *Connector) GetMRs() (data.MRs, error) {
 	prs, err := c.API.ListPRs(c.Owner, c.Repo)
 	if err != nil {
 		return nil, err
 	}
 
-	var ret connectors.MRs
+	var ret data.MRs
 	for _, pr := range prs {
 		// we need only merged PRs, skip everything else
 		if pr.GetMergedAt() == (time.Time{}) {
 			continue
 		}
 
-		ret = append(ret, connectors.MR{
+		ret = append(ret, data.MR{
 			ID:         pr.GetNumber(),
 			Name:       pr.GetTitle(),
 			MergedDate: pr.GetMergedAt(),

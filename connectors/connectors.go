@@ -3,14 +3,16 @@ package connectors
 
 import (
 	"fmt"
+
+	"github.com/artem-sidorenko/chagen/data"
 )
 
 // Connector describes the interface of connectors to the data sources
 type Connector interface {
 	Init()
-	GetTags() (Tags, error)
-	GetIssues() (Issues, error)
-	GetMRs() (MRs, error)
+	GetTags() (data.Tags, error)
+	GetIssues() (data.Issues, error)
+	GetMRs() (data.MRs, error)
 }
 
 type connector struct {

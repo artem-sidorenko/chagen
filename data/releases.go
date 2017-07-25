@@ -19,8 +19,6 @@ package data
 import (
 	"sort"
 	"time"
-
-	"github.com/artem-sidorenko/chagen/connectors"
 )
 
 // Release desribes a release with it data
@@ -59,42 +57,21 @@ func (r *Releases) Sort() {
 // NewReleases builds the Releases structure
 // using given data from connector
 func NewReleases(
-	tags connectors.Tags,
-	issues connectors.Issues,
-	mrs connectors.MRs) (ret Releases) {
+	tags Tags,
+	issues Issues,
+	mrs MRs) (ret Releases) {
 
 	var lastReleaseDate time.Time
 
 	for _, tag := range tags {
-		var relIssues Issues
-		for _, is := range issues.Filter(lastReleaseDate, tag.Date) {
-			relIssues = append(relIssues, Issue{
-				ID:   is.ID,
-				Name: is.Name,
-				URL:  is.URL,
-			})
-		}
-
-		var relMRs MRs
-		for _, mr := range mrs.Filter(lastReleaseDate, tag.Date) {
-			relMRs = append(relMRs, MR{
-				ID:        mr.ID,
-				Name:      mr.Name,
-				URL:       mr.URL,
-				Author:    mr.Author,
-				AuthorURL: mr.AuthorURL,
-			})
-		}
-
-		rel := Release{
+		ret = append(ret, Release{
 			Release:       tag.Name,
 			ReleaseURL:    tag.URL,
 			Date:          tag.Date,
 			DateFormatted: tag.Date.Format("02.01.2006"),
-			Issues:        relIssues,
-			MRs:           relMRs,
-		}
-		ret = append(ret, rel)
+			Issues:        issues.Filter(lastReleaseDate, tag.Date),
+			MRs:           mrs.Filter(lastReleaseDate, tag.Date),
+		})
 
 		lastReleaseDate = tag.Date
 	}

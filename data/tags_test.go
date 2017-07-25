@@ -14,25 +14,25 @@
    limitations under the License.
 */
 
-package connectors_test
+package data_test
 
 import (
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/data"
 )
 
 func TestTags_Sort(t *testing.T) {
 	tests := []struct {
 		name string
-		t    *connectors.Tags
-		want *connectors.Tags
+		t    *data.Tags
+		want *data.Tags
 	}{
 		{
 			name: "Tags are already sorted",
-			t: &connectors.Tags{
+			t: &data.Tags{
 				{
 					Name: "v0.0.1",
 					Date: time.Unix(1047483647, 0),
@@ -46,7 +46,7 @@ func TestTags_Sort(t *testing.T) {
 					Date: time.Unix(1247483647, 0),
 				},
 			},
-			want: &connectors.Tags{
+			want: &data.Tags{
 				{
 					Name: "v0.0.1",
 					Date: time.Unix(1047483647, 0),
@@ -64,7 +64,7 @@ func TestTags_Sort(t *testing.T) {
 
 		{
 			name: "Tags are not sorted",
-			t: &connectors.Tags{
+			t: &data.Tags{
 				{
 					Name: "v0.0.2",
 					Date: time.Unix(1147483647, 0),
@@ -78,7 +78,7 @@ func TestTags_Sort(t *testing.T) {
 					Date: time.Unix(1247483647, 0),
 				},
 			},
-			want: &connectors.Tags{
+			want: &data.Tags{
 				{
 					Name: "v0.0.1",
 					Date: time.Unix(1047483647, 0),
