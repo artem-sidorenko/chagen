@@ -20,13 +20,17 @@ package github
 import (
 	"time"
 
+	"errors"
 	"os"
 
 	"net/url"
 	"path"
 
+	"fmt"
+
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/urfave/cli"
 )
 
 // AccessTokenEnvVar contains the name of environment variable
@@ -42,11 +46,19 @@ type Connector struct {
 }
 
 // Init takes the initialization of connector, e.g. reading environment vars etc
-func (c *Connector) Init() {
+func (c *Connector) Init(cli *cli.Context) error {
+	c.Owner = cli.String("github-owner")
+	if c.Owner == "" {
+		return errors.New("Option --github-owner is required")
+	}
+	c.Repo = cli.String("github-repo")
+	if c.Repo == "" {
+		return errors.New("Option --github-repo is required")
+	}
+
 	c.API = NewAPIClient(os.Getenv(AccessTokenEnvVar))
-	c.Owner = "artem-sidorenko"
-	c.Repo = "chef-cups"
-	c.ProjectURL = "https://github.com/artem-sidorenko/chef-cups"
+	c.ProjectURL = fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
+	return nil
 }
 
 // GetTags returns the git tags
@@ -146,5 +158,14 @@ func (c *Connector) GetMRs() (data.MRs, error) {
 }
 
 func init() {
-	connectors.RegisterConnector("github", "GitHub", &Connector{})
+	connectors.RegisterConnector("github", "GitHub", &Connector{}, []cli.Flag{
+		cli.StringFlag{
+			Name:  "github-owner",
+			Usage: "Owner/organisation where repository belongs to",
+		},
+		cli.StringFlag{
+			Name:  "github-repo",
+			Usage: "Name of repository",
+		},
+	})
 }
