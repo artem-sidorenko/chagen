@@ -49,7 +49,7 @@ func (is *Issues) Swap(i, j int) {
 
 // Sort implements sorting of available Issues
 func (is *Issues) Sort() {
-	sort.Sort(is)
+	sort.Sort(sort.Reverse(is))
 }
 
 // Filter filters and returns new slice of Issues, where ClosedDate is between given dates
