@@ -23,17 +23,18 @@ import (
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/urfave/cli"
 )
 
 type testConnector struct{}
 
-func (t *testConnector) Init()                           {}
+func (t *testConnector) Init(*cli.Context) error         { return nil }
 func (t *testConnector) GetTags() (data.Tags, error)     { return nil, nil }
 func (t *testConnector) GetIssues() (data.Issues, error) { return nil, nil }
 func (t *testConnector) GetMRs() (data.MRs, error)       { return nil, nil }
 
 func TestGetConnector(t *testing.T) {
-	connectors.RegisterConnector("testexisting", "TestExisting", &testConnector{})
+	connectors.RegisterConnector("testexisting", "TestExisting", &testConnector{}, nil)
 
 	type args struct {
 		id string

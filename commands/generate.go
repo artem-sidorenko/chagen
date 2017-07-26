@@ -20,19 +20,23 @@ import (
 	"os"
 
 	"github.com/artem-sidorenko/chagen/connectors"
+	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/generator"
 	"github.com/urfave/cli"
 )
 
 // Generate implements the CLI subcommand generate
-func Generate(filename string) (err error) {
+func Generate(c *cli.Context) (err error) {
 	connector, err := connectors.GetConnector("github")
 	if err != nil {
 		return
 	}
 
-	connector.Init()
+	err = connector.Init(c)
+	if err != nil {
+		return
+	}
 
 	tags, err := connector.GetTags()
 	if err != nil {
@@ -61,6 +65,7 @@ func Generate(filename string) (err error) {
 	}
 
 	// use stdout if - is given, otherwise create a new file
+	filename := c.String("file")
 	wr := os.Stdout
 	if filename != "-" {
 		wr, err = os.Create(filename)
@@ -80,19 +85,25 @@ func Generate(filename string) (err error) {
 }
 
 func init() {
+	flags := []cli.Flag{
+		cli.StringFlag{
+			Name:  "file, f",
+			Usage: "File name of changelog, - is accepted for stdout",
+			Value: "CHANGELOG.md",
+		},
+	}
+
+	connectorFlags, _ := connectors.GetCLIFlags("github")
+
+	flags = append(flags, connectorFlags...)
+
 	RegisterCommand(cli.Command{
 		Name:      "generate",
 		Usage:     "Generate a changelog",
 		ArgsUsage: " ", // we do not have any args (only flags), so avoid this help message
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "file, f",
-				Usage: "File name of changelog, - is accepted for stdout",
-				Value: "CHANGELOG.md",
-			},
-		},
+		Flags:     flags,
 		Action: func(c *cli.Context) error {
-			err := Generate(c.String("file"))
+			err := Generate(c)
 			if err != nil { // exit 1 and error message if we get any error reported
 				return cli.NewExitError(err, 1)
 			}
