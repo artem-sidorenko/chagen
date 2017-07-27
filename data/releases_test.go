@@ -67,10 +67,9 @@ func TestNewReleases(t *testing.T) {
 			},
 			wantRet: data.Releases{
 				data.Release{
-					Release:       "v0.0.1",
-					DateFormatted: "12.03.2003",
-					Date:          time.Unix(1047483647, 0),
-					ReleaseURL:    "https://example.com/tags/v0.0.1",
+					Release:    "v0.0.1",
+					Date:       "12.03.2003",
+					ReleaseURL: "https://example.com/tags/v0.0.1",
 					Issues: data.Issues{
 						data.Issue{
 							ID:         1,

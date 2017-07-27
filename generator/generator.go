@@ -27,7 +27,7 @@ import (
 const changelogTemplate = `Changelog
 =========
 {{ range .Releases}}
-## [{{.Release}}]({{.ReleaseURL}}) ({{.DateFormatted}})
+## [{{.Release}}]({{.ReleaseURL}}) ({{.Date}})
 
 {{- if .Issues}}
 

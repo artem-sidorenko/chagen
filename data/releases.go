@@ -22,12 +22,11 @@ import (
 
 // Release desribes a release with it data
 type Release struct {
-	Release       string
-	ReleaseURL    string
-	DateFormatted string
-	Date          time.Time
-	Issues        Issues
-	MRs           MRs
+	Release    string
+	ReleaseURL string
+	Date       string
+	Issues     Issues
+	MRs        MRs
 }
 
 // Releases is a slice with Release elements
@@ -53,12 +52,11 @@ func NewReleases(
 		}
 
 		ret = append(ret, Release{
-			Release:       tag.Name,
-			ReleaseURL:    tag.URL,
-			Date:          tag.Date,
-			DateFormatted: tag.Date.Format("02.01.2006"),
-			Issues:        issues.Filter(lastReleaseDate, tag.Date),
-			MRs:           mrs.Filter(lastReleaseDate, tag.Date),
+			Release:    tag.Name,
+			ReleaseURL: tag.URL,
+			Date:       tag.Date.Format("02.01.2006"),
+			Issues:     issues.Filter(lastReleaseDate, tag.Date),
+			MRs:        mrs.Filter(lastReleaseDate, tag.Date),
 		})
 	}
 
