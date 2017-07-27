@@ -31,7 +31,7 @@ func TestIssues_Sort(t *testing.T) {
 		want *data.Issues
 	}{
 		{
-			name: "Issues are already sorted",
+			name: "Issues are already sorted in the wrong order",
 			is: &data.Issues{
 				{
 					Name:       "Issue 1",
@@ -48,16 +48,16 @@ func TestIssues_Sort(t *testing.T) {
 			},
 			want: &data.Issues{
 				{
-					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					Name:       "Issue 3",
+					ClosedDate: time.Unix(1347483647, 0),
 				},
 				{
 					Name:       "Issue 2",
 					ClosedDate: time.Unix(1247483647, 0),
 				},
 				{
-					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					Name:       "Issue 1",
+					ClosedDate: time.Unix(1047483647, 0),
 				},
 			},
 		},
@@ -79,16 +79,16 @@ func TestIssues_Sort(t *testing.T) {
 			},
 			want: &data.Issues{
 				{
-					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					Name:       "Issue 3",
+					ClosedDate: time.Unix(1347483647, 0),
 				},
 				{
 					Name:       "Issue 2",
 					ClosedDate: time.Unix(1247483647, 0),
 				},
 				{
-					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					Name:       "Issue 1",
+					ClosedDate: time.Unix(1047483647, 0),
 				},
 			},
 		},

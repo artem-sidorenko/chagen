@@ -49,5 +49,5 @@ func (t *Tags) Swap(i, j int) {
 
 // Sort implements sorting of available Tags
 func (t *Tags) Sort() {
-	sort.Sort(t)
+	sort.Sort(sort.Reverse(t))
 }

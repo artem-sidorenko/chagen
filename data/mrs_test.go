@@ -31,7 +31,7 @@ func TestMRs_Sort(t *testing.T) {
 		want *data.MRs
 	}{
 		{
-			name: "MRs are already sorted",
+			name: "MRs are already sorted in the wrong order",
 			m: &data.MRs{
 				{
 					Name:       "MR 1",
@@ -48,16 +48,16 @@ func TestMRs_Sort(t *testing.T) {
 			},
 			want: &data.MRs{
 				{
-					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					Name:       "MR 3",
+					MergedDate: time.Unix(1347483647, 0),
 				},
 				{
 					Name:       "MR 2",
 					MergedDate: time.Unix(1247483647, 0),
 				},
 				{
-					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					Name:       "MR 1",
+					MergedDate: time.Unix(1047483647, 0),
 				},
 			},
 		},
@@ -79,16 +79,16 @@ func TestMRs_Sort(t *testing.T) {
 			},
 			want: &data.MRs{
 				{
-					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					Name:       "MR 3",
+					MergedDate: time.Unix(1347483647, 0),
 				},
 				{
 					Name:       "MR 2",
 					MergedDate: time.Unix(1247483647, 0),
 				},
 				{
-					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					Name:       "MR 1",
+					MergedDate: time.Unix(1047483647, 0),
 				},
 			},
 		},

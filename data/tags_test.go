@@ -31,7 +31,7 @@ func TestTags_Sort(t *testing.T) {
 		want *data.Tags
 	}{
 		{
-			name: "Tags are already sorted",
+			name: "Tags are already sorted in the wrong order",
 			t: &data.Tags{
 				{
 					Name: "v0.0.1",
@@ -48,16 +48,16 @@ func TestTags_Sort(t *testing.T) {
 			},
 			want: &data.Tags{
 				{
-					Name: "v0.0.1",
-					Date: time.Unix(1047483647, 0),
+					Name: "v0.0.3",
+					Date: time.Unix(1247483647, 0),
 				},
 				{
 					Name: "v0.0.2",
 					Date: time.Unix(1147483647, 0),
 				},
 				{
-					Name: "v0.0.3",
-					Date: time.Unix(1247483647, 0),
+					Name: "v0.0.1",
+					Date: time.Unix(1047483647, 0),
 				},
 			},
 		},
@@ -80,16 +80,16 @@ func TestTags_Sort(t *testing.T) {
 			},
 			want: &data.Tags{
 				{
-					Name: "v0.0.1",
-					Date: time.Unix(1047483647, 0),
+					Name: "v0.0.3",
+					Date: time.Unix(1247483647, 0),
 				},
 				{
 					Name: "v0.0.2",
 					Date: time.Unix(1147483647, 0),
 				},
 				{
-					Name: "v0.0.3",
-					Date: time.Unix(1247483647, 0),
+					Name: "v0.0.1",
+					Date: time.Unix(1047483647, 0),
 				},
 			},
 		},

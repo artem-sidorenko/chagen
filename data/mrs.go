@@ -51,7 +51,7 @@ func (m *MRs) Swap(i, j int) {
 
 // Sort implements sorting of available MRs
 func (m *MRs) Sort() {
-	sort.Sort(m)
+	sort.Sort(sort.Reverse(m))
 }
 
 // Filter filters and returns new slice of Issues, where ClosedDate is between given dates

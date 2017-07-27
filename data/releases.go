@@ -17,42 +17,20 @@
 package data
 
 import (
-	"sort"
 	"time"
 )
 
 // Release desribes a release with it data
 type Release struct {
-	Release       string
-	ReleaseURL    string
-	DateFormatted string
-	Date          time.Time
-	Issues        Issues
-	MRs           MRs
+	Release    string
+	ReleaseURL string
+	Date       string
+	Issues     Issues
+	MRs        MRs
 }
 
 // Releases is a slice with Release elements
 type Releases []Release
-
-// Len implements the Sort.Interface
-func (r *Releases) Len() int {
-	return len(*r)
-}
-
-// Less implements the Sort.Interface
-func (r *Releases) Less(i, j int) bool {
-	return (*r)[i].Date.Before((*r)[j].Date)
-}
-
-// Swap implements the Sort.Interface
-func (r *Releases) Swap(i, j int) {
-	(*r)[i], (*r)[j] = (*r)[j], (*r)[i]
-}
-
-// Sort implements reverse sorting by date (the oldest release is first)
-func (r *Releases) Sort() {
-	sort.Sort(sort.Reverse(r))
-}
 
 // NewReleases builds the Releases structure
 // using given data from connector
@@ -63,17 +41,23 @@ func NewReleases(
 
 	var lastReleaseDate time.Time
 
-	for _, tag := range tags {
-		ret = append(ret, Release{
-			Release:       tag.Name,
-			ReleaseURL:    tag.URL,
-			Date:          tag.Date,
-			DateFormatted: tag.Date.Format("02.01.2006"),
-			Issues:        issues.Filter(lastReleaseDate, tag.Date),
-			MRs:           mrs.Filter(lastReleaseDate, tag.Date),
-		})
+	// we get tags sorted and iterating it from the newest to the oldest tags
+	for i, tag := range tags {
+		// use the date of next tag (its older) as last release date
+		// use 0 as last release date if we have the oldest (last) tag
+		if i < (len(tags) - 1) {
+			lastReleaseDate = tags[i+1].Date
+		} else {
+			lastReleaseDate = time.Time{}
+		}
 
-		lastReleaseDate = tag.Date
+		ret = append(ret, Release{
+			Release:    tag.Name,
+			ReleaseURL: tag.URL,
+			Date:       tag.Date.Format("02.01.2006"),
+			Issues:     issues.Filter(lastReleaseDate, tag.Date),
+			MRs:        mrs.Filter(lastReleaseDate, tag.Date),
+		})
 	}
 
 	return
