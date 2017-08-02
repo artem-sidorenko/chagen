@@ -18,6 +18,7 @@ package commands
 
 import (
 	"os"
+	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
@@ -27,7 +28,7 @@ import (
 )
 
 // Generate implements the CLI subcommand generate
-func Generate(c *cli.Context) (err error) {
+func Generate(c *cli.Context) (err error) { // nolint: gocyclo
 	connector, err := connectors.GetConnector("github")
 	if err != nil {
 		return
@@ -41,6 +42,19 @@ func Generate(c *cli.Context) (err error) {
 	tags, err := connector.GetTags()
 	if err != nil {
 		return
+	}
+	if rel := c.String("new-release"); rel != "" {
+		var relURL string
+		relURL, err = connector.GetNewTagURL(rel)
+		if err != nil {
+			return
+		}
+
+		tags = append(tags, data.Tag{
+			Name: rel,
+			Date: time.Now(),
+			URL:  relURL,
+		})
 	}
 	tags.Sort()
 
@@ -88,6 +102,10 @@ func init() {
 			Name:  "file, f",
 			Usage: "File name of changelog, - is accepted for stdout",
 			Value: "CHANGELOG.md",
+		},
+		cli.StringFlag{
+			Name:  "new-release, r",
+			Usage: "Create a new release for all issues and changes after the last release",
 		},
 	}
 

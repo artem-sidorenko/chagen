@@ -23,74 +23,10 @@ import (
 	"time"
 
 	cgithub "github.com/artem-sidorenko/chagen/connectors/github"
+	"github.com/artem-sidorenko/chagen/connectors/github/internal/testapiclient"
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/google/go-github/github"
 )
-
-type testAPIClient struct {
-	RetListTags           []*github.RepositoryTag
-	RetListTagsErr        error
-	RetGetCommits         map[string]*github.RepositoryCommit
-	RetGetCommitsErr      error
-	RetListIssues         []*github.Issue
-	RetListIssuesErr      error
-	RetPRs                []*github.PullRequest
-	RetPRsErr             error
-	RetGetReleaseByTag    map[string]*github.RepositoryRelease
-	RetGetReleaseByTagErr error
-}
-
-// ListTags simulates the github.Client.Repositories.ListTags()
-func (t *testAPIClient) ListTags(_, _ string) ([]*github.RepositoryTag, error) {
-	if t.RetListTagsErr != nil {
-		return nil, t.RetListTagsErr
-	}
-	return t.RetListTags, nil
-}
-
-// GetCommit simlualtes the github.Client.Repositories.GetCommit()
-func (t *testAPIClient) GetCommit(_, _, sha string) (*github.RepositoryCommit, error) {
-	if t.RetGetCommitsErr != nil {
-		return nil, t.RetGetCommitsErr
-	}
-	return t.RetGetCommits[sha], nil
-}
-
-// ListIssues simulates the github.Client.Issues.ListByRepo()
-func (t *testAPIClient) ListIssues(_, _ string) ([]*github.Issue, error) {
-	if t.RetListIssuesErr != nil {
-		return nil, t.RetListIssuesErr
-	}
-	return t.RetListIssues, nil
-}
-
-// ListPRs simulates the github.Client.PullRequests.List()
-func (t *testAPIClient) ListPRs(_, _ string) ([]*github.PullRequest, error) {
-	if t.RetPRsErr != nil {
-		return nil, t.RetPRsErr
-	}
-	return t.RetPRs, nil
-}
-
-// GetReleaseByTag simulates the github.Client.RepositoriesService.GetReleaseByTag
-func (t *testAPIClient) GetReleaseByTag(_, _, tag string) (*github.RepositoryRelease, error) {
-	if t.RetGetReleaseByTagErr != nil {
-		return nil, t.RetGetReleaseByTagErr
-	}
-	return t.RetGetReleaseByTag[tag], nil
-}
-
-func getStringPtr(s string) *string {
-	return &s
-}
-
-func getIntPtr(i int) *int {
-	return &i
-}
-
-func getTimePtr(t time.Time) *time.Time {
-	return &t
-}
 
 func Test_connector_GetTags(t *testing.T) {
 	type fields struct {
@@ -108,41 +44,41 @@ func Test_connector_GetTags(t *testing.T) {
 		{
 			name: "API returns proper data",
 			fields: fields{
-				API: &testAPIClient{
+				API: &testapiclient.TestAPIClient{
 					RetListTags: []*github.RepositoryTag{
 						{
-							Name: getStringPtr("v0.0.1"),
+							Name: testapiclient.GetStringPtr("v0.0.1"),
 							Commit: &github.Commit{
-								SHA: getStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
+								SHA: testapiclient.GetStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
 							},
 						},
 						{
-							Name: getStringPtr("v0.0.2"),
+							Name: testapiclient.GetStringPtr("v0.0.2"),
 							Commit: &github.Commit{
-								SHA: getStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
+								SHA: testapiclient.GetStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
 							},
 						},
 					},
 					RetGetReleaseByTag: map[string]*github.RepositoryRelease{
 						"v0.0.1": {
-							TagName: getStringPtr("v0.0.1"),
-							HTMLURL: getStringPtr("https://example.com/releases/v0.0.1"),
+							TagName: testapiclient.GetStringPtr("v0.0.1"),
+							HTMLURL: testapiclient.GetStringPtr("https://example.com/releases/v0.0.1"),
 						},
 					},
 					RetGetCommits: map[string]*github.RepositoryCommit{
 						"7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc": {
 							Commit: &github.Commit{
-								SHA: getStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
+								SHA: testapiclient.GetStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
 								Committer: &github.CommitAuthor{
-									Date: getTimePtr(time.Unix(2147483647, 0)),
+									Date: testapiclient.GetTimePtr(time.Unix(2147483647, 0)),
 								},
 							},
 						},
 						"b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da": {
 							Commit: &github.Commit{
-								SHA: getStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
+								SHA: testapiclient.GetStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
 								Committer: &github.CommitAuthor{
-									Date: getTimePtr(time.Unix(2047483647, 0)),
+									Date: testapiclient.GetTimePtr(time.Unix(2047483647, 0)),
 								},
 							},
 						},
@@ -170,7 +106,7 @@ func Test_connector_GetTags(t *testing.T) {
 		{
 			name: "ListTags call fails",
 			fields: fields{
-				API: &testAPIClient{
+				API: &testapiclient.TestAPIClient{
 					RetListTagsErr: errors.New("ListTags failed"),
 				},
 			},
@@ -179,12 +115,12 @@ func Test_connector_GetTags(t *testing.T) {
 		{
 			name: "GetCommit call fails",
 			fields: fields{
-				API: &testAPIClient{
+				API: &testapiclient.TestAPIClient{
 					RetListTags: []*github.RepositoryTag{
 						{
-							Name: getStringPtr("v0.0.1"),
+							Name: testapiclient.GetStringPtr("v0.0.1"),
 							Commit: &github.Commit{
-								SHA: getStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
+								SHA: testapiclient.GetStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
 							},
 						},
 					},
@@ -230,20 +166,20 @@ func TestConnector_GetIssues(t *testing.T) {
 		{
 			name: "API returns proper data",
 			fields: fields{
-				API: &testAPIClient{
+				API: &testapiclient.TestAPIClient{
 					RetListIssues: []*github.Issue{
 						{
-							Number:           getIntPtr(1234),
-							Title:            getStringPtr("Test issue title"),
+							Number:           testapiclient.GetIntPtr(1234),
+							Title:            testapiclient.GetStringPtr("Test issue title"),
 							PullRequestLinks: &github.PullRequestLinks{},
-							ClosedAt:         getTimePtr(time.Unix(1047483647, 0)),
-							HTMLURL:          getStringPtr("http://example.com/issues/1234"),
+							ClosedAt:         testapiclient.GetTimePtr(time.Unix(1047483647, 0)),
+							HTMLURL:          testapiclient.GetStringPtr("http://example.com/issues/1234"),
 						},
 						{
-							Number: getIntPtr(4321),
-							Title:  getStringPtr("Test PR title"),
+							Number: testapiclient.GetIntPtr(4321),
+							Title:  testapiclient.GetStringPtr("Test PR title"),
 							PullRequestLinks: &github.PullRequestLinks{
-								URL: getStringPtr("https://example.com/prs/4321"),
+								URL: testapiclient.GetStringPtr("https://example.com/prs/4321"),
 							},
 						},
 					},
@@ -261,7 +197,7 @@ func TestConnector_GetIssues(t *testing.T) {
 		{
 			name: "ListIssues call fails",
 			fields: fields{
-				API: &testAPIClient{
+				API: &testapiclient.TestAPIClient{
 					RetListIssuesErr: errors.New("ListIssues failed"),
 				},
 			},
@@ -302,21 +238,21 @@ func TestConnector_GetMRs(t *testing.T) {
 		{
 			name: "API returns proper data",
 			fields: fields{
-				API: &testAPIClient{
+				API: &testapiclient.TestAPIClient{
 					RetPRs: []*github.PullRequest{
 						{
-							Number:  getIntPtr(1234),
-							Title:   getStringPtr("Test PR title"),
-							HTMLURL: getStringPtr("https://example.com/pulls/1234"),
+							Number:  testapiclient.GetIntPtr(1234),
+							Title:   testapiclient.GetStringPtr("Test PR title"),
+							HTMLURL: testapiclient.GetStringPtr("https://example.com/pulls/1234"),
 							User: &github.User{
-								Login:   getStringPtr("test-user"),
-								HTMLURL: getStringPtr("https://example.com/users/test-user"),
+								Login:   testapiclient.GetStringPtr("test-user"),
+								HTMLURL: testapiclient.GetStringPtr("https://example.com/users/test-user"),
 							},
-							MergedAt: getTimePtr(time.Unix(1747483647, 0)),
+							MergedAt: testapiclient.GetTimePtr(time.Unix(1747483647, 0)),
 						},
 						{
-							Number: getIntPtr(1233),
-							Title:  getStringPtr("Second closed PR title"),
+							Number: testapiclient.GetIntPtr(1233),
+							Title:  testapiclient.GetStringPtr("Second closed PR title"),
 						},
 					},
 				},
@@ -335,7 +271,7 @@ func TestConnector_GetMRs(t *testing.T) {
 		{
 			name: "ListPRs call fails",
 			fields: fields{
-				API: &testAPIClient{
+				API: &testapiclient.TestAPIClient{
 					RetPRsErr: errors.New("ListPRs failed"),
 				},
 			},
@@ -356,6 +292,89 @@ func TestConnector_GetMRs(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Connector.GetMRs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestConnector_GetNewTagURL(t *testing.T) {
+	type fields struct {
+		NewTagUseReleaseURL bool
+	}
+	type args struct {
+		TagName string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Release is present, NewTagUseReleaseURL is disabled",
+			fields: fields{
+				NewTagUseReleaseURL: false,
+			},
+			args: args{
+				TagName: "v0.0.1",
+			},
+			want: "https://example.com/testowner/restrepo/releases/v0.0.1",
+		},
+		{
+			name: "Release is present, NewTagUseReleaseURL is enabled",
+			fields: fields{
+				NewTagUseReleaseURL: true,
+			},
+			args: args{
+				TagName: "v0.0.1",
+			},
+			want: "https://example.com/testowner/restrepo/releases/v0.0.1",
+		},
+		{
+			name: "Release is not present, NewTagUseReleaseURL is disabled",
+			fields: fields{
+				NewTagUseReleaseURL: false,
+			},
+			args: args{
+				TagName: "v0.0.3",
+			},
+			want: "https://example.com/testowner/restrepo/tree/v0.0.3",
+		},
+		{
+			name: "Release is not present, alwaysUseReleaseURL is enabled",
+			fields: fields{
+				NewTagUseReleaseURL: true,
+			},
+			args: args{
+				TagName: "v0.0.3",
+			},
+			want: "https://example.com/testowner/restrepo/releases/v0.0.3",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &cgithub.Connector{
+				API: &testapiclient.TestAPIClient{
+					RetGetReleaseByTag: map[string]*github.RepositoryRelease{
+						"v0.0.1": {
+							TagName: testapiclient.GetStringPtr("v0.0.1"),
+							HTMLURL: testapiclient.GetStringPtr(
+								"https://example.com/testowner/restrepo/releases/v0.0.1",
+							),
+						},
+					},
+				},
+				ProjectURL:          "https://example.com/testowner/restrepo",
+				NewTagUseReleaseURL: tt.fields.NewTagUseReleaseURL,
+			}
+			got, err := c.GetNewTagURL(tt.args.TagName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Connector.GetNewTagURL() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Connector.GetNewTagURL() = %v, want %v", got, tt.want)
 			}
 		})
 	}

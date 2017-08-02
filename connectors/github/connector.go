@@ -39,10 +39,11 @@ const AccessTokenEnvVar = "CHAGEN_GITHUB_TOKEN"
 
 // Connector implements the GitHub connector
 type Connector struct {
-	API        API
-	Owner      string
-	Repo       string
-	ProjectURL string
+	API                 API
+	Owner               string
+	Repo                string
+	ProjectURL          string
+	NewTagUseReleaseURL bool
 }
 
 // Init takes the initialization of connector, e.g. reading environment vars etc
@@ -55,10 +56,46 @@ func (c *Connector) Init(cli *cli.Context) error {
 	if c.Repo == "" {
 		return errors.New("Option --github-repo is required")
 	}
+	c.NewTagUseReleaseURL = cli.Bool("github-release-url")
 
 	c.API = NewAPIClient(os.Getenv(AccessTokenEnvVar))
 	c.ProjectURL = fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
 	return nil
+}
+
+// GetNewTagURL returns the URL for a new tag, which does not exist yet
+func (c *Connector) GetNewTagURL(TagName string) (string, error) {
+	return c.getTagURL(TagName, c.NewTagUseReleaseURL)
+}
+
+// getTagURL returns the URL for a given tag.
+// If alwaysUseReleaseURL is true: URL is provided for release page,
+// even if it does not exist yet
+func (c *Connector) getTagURL(TagName string, alwaysUseReleaseURL bool) (string, error) {
+	release, err := c.API.GetReleaseByTag(c.Owner, c.Repo, TagName)
+	if err != nil {
+		return "", err
+	}
+
+	// if GitHub release for this tag was found -> use it
+	// generate otherwise a link to the git tag view in the file tree
+	var tagURL string
+	if release != nil { // we got real release URL, use it
+		tagURL = release.GetHTMLURL()
+	} else { // build own URL
+		u, err := url.Parse(c.ProjectURL)
+		if err != nil {
+			return "", err
+		}
+
+		if alwaysUseReleaseURL { // try to build own release url
+			u.Path = path.Join(u.Path, "/releases/"+TagName)
+		} else { // build tag url
+			u.Path = path.Join(u.Path, "/tree/"+TagName)
+		}
+		tagURL = u.String()
+	}
+	return tagURL, nil
 }
 
 // GetTags returns the git tags
@@ -76,23 +113,9 @@ func (c *Connector) GetTags() (data.Tags, error) {
 			return nil, err
 		}
 
-		release, err := c.API.GetReleaseByTag(c.Owner, c.Repo, tagName)
+		tagURL, err := c.getTagURL(tagName, false)
 		if err != nil {
 			return nil, err
-		}
-
-		// if GitHub release for this tag was found -> use it
-		// generate otherwise a link to the git tag view in the file tree
-		var tagURL string
-		if release != nil {
-			tagURL = release.GetHTMLURL()
-		} else {
-			u, err := url.Parse(c.ProjectURL)
-			if err != nil {
-				return nil, err
-			}
-			u.Path = path.Join(u.Path, "/tree/"+tagName)
-			tagURL = u.String()
 		}
 
 		ret = append(ret, data.Tag{
@@ -166,6 +189,10 @@ func init() {
 		cli.StringFlag{
 			Name:  "github-repo",
 			Usage: "Name of repository",
+		},
+		cli.BoolFlag{
+			Name:  "github-release-url",
+			Usage: "New release should use URL to the GitHub release, even if it does not exist yet",
 		},
 	})
 }
