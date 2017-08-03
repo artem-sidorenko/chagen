@@ -28,10 +28,11 @@ import (
 
 type testConnector struct{}
 
-func (t *testConnector) Init(*cli.Context) error         { return nil }
-func (t *testConnector) GetTags() (data.Tags, error)     { return nil, nil }
-func (t *testConnector) GetIssues() (data.Issues, error) { return nil, nil }
-func (t *testConnector) GetMRs() (data.MRs, error)       { return nil, nil }
+func (t *testConnector) Init(*cli.Context) error             { return nil }
+func (t *testConnector) GetTags() (data.Tags, error)         { return nil, nil }
+func (t *testConnector) GetIssues() (data.Issues, error)     { return nil, nil }
+func (t *testConnector) GetMRs() (data.MRs, error)           { return nil, nil }
+func (t *testConnector) GetNewTagURL(string) (string, error) { return "", nil }
 
 func TestGetConnector(t *testing.T) {
 	connectors.RegisterConnector("testexisting", "TestExisting", &testConnector{}, nil)
