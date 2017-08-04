@@ -27,13 +27,19 @@ endif
 	sed -i "s/var version =.*/var version = \"${NEW_VERSION}\"/" chagen.go
 
 release: ## Build a new release
-	mkdir -p releases/$(VERSION)
-	GOOS=linux GOARCH=amd64 go build -o releases/$(VERSION)/chagen-linux-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
-	GOOS=darwin GOARCH=amd64 go build -o releases/$(VERSION)/chagen-darwin-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
-	GOOS=windows GOARCH=amd64 go build -o releases/$(VERSION)/chagen-windows-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
+	rm -rf release
+	mkdir release
+	GOOS=linux GOARCH=amd64 go build -o release/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	tar cfzC release/chagen_$(VERSION)_Linux-64bit.tgz release chagen
+	GOOS=darwin GOARCH=amd64 go build -o release/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	tar cfzC release/chagen_$(VERSION)_MacOS-64bt.tgz release chagen
+	GOOS=windows GOARCH=amd64 go build -o release/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	zip -FS -j release/chagen_$(VERSION)_Windows-64bt.zip release/chagen
+	rm release/chagen
+	cd release; sha256sum * > chagen_$(VERSION)_checksums.sha256
 
 clean: ## Cleanup the builds
-	rm -rf build releases
+	rm -rf build release
 
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
