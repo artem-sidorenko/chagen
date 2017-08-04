@@ -21,10 +21,20 @@ test: ## Run the tests
 
 prepare-release: ## Prepare a new release
 ifndef NEW_VERSION
-	@echo "Usage: make release NEW_VERSION=0.1.2"
-	exit 1
+	@echo "Usage: make prepare-release NEW_VERSION=0.1.2"
+	@exit 1
 endif
+	@if [ "$$(git symbolic-ref HEAD)" != "refs/heads/master" ]; then \
+		echo "make prepare-release should be executed on the master branch" ;\
+		exit 1 ;\
+	fi
 	sed -i "s/var version =.*/var version = \"${NEW_VERSION}\"/" chagen.go
+	chagen generate --github-owner artem-sidorenko --github-repo chagen -r v${NEW_VERSION} --github-release-url
+	git add -u CHANGELOG.md chagen.go
+	git commit -m "Release ${NEW_VERSION}"
+	git tag v${NEW_VERSION}
+	git push
+	git push origin refs/tags/v${NEW_VERSION}
 
 release: ## Build a new release
 	rm -rf release
