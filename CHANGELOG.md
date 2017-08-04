@@ -1,7 +1,18 @@
 Changelog
 =========
 
-## [v0.0.1](https://github.com/artem-sidorenko/chagen/releases/v0.0.1) (04.08.2017)
+## [v0.0.2](https://github.com/artem-sidorenko/chagen/releases/v0.0.2) (04.08.2017)
+
+Closed issues
+-------------
+- Upload of released builds and packages to GitHub and OBS from Travis [\#15](https://github.com/artem-sidorenko/chagen/issues/15)
+- Signing of git release tags with gpg [\#14](https://github.com/artem-sidorenko/chagen/issues/14)
+
+Merged pull requests
+--------------------
+- Upload and signing of releases [\#18](https://github.com/artem-sidorenko/chagen/pull/18) ([artem-sidorenko](https://github.com/artem-sidorenko))
+
+## [v0.0.1](https://github.com/artem-sidorenko/chagen/releases/tag/v0.0.1) (04.08.2017)
 
 Merged pull requests
 --------------------
