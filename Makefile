@@ -43,9 +43,9 @@ release: ## Build a new release
 	GOOS=linux GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
 	tar cfzC release/$(VERSION)/chagen_$(VERSION)_Linux-64bit.tgz release/$(VERSION) chagen
 	GOOS=darwin GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
-	tar cfzC release/$(VERSION)/chagen_$(VERSION)_MacOS-64bt.tgz release/$(VERSION) chagen
+	tar cfzC release/$(VERSION)/chagen_$(VERSION)_MacOS-64bit.tgz release/$(VERSION) chagen
 	GOOS=windows GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
-	zip -FS -j release/$(VERSION)/chagen_$(VERSION)_Windows-64bt.zip release/$(VERSION)/chagen
+	zip -FS -j release/$(VERSION)/chagen_$(VERSION)_Windows-64bit.zip release/$(VERSION)/chagen
 	rm release/$(VERSION)/chagen
 	cd release/$(VERSION); sha256sum * > chagen_$(VERSION)_checksums.sha256
 
