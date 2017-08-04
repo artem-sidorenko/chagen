@@ -14,6 +14,7 @@ build: ## Build the development binaries
 prepare-env: ## Prepare the development/test environment
 	go get -u github.com/alecthomas/gometalinter
 	gometalinter --install
+	go get -u github.com/tcnksm/ghr
 
 test: ## Run the tests
 	go test $$(go list ./... | grep -v /vendor/)
@@ -32,21 +33,28 @@ endif
 	chagen generate --github-owner artem-sidorenko --github-repo chagen -r v${NEW_VERSION} --github-release-url
 	git add -u CHANGELOG.md chagen.go
 	git commit -m "Release ${NEW_VERSION}"
-	git tag v${NEW_VERSION}
+	git tag -u 8B4B87B9 v${NEW_VERSION} -m "Release v${NEW_VERSION}"
 	git push
 	git push origin refs/tags/v${NEW_VERSION}
 
 release: ## Build a new release
-	rm -rf release
-	mkdir release
-	GOOS=linux GOARCH=amd64 go build -o release/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
-	tar cfzC release/chagen_$(VERSION)_Linux-64bit.tgz release chagen
-	GOOS=darwin GOARCH=amd64 go build -o release/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
-	tar cfzC release/chagen_$(VERSION)_MacOS-64bt.tgz release chagen
-	GOOS=windows GOARCH=amd64 go build -o release/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
-	zip -FS -j release/chagen_$(VERSION)_Windows-64bt.zip release/chagen
-	rm release/chagen
-	cd release; sha256sum * > chagen_$(VERSION)_checksums.sha256
+	rm -rf release/$(VERSION)
+	mkdir -p release/$(VERSION)
+	GOOS=linux GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	tar cfzC release/$(VERSION)/chagen_$(VERSION)_Linux-64bit.tgz release/$(VERSION) chagen
+	GOOS=darwin GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	tar cfzC release/$(VERSION)/chagen_$(VERSION)_MacOS-64bt.tgz release/$(VERSION) chagen
+	GOOS=windows GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	zip -FS -j release/$(VERSION)/chagen_$(VERSION)_Windows-64bt.zip release/$(VERSION)/chagen
+	rm release/$(VERSION)/chagen
+	cd release/$(VERSION); sha256sum * > chagen_$(VERSION)_checksums.sha256
+
+sign-release: ## Sign the checksums of release
+	gpg -a -u 8B4B87B9 --detach-sig --output release/$(VERSION)/chagen_$(VERSION)_checksums.sha256.sig release/$(VERSION)/chagen_$(VERSION)_checksums.sha256
+
+upload-release: ## Upload the new release builds to GitHub releases
+	@tag=$$(git describe --tags --exact-match);\
+	ghr -u artem-sidorenko -r chagen $$tag release/$$tag
 
 clean: ## Cleanup the builds
 	rm -rf build release
