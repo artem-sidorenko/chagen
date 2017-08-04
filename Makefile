@@ -33,7 +33,7 @@ endif
 	chagen generate --github-owner artem-sidorenko --github-repo chagen -r v${NEW_VERSION} --github-release-url
 	git add -u CHANGELOG.md chagen.go
 	git commit -m "Release ${NEW_VERSION}"
-	git tag v${NEW_VERSION}
+	git tag -u 8B4B87B9 v${NEW_VERSION} -m "Release v${NEW_VERSION}"
 	git push
 	git push origin refs/tags/v${NEW_VERSION}
 
