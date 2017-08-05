@@ -18,62 +18,18 @@ package commands
 
 import (
 	"os"
-	"time"
 
+	"github.com/artem-sidorenko/chagen/commands/helpers"
 	"github.com/artem-sidorenko/chagen/connectors"
 	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
-	"github.com/artem-sidorenko/chagen/data"
-	"github.com/artem-sidorenko/chagen/generator"
 	"github.com/urfave/cli"
 )
 
 // Generate implements the CLI subcommand generate
-func Generate(c *cli.Context) (err error) { // nolint: gocyclo
-	connector, err := connectors.GetConnector("github")
+func Generate(c *cli.Context) (err error) {
+	gen, err := helpers.NewGenerator(c)
 	if err != nil {
 		return
-	}
-
-	err = connector.Init(c)
-	if err != nil {
-		return
-	}
-
-	tags, err := connector.GetTags()
-	if err != nil {
-		return
-	}
-	if rel := c.String("new-release"); rel != "" {
-		var relURL string
-		relURL, err = connector.GetNewTagURL(rel)
-		if err != nil {
-			return
-		}
-
-		tags = append(tags, data.Tag{
-			Name: rel,
-			Date: time.Now(),
-			URL:  relURL,
-		})
-	}
-	tags.Sort()
-
-	issues, err := connector.GetIssues()
-	if err != nil {
-		return
-	}
-	issues.Sort()
-
-	mrs, err := connector.GetMRs()
-	if err != nil {
-		return
-	}
-	mrs.Sort()
-
-	releases := data.NewReleases(tags, issues, mrs)
-
-	gen := generator.Generator{
-		Releases: releases,
 	}
 
 	// use stdout if - is given, otherwise create a new file
