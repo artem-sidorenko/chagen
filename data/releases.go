@@ -20,6 +20,8 @@ import (
 	"time"
 )
 
+const releaseDateFormat = "02.01.2006"
+
 // Release desribes a release with it data
 type Release struct {
 	Release    string
@@ -54,7 +56,7 @@ func NewReleases(
 		ret = append(ret, Release{
 			Release:    tag.Name,
 			ReleaseURL: tag.URL,
-			Date:       tag.Date.Format("02.01.2006"),
+			Date:       tag.Date.Format(releaseDateFormat),
 			Issues:     issues.Filter(lastReleaseDate, tag.Date),
 			MRs:        mrs.Filter(lastReleaseDate, tag.Date),
 		})
