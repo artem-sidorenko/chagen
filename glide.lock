@@ -1,34 +1,37 @@
 hash: 330d5b7918a755de93beadf8df70ac57fde0dac5920b0f02ca7995c811e9ab80
-updated: 2017-07-21T21:30:24.442371567+02:00
+updated: 2019-01-03T22:35:41.722336+01:00
 imports:
 - name: github.com/golang/protobuf
-  version: 0a4f71a498b7c4812f64969510bcb4eca251e33a
+  version: 1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f
   subpackages:
   - proto
 - name: github.com/google/go-github
-  version: e062a8cd852f0fb981c8c9f837c214c4d1031870
+  version: 9650f9402d5796f9186ffa1b3701d79ae1c0c120
   subpackages:
   - github
 - name: github.com/google/go-querystring
-  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  version: 44c6ddd0a2342c386950e880b658017258da92fc
   subpackages:
   - query
 - name: github.com/urfave/cli
-  version: 8ba6f23b6e36d03666a14bd9421f5e3efcb59aca
+  version: b67dcf995b6a7b7f14fad5fcb7cc5441b05e814b
 - name: golang.org/x/net
-  version: ab5485076ff3407ad2d02db054635913f017b0ed
+  version: 927f97764cc334a6575f4b7a1584a147864d5723
   subpackages:
   - context
+  - context/ctxhttp
 - name: golang.org/x/oauth2
-  version: b53b38ad8a6435bd399ea76d0fa74f23149cca4e
-- name: google.golang.org/appengine
-  version: ad2570cd3913654e00c5f0183b39d2f998e54046
+  version: d668ce993890a79bda886613ee587a69dd5da7a6
   subpackages:
   - internal
-  - internal/app_identity
+- name: google.golang.org/appengine
+  version: e9657d882bb81064595ca3b56cbe2546bbabf7b1
+  subpackages:
+  - internal
   - internal/base
   - internal/datastore
   - internal/log
-  - internal/modules
   - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
 testImports: []
