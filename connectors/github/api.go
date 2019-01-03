@@ -70,15 +70,14 @@ func (a *APIClient) ListTags(owner, repo string) ([]*github.RepositoryTag, error
 }
 
 // GetCommit implements the github.Client.Repositories.GetCommit()
-func (a *APIClient) GetCommit(owner, repo, sha string) (
-	commit *github.RepositoryCommit, err error) {
+func (a *APIClient) GetCommit(owner, repo, sha string) (*github.RepositoryCommit, error) {
 
-	commit, _, err = a.client.Repositories.GetCommit(a.context, owner, repo, sha)
+	commit, _, err := a.client.Repositories.GetCommit(a.context, owner, repo, sha)
 	if err != nil {
 		return nil, a.formatErrorCode("GetCommit", err)
 	}
 
-	return
+	return commit, nil
 }
 
 // ListIssues implements the github.Client.Issues.ListByRepo()

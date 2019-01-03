@@ -55,11 +55,12 @@ func (m *MRs) Sort() {
 }
 
 // Filter filters and returns new slice of Issues, where ClosedDate is between given dates
-func (m *MRs) Filter(fromDate, toDate time.Time) (ret MRs) {
+func (m *MRs) Filter(fromDate, toDate time.Time) MRs {
+	var ret MRs
 	for _, mr := range *m {
 		if mr.MergedDate.After(fromDate) && mr.MergedDate.Before(toDate) {
 			ret = append(ret, mr)
 		}
 	}
-	return
+	return ret
 }

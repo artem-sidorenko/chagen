@@ -26,7 +26,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var version = "0.0.2"
+var version = "0.0.2" // nolint: gochecknoglobals
 
 const usage = "Changelog generator for your projects"
 

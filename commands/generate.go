@@ -26,10 +26,10 @@ import (
 )
 
 // Generate implements the CLI subcommand generate
-func Generate(c *cli.Context) (err error) {
+func Generate(c *cli.Context) error {
 	gen, err := helpers.NewGenerator(c)
 	if err != nil {
-		return
+		return err
 	}
 
 	// use stdout if - is given, otherwise create a new file
@@ -38,7 +38,7 @@ func Generate(c *cli.Context) (err error) {
 	if filename != "-" {
 		wr, err = os.Create(filename)
 		if err != nil {
-			return
+			return err
 		}
 		defer func() {
 			if cerr := wr.Close(); err == nil && cerr != nil {
@@ -49,10 +49,10 @@ func Generate(c *cli.Context) (err error) {
 
 	err = gen.Render(wr)
 
-	return
+	return err
 }
 
-func init() {
+func init() { // nolint: gochecknoinits
 	flags := []cli.Flag{
 		cli.StringFlag{
 			Name:  "file, f",
@@ -65,7 +65,7 @@ func init() {
 		},
 	}
 
-	connectorFlags, _ := connectors.GetCLIFlags("github")
+	connectorFlags, _ := connectors.GetCLIFlags("github") // nolint: gosec
 
 	flags = append(flags, connectorFlags...)
 

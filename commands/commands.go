@@ -21,7 +21,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var commands cli.Commands
+var commands cli.Commands // nolint: gochecknoglobals
 
 // RegisterCommand registers the new subcommand
 func RegisterCommand(c cli.Command) {
