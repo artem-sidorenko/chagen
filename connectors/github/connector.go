@@ -35,7 +35,7 @@ import (
 
 // AccessTokenEnvVar contains the name of environment variable
 // which sets the authentication access token
-const AccessTokenEnvVar = "CHAGEN_GITHUB_TOKEN"
+const AccessTokenEnvVar = "CHAGEN_GITHUB_TOKEN" // nolint: gosec
 
 // Connector implements the GitHub connector
 type Connector struct {
@@ -180,7 +180,7 @@ func (c *Connector) GetMRs() (data.MRs, error) {
 	return ret, nil
 }
 
-func init() {
+func init() { // nolint: gochecknoinits
 	connectors.RegisterConnector("github", "GitHub", &Connector{}, []cli.Flag{
 		cli.StringFlag{
 			Name:  "github-owner",

@@ -36,11 +36,8 @@ type Releases []Release
 
 // NewReleases builds the Releases structure
 // using given data from connector
-func NewReleases(
-	tags Tags,
-	issues Issues,
-	mrs MRs) (ret Releases) {
-
+func NewReleases(tags Tags, issues Issues, mrs MRs) Releases {
+	var ret Releases
 	var lastReleaseDate time.Time
 
 	// we get tags sorted and iterating it from the newest to the oldest tags
@@ -62,5 +59,5 @@ func NewReleases(
 		})
 	}
 
-	return
+	return ret
 }

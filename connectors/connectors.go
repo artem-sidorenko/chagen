@@ -39,7 +39,7 @@ type connector struct {
 	flags     []cli.Flag
 }
 
-var connectors = make(map[string]connector)
+var connectors = make(map[string]connector) // nolint: gochecknoglobals
 
 // RegisterConnector registers the new connector for fetching the data.
 // id is used as internal id or as value for CLI flag
