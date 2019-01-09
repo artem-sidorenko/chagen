@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/artem-sidorenko/chagen/data"
+
 	"github.com/urfave/cli"
 )
 

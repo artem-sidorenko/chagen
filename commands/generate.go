@@ -22,6 +22,7 @@ import (
 	"github.com/artem-sidorenko/chagen/commands/helpers"
 	"github.com/artem-sidorenko/chagen/connectors"
 	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
+
 	"github.com/urfave/cli"
 )
 

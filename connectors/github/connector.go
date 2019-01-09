@@ -18,18 +18,16 @@
 package github
 
 import (
-	"time"
-
 	"errors"
-	"os"
-
-	"net/url"
-	"path"
-
 	"fmt"
+	"net/url"
+	"os"
+	"path"
+	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
+
 	"github.com/urfave/cli"
 )
 

@@ -18,9 +18,7 @@ package github
 
 import (
 	"context"
-
 	"fmt"
-
 	"net/http"
 
 	"github.com/google/go-github/github"

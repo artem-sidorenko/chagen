@@ -17,11 +17,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/artem-sidorenko/chagen/commands"
-
-	"fmt"
 
 	"github.com/urfave/cli"
 )

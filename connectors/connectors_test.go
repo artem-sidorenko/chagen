@@ -23,6 +23,7 @@ import (
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
+
 	"github.com/urfave/cli"
 )
 
