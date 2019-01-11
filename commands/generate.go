@@ -22,6 +22,7 @@ import (
 	"github.com/artem-sidorenko/chagen/commands/helpers"
 	"github.com/artem-sidorenko/chagen/connectors"
 	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
+
 	"github.com/urfave/cli"
 )
 
@@ -75,8 +76,7 @@ func init() { // nolint: gochecknoinits
 		ArgsUsage: " ", // we do not have any args (only flags), so avoid this help message
 		Flags:     flags,
 		Action: func(c *cli.Context) error {
-			err := Generate(c)
-			if err != nil { // exit 1 and error message if we get any error reported
+			if err := Generate(c); err != nil { // exit 1 and error message if we get any error reported
 				return cli.NewExitError(err, 1)
 			}
 			return nil

@@ -24,6 +24,7 @@ import (
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/generator"
+
 	"github.com/urfave/cli"
 )
 
