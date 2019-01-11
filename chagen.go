@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/artem-sidorenko/chagen/commands"
+	hcli "github.com/artem-sidorenko/chagen/helpers/cli"
 
 	"github.com/urfave/cli"
 )
@@ -31,8 +32,8 @@ const usage = "Changelog generator for your projects"
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "chagen"
 	app.Version = version
+	app.OnUsageError = hcli.OnUsageError
 	app.Usage = usage
 	// we do not have any args (only flags), so avoid this help message
 	app.ArgsUsage = " "
