@@ -33,4 +33,10 @@ func OnUsageError(context *cli.Context, err error, isSubcommand bool) error {
 	cli.ShowAppHelp(context) // nolint: gosec, errcheck
 	return cli.NewExitError("", 1)
 }
+
+// ExitErrHandler implements cli.ExitErrHandlerFunc
+// we make it simple, we always return exit code 1
+func ExitErrHandler(_ *cli.Context, err error) {
+	fmt.Fprintf(cli.ErrWriter, "Error: %+v\n", err) // nolint: errcheck
+	cli.OsExiter(1)
 }

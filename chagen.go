@@ -34,6 +34,7 @@ func main() {
 	app := cli.NewApp()
 	app.Version = version
 	app.OnUsageError = hcli.OnUsageError
+	app.ExitErrHandler = hcli.ExitErrHandler
 	app.Usage = usage
 	// we do not have any args (only flags), so avoid this help message
 	app.ArgsUsage = " "
@@ -45,7 +46,11 @@ func main() {
 		},
 	}
 	err := app.Run(os.Args)
+	// Usually this should not happen and err should be catched within app.Run
+	// because of our own ExitErrHandler. Lets have it here just for the case
+	// with a different exit code
 	if err != nil {
-		fmt.Printf("Error: %v", err)
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err) // nolint: errcheck
+		os.Exit(10)
 	}
 }
