@@ -18,20 +18,24 @@ package commands
 
 import (
 	"os"
+	"time"
 
-	"github.com/artem-sidorenko/chagen/commands/helpers"
 	"github.com/artem-sidorenko/chagen/connectors"
 	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
+	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/generator"
 
 	"github.com/urfave/cli"
 )
 
 // Generate implements the CLI subcommand generate
 func Generate(c *cli.Context) (err error) {
-	gen, err := helpers.NewGenerator(c)
+	tags, issues, mrs, err := getConnectorData(c.String("new-release"), c)
 	if err != nil {
-		return err
+		return nil
 	}
+
+	gen := generator.New(data.NewReleases(tags, issues, mrs))
 
 	// use stdout if - is given, otherwise create a new file
 	filename := c.String("file")
@@ -51,6 +55,63 @@ func Generate(c *cli.Context) (err error) {
 	err = gen.Render(wr)
 
 	return err
+}
+
+// getConnectorData returns all needed data from connector
+// if newRelease is specified, a new releases for
+// untagged activities is created
+func getConnectorData(newRelease string, c *cli.Context) (data.Tags, data.Issues, data.MRs, error) {
+	var (
+		connector connectors.Connector
+		tags      data.Tags
+		issues    data.Issues
+		mrs       data.MRs
+		err       error
+	)
+
+	connector, err = connectors.GetConnector("github")
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	err = connector.Init(c)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	tags, err = connector.GetTags()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if newRelease != "" {
+		var relURL string
+		relURL, err = connector.GetNewTagURL(newRelease)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		tags = append(tags, data.Tag{
+			Name: newRelease,
+			Date: time.Now(),
+			URL:  relURL,
+		})
+	}
+	tags.Sort()
+
+	issues, err = connector.GetIssues()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	issues.Sort()
+
+	mrs, err = connector.GetMRs()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	mrs.Sort()
+
+	return tags, issues, mrs, nil
 }
 
 func init() { // nolint: gochecknoinits

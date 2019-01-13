@@ -60,3 +60,11 @@ func (g *Generator) Render(wr io.Writer) error {
 	t := template.Must(template.New("Changelog template").Parse(changelogTemplate))
 	return t.Execute(wr, g)
 }
+
+// New returns a new generator,
+// which is filled and initialized with release data
+func New(r data.Releases) *Generator {
+	return &Generator{
+		Releases: r,
+	}
+}

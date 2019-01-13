@@ -14,13 +14,14 @@
    limitations under the License.
 */
 
-package generator
+package generator_test
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/generator"
 )
 
 func TestGenerator_Render(t *testing.T) {
@@ -116,9 +117,7 @@ Closed issues
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := &Generator{
-				Releases: tt.fields.Releases,
-			}
+			g := generator.New(tt.fields.Releases)
 			wr := &bytes.Buffer{}
 			if err := g.Render(wr); (err != nil) != tt.wantErr {
 				t.Errorf("Generator.Render() error = %v, wantErr %v", err, tt.wantErr)
