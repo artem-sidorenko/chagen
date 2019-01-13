@@ -27,7 +27,7 @@ import (
 )
 
 // Generate implements the CLI subcommand generate
-func Generate(c *cli.Context) error {
+func Generate(c *cli.Context) (err error) {
 	gen, err := helpers.NewGenerator(c)
 	if err != nil {
 		return err
