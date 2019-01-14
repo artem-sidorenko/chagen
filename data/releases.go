@@ -40,7 +40,12 @@ func NewReleases(tags Tags, issues Issues, mrs MRs) Releases {
 	var ret Releases
 	var lastReleaseDate time.Time
 
-	// we get tags sorted and iterating it from the newest to the oldest tags
+	// we should have a proper sorted data to avoid surprises
+	tags.Sort()
+	issues.Sort()
+	mrs.Sort()
+
+	// as our tags are sorted, lets iterate from newest to the oldest
 	for i, tag := range tags {
 		// use the date of next tag (its older) as last release date
 		// use 0 as last release date if we have the oldest (last) tag
