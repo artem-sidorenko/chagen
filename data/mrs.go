@@ -17,7 +17,6 @@
 package data
 
 import (
-	"sort"
 	"time"
 )
 
@@ -41,7 +40,7 @@ func (m *MRs) Len() int {
 
 // Less implements the Sort.Interface
 func (m *MRs) Less(i, j int) bool {
-	return (*m)[i].MergedDate.Before((*m)[j].MergedDate)
+	return (*m)[i].MergedDate.After((*m)[j].MergedDate)
 }
 
 // Swap implements the Sort.Interface
@@ -49,15 +48,10 @@ func (m *MRs) Swap(i, j int) {
 	(*m)[i], (*m)[j] = (*m)[j], (*m)[i]
 }
 
-// Sort implements sorting of available MRs
-func (m *MRs) Sort() {
-	sort.Sort(sort.Reverse(m))
-}
-
-// Filter filters and returns new slice of Issues, where ClosedDate is between given dates
-func (m *MRs) Filter(fromDate, toDate time.Time) MRs {
+// FilterMRs filters and returns new slice of Issues, where ClosedDate is between given dates
+func FilterMRs(m MRs, fromDate, toDate time.Time) MRs {
 	var ret MRs
-	for _, mr := range *m {
+	for _, mr := range m {
 		if mr.MergedDate.After(fromDate) &&
 			(mr.MergedDate.Before(toDate) || mr.MergedDate.Equal(toDate)) {
 			ret = append(ret, mr)

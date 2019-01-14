@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Artem Sidorenko <artem@posteo.de>
+   Copyright 2019 Artem Sidorenko <artem@posteo.de>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,12 +14,5 @@
    limitations under the License.
 */
 
-package main
-
-import "github.com/artem-sidorenko/chagen/cli"
-
-var version = "unknown" // nolint: gochecknoglobals
-
-func main() {
-	cli.Run(version)
-}
+// Package testing provides fixtures and data for usage in the tests
+package testing

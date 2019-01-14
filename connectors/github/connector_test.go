@@ -28,12 +28,20 @@ import (
 	"github.com/google/go-github/github"
 )
 
+// NewConnector returns a new Connector, initialited with test data
+// and provided test options
+func NewConnector(o testapiclient.Options) *cgithub.Connector {
+	return &cgithub.Connector{
+		API:        testapiclient.New(o),
+		Owner:      "testowner",
+		Repo:       "restrepo",
+		ProjectURL: "https://example.com/testowner/restrepo",
+	}
+}
+
 func Test_connector_GetTags(t *testing.T) {
 	type fields struct {
-		API        cgithub.API
-		Owner      string
-		Repo       string
-		ProjectURL string
+		TestAPIopts testapiclient.Options
 	}
 	tests := []struct {
 		name    string
@@ -44,49 +52,10 @@ func Test_connector_GetTags(t *testing.T) {
 		{
 			name: "API returns proper data",
 			fields: fields{
-				API: &testapiclient.TestAPIClient{
-					RetListTags: []*github.RepositoryTag{
-						{
-							Name: testapiclient.GetStringPtr("v0.0.1"),
-							Commit: &github.Commit{
-								SHA: testapiclient.GetStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
-							},
-						},
-						{
-							Name: testapiclient.GetStringPtr("v0.0.2"),
-							Commit: &github.Commit{
-								SHA: testapiclient.GetStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
-							},
-						},
-					},
-					RetGetReleaseByTag: map[string]*github.RepositoryRelease{
-						"v0.0.1": {
-							TagName: testapiclient.GetStringPtr("v0.0.1"),
-							HTMLURL: testapiclient.GetStringPtr("https://example.com/releases/v0.0.1"),
-						},
-					},
-					RetGetCommits: map[string]*github.RepositoryCommit{
-						"7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc": {
-							Commit: &github.Commit{
-								SHA: testapiclient.GetStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
-								Committer: &github.CommitAuthor{
-									Date: testapiclient.GetTimePtr(time.Unix(2147483647, 0)),
-								},
-							},
-						},
-						"b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da": {
-							Commit: &github.Commit{
-								SHA: testapiclient.GetStringPtr("b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da"),
-								Committer: &github.CommitAuthor{
-									Date: testapiclient.GetTimePtr(time.Unix(2047483647, 0)),
-								},
-							},
-						},
-					},
+				TestAPIopts: testapiclient.Options{
+					ListTags:  true,
+					GetCommit: true,
 				},
-				Owner:      "testowner",
-				Repo:       "restrepo",
-				ProjectURL: "https://example.com/testowner/restrepo",
 			},
 			want: data.Tags{
 				{
@@ -106,38 +75,21 @@ func Test_connector_GetTags(t *testing.T) {
 		{
 			name: "ListTags call fails",
 			fields: fields{
-				API: &testapiclient.TestAPIClient{
-					RetListTagsErr: errors.New("ListTags failed"),
-				},
+				TestAPIopts: testapiclient.Options{ListTags: false},
 			},
 			wantErr: errors.New("ListTags failed"),
 		},
 		{
 			name: "GetCommit call fails",
 			fields: fields{
-				API: &testapiclient.TestAPIClient{
-					RetListTags: []*github.RepositoryTag{
-						{
-							Name: testapiclient.GetStringPtr("v0.0.1"),
-							Commit: &github.Commit{
-								SHA: testapiclient.GetStringPtr("7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc"),
-							},
-						},
-					},
-					RetGetCommitsErr: errors.New("GetCommit failed"),
-				},
+				TestAPIopts: testapiclient.Options{ListTags: true, GetCommit: false},
 			},
 			wantErr: errors.New("GetCommit failed"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &cgithub.Connector{
-				API:        tt.fields.API,
-				Owner:      tt.fields.Owner,
-				Repo:       tt.fields.Repo,
-				ProjectURL: tt.fields.ProjectURL,
-			}
+			c := NewConnector(tt.fields.TestAPIopts)
 			got, err := c.GetTags()
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("Connector.GetTags() error = %v, wantErr %v", err, tt.wantErr)
@@ -153,9 +105,7 @@ func Test_connector_GetTags(t *testing.T) {
 
 func TestConnector_GetIssues(t *testing.T) {
 	type fields struct {
-		API   cgithub.API
-		Owner string
-		Repo  string
+		TestAPIopts testapiclient.Options
 	}
 	tests := []struct {
 		name    string
@@ -166,24 +116,7 @@ func TestConnector_GetIssues(t *testing.T) {
 		{
 			name: "API returns proper data",
 			fields: fields{
-				API: &testapiclient.TestAPIClient{
-					RetListIssues: []*github.Issue{
-						{
-							Number:           testapiclient.GetIntPtr(1234),
-							Title:            testapiclient.GetStringPtr("Test issue title"),
-							PullRequestLinks: &github.PullRequestLinks{},
-							ClosedAt:         testapiclient.GetTimePtr(time.Unix(1047483647, 0)),
-							HTMLURL:          testapiclient.GetStringPtr("http://example.com/issues/1234"),
-						},
-						{
-							Number: testapiclient.GetIntPtr(4321),
-							Title:  testapiclient.GetStringPtr("Test PR title"),
-							PullRequestLinks: &github.PullRequestLinks{
-								URL: testapiclient.GetStringPtr("https://example.com/prs/4321"),
-							},
-						},
-					},
-				},
+				TestAPIopts: testapiclient.Options{ListIssues: true},
 			},
 			want: data.Issues{
 				data.Issue{
@@ -197,20 +130,14 @@ func TestConnector_GetIssues(t *testing.T) {
 		{
 			name: "ListIssues call fails",
 			fields: fields{
-				API: &testapiclient.TestAPIClient{
-					RetListIssuesErr: errors.New("ListIssues failed"),
-				},
+				TestAPIopts: testapiclient.Options{ListIssues: false},
 			},
 			wantErr: errors.New("ListIssues failed"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &cgithub.Connector{
-				API:   tt.fields.API,
-				Owner: tt.fields.Owner,
-				Repo:  tt.fields.Repo,
-			}
+			c := NewConnector(tt.fields.TestAPIopts)
 			got, err := c.GetIssues()
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("Connector.GetIssues() error = %v, wantErr %v", err, tt.wantErr)
@@ -225,9 +152,7 @@ func TestConnector_GetIssues(t *testing.T) {
 
 func TestConnector_GetMRs(t *testing.T) {
 	type fields struct {
-		API   cgithub.API
-		Owner string
-		Repo  string
+		TestAPIopts testapiclient.Options
 	}
 	tests := []struct {
 		name    string
@@ -238,24 +163,7 @@ func TestConnector_GetMRs(t *testing.T) {
 		{
 			name: "API returns proper data",
 			fields: fields{
-				API: &testapiclient.TestAPIClient{
-					RetPRs: []*github.PullRequest{
-						{
-							Number:  testapiclient.GetIntPtr(1234),
-							Title:   testapiclient.GetStringPtr("Test PR title"),
-							HTMLURL: testapiclient.GetStringPtr("https://example.com/pulls/1234"),
-							User: &github.User{
-								Login:   testapiclient.GetStringPtr("test-user"),
-								HTMLURL: testapiclient.GetStringPtr("https://example.com/users/test-user"),
-							},
-							MergedAt: testapiclient.GetTimePtr(time.Unix(1747483647, 0)),
-						},
-						{
-							Number: testapiclient.GetIntPtr(1233),
-							Title:  testapiclient.GetStringPtr("Second closed PR title"),
-						},
-					},
-				},
+				TestAPIopts: testapiclient.Options{ListPRs: true},
 			},
 			want: data.MRs{
 				data.MR{
@@ -271,20 +179,14 @@ func TestConnector_GetMRs(t *testing.T) {
 		{
 			name: "ListPRs call fails",
 			fields: fields{
-				API: &testapiclient.TestAPIClient{
-					RetPRsErr: errors.New("ListPRs failed"),
-				},
+				TestAPIopts: testapiclient.Options{ListPRs: false},
 			},
 			wantErr: errors.New("ListPRs failed"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &cgithub.Connector{
-				API:   tt.fields.API,
-				Owner: tt.fields.Owner,
-				Repo:  tt.fields.Repo,
-			}
+			c := NewConnector(tt.fields.TestAPIopts)
 			got, err := c.GetMRs()
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("Connector.GetMRs() error = %v, wantErr %v", err, tt.wantErr)

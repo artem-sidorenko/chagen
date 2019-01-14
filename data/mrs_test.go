@@ -18,6 +18,7 @@ package data_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -95,10 +96,10 @@ func TestMRs_Sort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.m.Sort()
+			sort.Sort(tt.m)
 
 			if !reflect.DeepEqual(tt.m, tt.want) {
-				t.Errorf("MRs.Sort(), MRs = %v, want %v", tt.m, tt.want)
+				t.Errorf("sort.Sort(MRs), got %v, want %v", tt.m, tt.want)
 			}
 		})
 	}
@@ -111,13 +112,13 @@ func TestMRs_Filter(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		m       *data.MRs
+		m       data.MRs
 		args    args
 		wantRet data.MRs
 	}{
 		{
 			name: "Filtering of MRs",
-			m: &data.MRs{
+			m: data.MRs{
 				{
 					Name:       "MR 1",
 					MergedDate: time.Unix(1047483647, 0),
@@ -144,7 +145,7 @@ func TestMRs_Filter(t *testing.T) {
 		},
 		{
 			name: "Filtering of same day MR",
-			m: &data.MRs{
+			m: data.MRs{
 				{
 					Name:       "MR 1",
 					MergedDate: time.Unix(1047483647, 0),
@@ -172,9 +173,9 @@ func TestMRs_Filter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRet := tt.m.Filter(tt.args.fromDate, tt.args.toDate)
+			gotRet := data.FilterMRs(tt.m, tt.args.fromDate, tt.args.toDate)
 			if !reflect.DeepEqual(gotRet, tt.wantRet) {
-				t.Errorf("MRs.Filter() = %v, want %v", gotRet, tt.wantRet)
+				t.Errorf("FilterMRs(), got %v, want %v", gotRet, tt.wantRet)
 			}
 		})
 	}

@@ -17,7 +17,6 @@
 package data
 
 import (
-	"sort"
 	"time"
 )
 
@@ -39,7 +38,7 @@ func (is *Issues) Len() int {
 
 // Less implements the Sort.Interface
 func (is *Issues) Less(i, j int) bool {
-	return (*is)[i].ClosedDate.Before((*is)[j].ClosedDate)
+	return (*is)[i].ClosedDate.After((*is)[j].ClosedDate)
 }
 
 // Swap implements the Sort.Interface
@@ -47,15 +46,10 @@ func (is *Issues) Swap(i, j int) {
 	(*is)[i], (*is)[j] = (*is)[j], (*is)[i]
 }
 
-// Sort implements sorting of available Issues
-func (is *Issues) Sort() {
-	sort.Sort(sort.Reverse(is))
-}
-
-// Filter filters and returns new slice of Issues, where ClosedDate is between given dates
-func (is *Issues) Filter(fromDate, toDate time.Time) Issues {
+// FilterIssues filters and returns new slice of Issues, where ClosedDate is between given dates
+func FilterIssues(is Issues, fromDate, toDate time.Time) Issues {
 	var ret Issues
-	for _, issue := range *is {
+	for _, issue := range is {
 		if issue.ClosedDate.After(fromDate) &&
 			(issue.ClosedDate.Before(toDate) || issue.ClosedDate.Equal(toDate)) {
 			ret = append(ret, issue)

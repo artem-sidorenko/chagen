@@ -22,70 +22,75 @@ import (
 	"time"
 
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/testconnector"
 )
 
 func TestNewReleases(t *testing.T) {
-	type args struct {
-		tags   data.Tags
-		issues data.Issues
-		mrs    data.MRs
-	}
 	tests := []struct {
 		name    string
-		args    args
 		wantRet data.Releases
 	}{
 		{
 			name: "proper data with all elements",
-			args: args{
-				tags: data.Tags{
-					data.Tag{
-						Name:   "v0.0.1",
-						Date:   time.Unix(1047483647, 0),
-						Commit: "b6a735dcb420a82865abe8c194900e59f6af9dea",
-						URL:    "https://example.com/tags/v0.0.1",
-					},
-				},
-				issues: data.Issues{
-					data.Issue{
-						Name:       "Issue number one",
-						ClosedDate: time.Unix(1047482647, 0),
-						ID:         1,
-						URL:        "https://example.com/issues/1",
-					},
-				},
-				mrs: data.MRs{
-					data.MR{
-						Name:       "Test merge request",
-						ID:         2,
-						MergedDate: time.Unix(1047480647, 0),
-						Author:     "testauthor",
-						AuthorURL:  "https://example.com/authors/testauthor",
-						URL:        "https://example.com/mrs/2",
-					},
-				},
-			},
 			wantRet: data.Releases{
 				data.Release{
-					Release:    "v0.0.1",
-					Date:       "12.03.2003",
-					ReleaseURL: "https://example.com/tags/v0.0.1",
+					Release:    "v0.0.3",
+					Date:       "13.07.2009",
+					ReleaseURL: "https://test.example.com/tags/v0.0.3",
 					Issues: data.Issues{
 						data.Issue{
-							ID:         1,
-							Name:       "Issue number one",
-							ClosedDate: time.Unix(1047482647, 0),
-							URL:        "https://example.com/issues/1",
+							ID:         2,
+							Name:       "Issue 2",
+							ClosedDate: time.Unix(1247483647, 0),
+							URL:        "http://test.example.com/issues/2",
 						},
 					},
 					MRs: data.MRs{
 						data.MR{
 							ID:         2,
-							Name:       "Test merge request",
-							URL:        "https://example.com/mrs/2",
-							MergedDate: time.Unix(1047480647, 0),
+							Name:       "MR 2",
+							URL:        "https://test.example.com/mrs/2",
+							MergedDate: time.Unix(1247483647, 0),
 							Author:     "testauthor",
-							AuthorURL:  "https://example.com/authors/testauthor",
+							AuthorURL:  "https://test.example.com/authors/testauthor",
+						},
+					},
+				},
+				data.Release{
+					Release:    "v0.0.2",
+					Date:       "13.05.2006",
+					ReleaseURL: "https://test.example.com/tags/v0.0.2",
+					MRs: data.MRs{
+						data.MR{
+							ID:         3,
+							Name:       "MR 3",
+							URL:        "https://test.example.com/mrs/3",
+							MergedDate: time.Unix(1057483647, 0),
+							Author:     "testauthor",
+							AuthorURL:  "https://test.example.com/authors/testauthor",
+						},
+					},
+				},
+				data.Release{
+					Release:    "v0.0.1",
+					Date:       "12.03.2003",
+					ReleaseURL: "https://test.example.com/tags/v0.0.1",
+					Issues: data.Issues{
+						data.Issue{
+							ID:         1,
+							Name:       "Issue 1",
+							ClosedDate: time.Unix(1047483647, 0),
+							URL:        "http://test.example.com/issues/1",
+						},
+					},
+					MRs: data.MRs{
+						data.MR{
+							ID:         1,
+							Name:       "MR 1",
+							URL:        "https://test.example.com/mrs/1",
+							MergedDate: time.Unix(1047483647, 0),
+							Author:     "testauthor",
+							AuthorURL:  "https://test.example.com/authors/testauthor",
 						},
 					},
 				},
@@ -94,9 +99,15 @@ func TestNewReleases(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRet := data.NewReleases(tt.args.tags, tt.args.issues, tt.args.mrs)
-			if !reflect.DeepEqual(gotRet, tt.wantRet) {
-				t.Errorf("NewReleases() = %v, want %v", gotRet, tt.wantRet)
+			conn := &testconnector.Connector{}
+			tags, _ := conn.GetTags()
+			issues, _ := conn.GetIssues()
+			mrs, _ := conn.GetMRs()
+			gotRet := data.NewReleases(tags, issues, mrs)
+			for i := range gotRet {
+				if !reflect.DeepEqual(gotRet[i], tt.wantRet[i]) {
+					t.Errorf("\nNewReleases() [%v] = \n got %#v, \n want %#v", i, gotRet[i], tt.wantRet[i])
+				}
 			}
 		})
 	}

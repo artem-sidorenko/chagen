@@ -18,6 +18,7 @@ package data_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -95,10 +96,10 @@ func TestIssues_Sort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.is.Sort()
+			sort.Sort(tt.is)
 
 			if !reflect.DeepEqual(tt.is, tt.want) {
-				t.Errorf("Issues.Sort(), Issues = %v, want %v", tt.is, tt.want)
+				t.Errorf("sort.Sort(Issues), got%v, want %v", tt.is, tt.want)
 			}
 		})
 	}
@@ -111,13 +112,13 @@ func TestIssues_Filter(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		is      *data.Issues
+		is      data.Issues
 		args    args
 		wantRet data.Issues
 	}{
 		{
 			name: "Filtering of issues",
-			is: &data.Issues{
+			is: data.Issues{
 				{
 					Name:       "Issue 1",
 					ClosedDate: time.Unix(1047483647, 0),
@@ -144,7 +145,7 @@ func TestIssues_Filter(t *testing.T) {
 		},
 		{
 			name: "Filtering of same day issue",
-			is: &data.Issues{
+			is: data.Issues{
 				{
 					Name:       "Issue 1",
 					ClosedDate: time.Unix(1047483647, 0),
@@ -172,9 +173,9 @@ func TestIssues_Filter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRet := tt.is.Filter(tt.args.fromDate, tt.args.toDate)
+			gotRet := data.FilterIssues(tt.is, tt.args.fromDate, tt.args.toDate)
 			if !reflect.DeepEqual(gotRet, tt.wantRet) {
-				t.Errorf("Issues.Filter() = %v, want %v", gotRet, tt.wantRet)
+				t.Errorf("FilterIssues(), got %v, want %v", gotRet, tt.wantRet)
 			}
 		})
 	}

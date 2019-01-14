@@ -44,23 +44,6 @@ type Connector struct {
 	NewTagUseReleaseURL bool
 }
 
-// Init takes the initialization of connector, e.g. reading environment vars etc
-func (c *Connector) Init(cli *cli.Context) error {
-	c.Owner = cli.String("github-owner")
-	if c.Owner == "" {
-		return errors.New("Option --github-owner is required")
-	}
-	c.Repo = cli.String("github-repo")
-	if c.Repo == "" {
-		return errors.New("Option --github-repo is required")
-	}
-	c.NewTagUseReleaseURL = cli.Bool("github-release-url")
-
-	c.API = NewAPIClient(os.Getenv(AccessTokenEnvVar))
-	c.ProjectURL = fmt.Sprintf("https://github.com/%s/%s", c.Owner, c.Repo)
-	return nil
-}
-
 // GetNewTagURL returns the URL for a new tag, which does not exist yet
 func (c *Connector) GetNewTagURL(TagName string) (string, error) {
 	return c.getTagURL(TagName, c.NewTagUseReleaseURL)
@@ -178,8 +161,30 @@ func (c *Connector) GetMRs() (data.MRs, error) {
 	return ret, nil
 }
 
-func init() { // nolint: gochecknoinits
-	connectors.RegisterConnector("github", "GitHub", &Connector{}, []cli.Flag{
+// New returns a new initialized Connector or error if any
+func New(ctx *cli.Context) (connectors.Connector, error) {
+	owner := ctx.String("github-owner")
+	if owner == "" {
+		return nil, errors.New("Option --github-owner is required")
+	}
+	repo := ctx.String("github-repo")
+	if repo == "" {
+		return nil, errors.New("Option --github-repo is required")
+	}
+	newTagUseReleaseURL := ctx.Bool("github-release-url")
+
+	return &Connector{
+		Owner:               owner,
+		Repo:                repo,
+		NewTagUseReleaseURL: newTagUseReleaseURL,
+		API:                 NewAPIClient(os.Getenv(AccessTokenEnvVar)),
+		ProjectURL:          fmt.Sprintf("https://github.com/%s/%s", owner, repo),
+	}, nil
+}
+
+// CLIFlags returns the possible CLI flags for this connector
+func CLIFlags() []cli.Flag {
+	return []cli.Flag{
 		cli.StringFlag{
 			Name:  "github-owner",
 			Usage: "Owner/organisation where repository belongs to",
@@ -192,5 +197,9 @@ func init() { // nolint: gochecknoinits
 			Name:  "github-release-url",
 			Usage: "New release should use URL to the GitHub release, even if it does not exist yet",
 		},
-	})
+	}
+}
+
+func init() { // nolint: gochecknoinits
+	connectors.RegisterConnector("github", "GitHub", New, CLIFlags)
 }
