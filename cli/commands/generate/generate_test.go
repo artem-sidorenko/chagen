@@ -19,12 +19,12 @@ package generate_test
 import (
 	"bytes"
 	"flag"
-
-	"github.com/artem-sidorenko/chagen/commands/generate"
-	_ "github.com/artem-sidorenko/chagen/internal/testing/testconnector"
-	"github.com/urfave/cli"
-
 	"testing"
+
+	"github.com/artem-sidorenko/chagen/cli/commands/generate"
+	_ "github.com/artem-sidorenko/chagen/internal/testing/testconnector"
+
+	"github.com/urfave/cli"
 )
 
 func TestGenerate(t *testing.T) {

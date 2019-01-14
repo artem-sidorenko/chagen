@@ -16,42 +16,10 @@
 
 package main
 
-import (
-	"fmt"
-	"os"
-
-	"github.com/artem-sidorenko/chagen/commands"
-	_ "github.com/artem-sidorenko/chagen/commands/generate"
-	hcli "github.com/artem-sidorenko/chagen/helpers/cli"
-
-	"github.com/urfave/cli"
-)
+import "github.com/artem-sidorenko/chagen/cli"
 
 var version = "unknown" // nolint: gochecknoglobals
 
-const usage = "Changelog generator for your projects"
-
 func main() {
-	app := cli.NewApp()
-	app.Version = version
-	app.OnUsageError = hcli.OnUsageError
-	app.ExitErrHandler = hcli.ExitErrHandler
-	app.Usage = usage
-	// we do not have any args (only flags), so avoid this help message
-	app.ArgsUsage = " "
-	app.Commands = commands.GetCommands()
-	app.Authors = []cli.Author{
-		{
-			Name:  "Artem Sidorenko",
-			Email: "artem@posteo.de",
-		},
-	}
-	err := app.Run(os.Args)
-	// Usually this should not happen and err should be catched within app.Run
-	// because of our own ExitErrHandler. Lets have it here just for the case
-	// with a different exit code
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err) // nolint: errcheck
-		os.Exit(10)
-	}
+	cli.Run(version)
 }

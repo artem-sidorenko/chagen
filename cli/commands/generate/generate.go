@@ -22,7 +22,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/commands"
+	"github.com/artem-sidorenko/chagen/cli/commands"
 	"github.com/artem-sidorenko/chagen/connectors"
 	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
 	"github.com/artem-sidorenko/chagen/data"
