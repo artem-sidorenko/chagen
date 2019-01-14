@@ -118,6 +118,11 @@ func New(ctx *cli.Context) (connectors.Connector, error) {
 	return &Connector{}, nil
 }
 
+// CLIFlags describes the flags of connector
+func CLIFlags() []cli.Flag {
+	return []cli.Flag{}
+}
+
 func init() { // nolint: gochecknoinits
-	connectors.RegisterConnector("testconnector", "TestConnector", New, []cli.Flag{})
+	connectors.RegisterConnector("testconnector", "TestConnector", New, CLIFlags)
 }

@@ -36,10 +36,14 @@ type Connector interface {
 // NewConnector describes the constructor of Connector
 type NewConnector func(*cli.Context) (Connector, error)
 
+// ConnectorCLIFlags describes the function, which returns the configured
+// CLI flags for particular connector
+type ConnectorCLIFlags func() []cli.Flag
+
 type connector struct {
 	name         string
 	newConnector NewConnector
-	flags        []cli.Flag
+	CLIFlags     ConnectorCLIFlags
 }
 
 var connectors = make(map[string]connector) // nolint: gochecknoglobals
@@ -48,12 +52,12 @@ var connectors = make(map[string]connector) // nolint: gochecknoglobals
 // id is used as internal id or as value for CLI flag
 // name is a text name of connector for humans (e.g. help pages)
 // newConnector is the connector constructor function
-// f is a slice with CLI flags of this connector
-func RegisterConnector(id, name string, newConnector NewConnector, f []cli.Flag) {
+// CLIFlag is a function, which returns the configured CLI flags
+func RegisterConnector(id, name string, newConnector NewConnector, CLIFlags ConnectorCLIFlags) {
 	connectors[id] = connector{
 		name:         name,
 		newConnector: newConnector,
-		flags:        f,
+		CLIFlags:     CLIFlags,
 	}
 }
 
@@ -72,13 +76,13 @@ func GetConnector(id string, ctx *cli.Context) (Connector, error) {
 	return conn, nil
 }
 
-// GetCLIFlags returns the registered CLI flags of given connector
+// CLIFlags returns the registered CLI flags of given connector
 // if this connector is missing, error is returned
-func GetCLIFlags(id string) ([]cli.Flag, error) {
+func CLIFlags(id string) ([]cli.Flag, error) {
 	if err := checkConnector(id); err != nil {
 		return nil, err
 	}
-	return connectors[id].flags, nil
+	return connectors[id].CLIFlags(), nil
 }
 
 // checkConnector checks if given connector is registered.

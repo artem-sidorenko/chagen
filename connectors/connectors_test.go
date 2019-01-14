@@ -39,6 +39,62 @@ func NewTestConnector(_ *cli.Context) (connectors.Connector, error) {
 	return &testConnector{}, nil
 }
 
+func CLIFlags() []cli.Flag {
+	return []cli.Flag{
+		cli.BoolFlag{
+			Name:  "test, t",
+			Usage: "Testing",
+		},
+	}
+}
+
+func TestCLIFlags(t *testing.T) {
+	connectors.RegisterConnector("testexisting", "TestExisting", NewTestConnector, CLIFlags)
+
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []cli.Flag
+		wantErr error
+	}{
+		{
+			name: "Connector exists",
+			args: args{
+				id: "testexisting",
+			},
+			want: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "test, t",
+					Usage: "Testing",
+				},
+			},
+		},
+		{
+			name: "Connector does not exist",
+			args: args{
+				id: "testmissing",
+			},
+			wantErr: errors.New("Unknown connector: testmissing"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := connectors.CLIFlags(tt.args.id)
+			if err != nil && err.Error() != tt.wantErr.Error() {
+				t.Errorf("CLIFlags() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CLIFlags() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+}
+
 func TestGetConnector(t *testing.T) {
 	connectors.RegisterConnector("testexisting", "TestExisting", NewTestConnector, nil)
 

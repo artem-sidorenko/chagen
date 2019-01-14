@@ -201,5 +201,5 @@ func CLIFlags() []cli.Flag {
 }
 
 func init() { // nolint: gochecknoinits
-	connectors.RegisterConnector("github", "GitHub", New, CLIFlags())
+	connectors.RegisterConnector("github", "GitHub", New, CLIFlags)
 }
