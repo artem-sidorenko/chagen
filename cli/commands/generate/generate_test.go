@@ -18,13 +18,12 @@ package generate_test
 
 import (
 	"bytes"
-	"flag"
 	"testing"
 
 	"github.com/artem-sidorenko/chagen/cli/commands/generate"
-	_ "github.com/artem-sidorenko/chagen/internal/testing/testconnector"
+	tcli "github.com/artem-sidorenko/chagen/internal/testing/cli"
 
-	"github.com/urfave/cli"
+	_ "github.com/artem-sidorenko/chagen/internal/testing/testconnector"
 )
 
 func TestGenerate(t *testing.T) {
@@ -69,17 +68,9 @@ Merged pull requests
 		},
 	}
 	for _, tt := range tests {
-		// create the simulation of CLI flag setting
-		// we need this for testing
-		// unfotunelly useful functions within cli package are private,
-		// so we have to do it by ourself
-		flagset := flag.NewFlagSet("generate", flag.ContinueOnError)
-		flags := generate.CLIFlags()
-		for _, x := range flags {
-			x.Apply(flagset)
-		}
-		flagset.Set("file", "-") // ensure we get output to buffer, which simulates stdout
-		ctx := cli.NewContext(nil, flagset, nil)
+		ctx := tcli.TestContext(generate.CLIFlags(), map[string]string{
+			"file": "-",
+		})
 
 		output := &bytes.Buffer{}
 		generate.Stdout = output

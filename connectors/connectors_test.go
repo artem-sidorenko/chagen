@@ -35,8 +35,12 @@ func (t *testConnector) GetIssues() (data.Issues, error)     { return nil, nil }
 func (t *testConnector) GetMRs() (data.MRs, error)           { return nil, nil }
 func (t *testConnector) GetNewTagURL(string) (string, error) { return "", nil }
 
+func NewTestConnector(_ *cli.Context) (connectors.Connector, error) {
+	return &testConnector{}, nil
+}
+
 func TestGetConnector(t *testing.T) {
-	connectors.RegisterConnector("testexisting", "TestExisting", &testConnector{}, nil)
+	connectors.RegisterConnector("testexisting", "TestExisting", NewTestConnector, nil)
 
 	type args struct {
 		id string
@@ -64,7 +68,7 @@ func TestGetConnector(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := connectors.GetConnector(tt.args.id)
+			got, err := connectors.GetConnector(tt.args.id, nil)
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("GetConnector() error = %v, wantErr %v", err, tt.wantErr)
 				return

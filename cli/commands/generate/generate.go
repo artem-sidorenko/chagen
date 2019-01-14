@@ -73,7 +73,8 @@ func Generate(c *cli.Context) (err error) {
 // getConnectorData returns all needed data from connector
 // if newRelease is specified, a new releases for
 // untagged activities is created
-func getConnectorData(newRelease string, c *cli.Context) (data.Tags, data.Issues, data.MRs, error) {
+func getConnectorData(newRelease string,
+	ctx *cli.Context) (data.Tags, data.Issues, data.MRs, error) {
 	var (
 		connector connectors.Connector
 		tags      data.Tags
@@ -82,12 +83,7 @@ func getConnectorData(newRelease string, c *cli.Context) (data.Tags, data.Issues
 		err       error
 	)
 
-	connector, err = connectors.GetConnector(Connector)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	err = connector.Init(c)
+	connector, err = connectors.GetConnector(Connector, ctx)
 	if err != nil {
 		return nil, nil, nil, err
 	}

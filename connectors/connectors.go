@@ -27,17 +27,19 @@ import (
 
 // Connector describes the interface of connectors to the data sources
 type Connector interface {
-	Init(*cli.Context) error
 	GetTags() (data.Tags, error)
 	GetIssues() (data.Issues, error)
 	GetMRs() (data.MRs, error)
 	GetNewTagURL(string) (string, error)
 }
 
+// NewConnector describes the constructor of Connector
+type NewConnector func(*cli.Context) (Connector, error)
+
 type connector struct {
-	name      string
-	connector Connector
-	flags     []cli.Flag
+	name         string
+	newConnector NewConnector
+	flags        []cli.Flag
 }
 
 var connectors = make(map[string]connector) // nolint: gochecknoglobals
@@ -45,23 +47,29 @@ var connectors = make(map[string]connector) // nolint: gochecknoglobals
 // RegisterConnector registers the new connector for fetching the data.
 // id is used as internal id or as value for CLI flag
 // name is a text name of connector for humans (e.g. help pages)
-// c is the connector interface
+// newConnector is the connector constructor function
 // f is a slice with CLI flags of this connector
-func RegisterConnector(id, name string, c Connector, f []cli.Flag) {
+func RegisterConnector(id, name string, newConnector NewConnector, f []cli.Flag) {
 	connectors[id] = connector{
-		name:      name,
-		connector: c,
-		flags:     f,
+		name:         name,
+		newConnector: newConnector,
+		flags:        f,
 	}
 }
 
 // GetConnector returns the Connector of given id
 // if this connector is missing, error is returned
-func GetConnector(id string) (Connector, error) {
+func GetConnector(id string, ctx *cli.Context) (Connector, error) {
 	if err := checkConnector(id); err != nil {
 		return nil, err
 	}
-	return connectors[id].connector, nil
+
+	conn, err := connectors[id].newConnector(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 // GetCLIFlags returns the registered CLI flags of given connector

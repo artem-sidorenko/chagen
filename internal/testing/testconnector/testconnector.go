@@ -30,11 +30,6 @@ import (
 // Connector implements the test connector
 type Connector struct{}
 
-// Init implements the connectors.Connector interface
-func (*Connector) Init(cli *cli.Context) error {
-	return nil
-}
-
 // GetTags implements the connectors.Connector interface
 func (*Connector) GetTags() (data.Tags, error) {
 	return data.Tags{
@@ -118,6 +113,11 @@ func (*Connector) GetNewTagURL(TagName string) (string, error) {
 	return "http://test.example.com/releases/" + TagName, nil
 }
 
+// New creates a new Connector
+func New(ctx *cli.Context) (connectors.Connector, error) {
+	return &Connector{}, nil
+}
+
 func init() { // nolint: gochecknoinits
-	connectors.RegisterConnector("testconnector", "TestConnector", &Connector{}, []cli.Flag{})
+	connectors.RegisterConnector("testconnector", "TestConnector", New, []cli.Flag{})
 }
