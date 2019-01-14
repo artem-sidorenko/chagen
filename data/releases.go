@@ -60,8 +60,8 @@ func NewReleases(tags Tags, issues Issues, mrs MRs) Releases {
 			Release:    tag.Name,
 			ReleaseURL: tag.URL,
 			Date:       tag.Date.Format(releaseDateFormat),
-			Issues:     issues.Filter(lastReleaseDate, tag.Date),
-			MRs:        mrs.Filter(lastReleaseDate, tag.Date),
+			Issues:     FilterIssues(issues, lastReleaseDate, tag.Date),
+			MRs:        FilterMRs(mrs, lastReleaseDate, tag.Date),
 		})
 	}
 

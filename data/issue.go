@@ -46,10 +46,10 @@ func (is *Issues) Swap(i, j int) {
 	(*is)[i], (*is)[j] = (*is)[j], (*is)[i]
 }
 
-// Filter filters and returns new slice of Issues, where ClosedDate is between given dates
-func (is *Issues) Filter(fromDate, toDate time.Time) Issues {
+// FilterIssues filters and returns new slice of Issues, where ClosedDate is between given dates
+func FilterIssues(is Issues, fromDate, toDate time.Time) Issues {
 	var ret Issues
-	for _, issue := range *is {
+	for _, issue := range is {
 		if issue.ClosedDate.After(fromDate) &&
 			(issue.ClosedDate.Before(toDate) || issue.ClosedDate.Equal(toDate)) {
 			ret = append(ret, issue)
