@@ -1,16 +1,18 @@
 language: go
 go:
-  - 1.11.4
-  - tip
+  - "1.x"
+  - "1.11.x"
+  - master
 os:
   - linux
   - osx
 matrix:
   allow_failures:
-    - go: tip
+    - go: master
   fast_finish: true
 install:
   - make prepare-env
 script:
   - make build
+  - gofmt -s -e -d -w  $(find . -name "*.go" | grep -v /vendor/) && git diff --exit-code
   - make test
