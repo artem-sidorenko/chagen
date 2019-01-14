@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/artem-sidorenko/chagen/commands"
+	_ "github.com/artem-sidorenko/chagen/commands/generate"
 	hcli "github.com/artem-sidorenko/chagen/helpers/cli"
 
 	"github.com/urfave/cli"

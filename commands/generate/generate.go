@@ -14,12 +14,15 @@
    limitations under the License.
 */
 
-package commands
+// Package generate implments the generate command
+package generate
 
 import (
+	"io"
 	"os"
 	"time"
 
+	"github.com/artem-sidorenko/chagen/commands"
 	"github.com/artem-sidorenko/chagen/connectors"
 	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
 	"github.com/artem-sidorenko/chagen/data"
@@ -27,6 +30,11 @@ import (
 
 	"github.com/urfave/cli"
 )
+
+// Stdout references the Stdout writer for generate command
+var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
+// Connector references the connector ID used for generation
+var Connector = "github" // nolint: gochecknoglobals
 
 // Generate implements the CLI subcommand generate
 func Generate(c *cli.Context) (err error) {
@@ -39,17 +47,22 @@ func Generate(c *cli.Context) (err error) {
 
 	// use stdout if - is given, otherwise create a new file
 	filename := c.String("file")
-	wr := os.Stdout
+	var wr io.Writer
 	if filename != "-" {
-		wr, err = os.Create(filename)
-		if err != nil {
+		var file *os.File
+		if file, err = os.Create(filename); err != nil {
 			return err
 		}
+
 		defer func() {
-			if cerr := wr.Close(); err == nil && cerr != nil {
+			if cerr := file.Close(); err == nil && cerr != nil {
 				err = cerr
 			}
 		}()
+
+		wr = file
+	} else {
+		wr = Stdout
 	}
 
 	err = gen.Render(wr)
@@ -69,7 +82,7 @@ func getConnectorData(newRelease string, c *cli.Context) (data.Tags, data.Issues
 		err       error
 	)
 
-	connector, err = connectors.GetConnector("github")
+	connector, err = connectors.GetConnector(Connector)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -97,25 +110,23 @@ func getConnectorData(newRelease string, c *cli.Context) (data.Tags, data.Issues
 			URL:  relURL,
 		})
 	}
-	tags.Sort()
 
 	issues, err = connector.GetIssues()
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	issues.Sort()
 
 	mrs, err = connector.GetMRs()
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	mrs.Sort()
 
 	return tags, issues, mrs, nil
 }
 
-func init() { // nolint: gochecknoinits
-	flags := []cli.Flag{
+// CLIFlags returns the possible CLI flags for this command
+func CLIFlags() []cli.Flag {
+	return []cli.Flag{
 		cli.StringFlag{
 			Name:  "file, f",
 			Usage: "File name of changelog, - is accepted for stdout",
@@ -126,12 +137,16 @@ func init() { // nolint: gochecknoinits
 			Usage: "Create a new release for all issues and changes after the last release",
 		},
 	}
+}
 
-	connectorFlags, _ := connectors.GetCLIFlags("github") // nolint: gosec
+func init() { // nolint: gochecknoinits
+	flags := CLIFlags()
+
+	connectorFlags, _ := connectors.GetCLIFlags(Connector) // nolint: gosec
 
 	flags = append(flags, connectorFlags...)
 
-	RegisterCommand(cli.Command{
+	commands.RegisterCommand(cli.Command{
 		Name:      "generate",
 		Usage:     "Generate a changelog",
 		ArgsUsage: " ", // we do not have any args (only flags), so avoid this help message
