@@ -33,8 +33,8 @@ type Connector interface {
 	GetNewTagURL(string) (string, error)
 }
 
-// NewConnector describes the constructor of Connector
-type NewConnector func(*cli.Context) (Connector, error)
+// NewConnectorFunc describes the constructor of Connector
+type NewConnectorFunc func(*cli.Context) (Connector, error)
 
 // ConnectorCLIFlags describes the function, which returns the configured
 // CLI flags for particular connector
@@ -42,7 +42,7 @@ type ConnectorCLIFlags func() []cli.Flag
 
 type connector struct {
 	name         string
-	newConnector NewConnector
+	newConnector NewConnectorFunc
 	CLIFlags     ConnectorCLIFlags
 }
 
@@ -53,7 +53,7 @@ var connectors = make(map[string]connector) // nolint: gochecknoglobals
 // name is a text name of connector for humans (e.g. help pages)
 // newConnector is the connector constructor function
 // CLIFlag is a function, which returns the configured CLI flags
-func RegisterConnector(id, name string, newConnector NewConnector, CLIFlags ConnectorCLIFlags) {
+func RegisterConnector(id, name string, newConnector NewConnectorFunc, CLIFlags ConnectorCLIFlags) {
 	connectors[id] = connector{
 		name:         name,
 		newConnector: newConnector,
@@ -61,9 +61,9 @@ func RegisterConnector(id, name string, newConnector NewConnector, CLIFlags Conn
 	}
 }
 
-// GetConnector returns the Connector of given id
+// NewConnector returns the Connector of given id
 // if this connector is missing, error is returned
-func GetConnector(id string, ctx *cli.Context) (Connector, error) {
+func NewConnector(id string, ctx *cli.Context) (Connector, error) {
 	if err := checkConnector(id); err != nil {
 		return nil, err
 	}

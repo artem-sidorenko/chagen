@@ -83,7 +83,7 @@ func getConnectorData(newRelease string,
 		err       error
 	)
 
-	connector, err = connectors.GetConnector(Connector, ctx)
+	connector, err = connectors.NewConnector(Connector, ctx)
 	if err != nil {
 		return nil, nil, nil, err
 	}

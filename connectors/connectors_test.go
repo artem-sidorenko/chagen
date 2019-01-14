@@ -95,7 +95,7 @@ func TestCLIFlags(t *testing.T) {
 
 }
 
-func TestGetConnector(t *testing.T) {
+func TestNewConnector(t *testing.T) {
 	connectors.RegisterConnector("testexisting", "TestExisting", NewTestConnector, nil)
 
 	type args struct {
@@ -124,13 +124,13 @@ func TestGetConnector(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := connectors.GetConnector(tt.args.id, nil)
+			got, err := connectors.NewConnector(tt.args.id, nil)
 			if err != nil && err.Error() != tt.wantErr.Error() {
-				t.Errorf("GetConnector() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewConnector() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetConnector() = %v, want %v", got, tt.want)
+				t.Errorf("NewConnector() = %v, want %v", got, tt.want)
 			}
 		})
 	}
