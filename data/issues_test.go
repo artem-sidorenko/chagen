@@ -18,6 +18,7 @@ package data_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -95,10 +96,10 @@ func TestIssues_Sort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.is.Sort()
+			sort.Sort(tt.is)
 
 			if !reflect.DeepEqual(tt.is, tt.want) {
-				t.Errorf("Issues.Sort(), Issues = %v, want %v", tt.is, tt.want)
+				t.Errorf("sort.Sort(Issues), got%v, want %v", tt.is, tt.want)
 			}
 		})
 	}

@@ -17,7 +17,6 @@
 package data
 
 import (
-	"sort"
 	"time"
 )
 
@@ -39,15 +38,10 @@ func (t *Tags) Len() int {
 
 // Less implements the Sort.Interface
 func (t *Tags) Less(i, j int) bool {
-	return (*t)[i].Date.Before((*t)[j].Date)
+	return (*t)[i].Date.After((*t)[j].Date)
 }
 
 // Swap implements the Sort.Interface
 func (t *Tags) Swap(i, j int) {
 	(*t)[i], (*t)[j] = (*t)[j], (*t)[i]
-}
-
-// Sort implements sorting of available Tags
-func (t *Tags) Sort() {
-	sort.Sort(sort.Reverse(t))
 }

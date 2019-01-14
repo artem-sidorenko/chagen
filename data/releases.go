@@ -17,6 +17,7 @@
 package data
 
 import (
+	"sort"
 	"time"
 )
 
@@ -41,9 +42,9 @@ func NewReleases(tags Tags, issues Issues, mrs MRs) Releases {
 	var lastReleaseDate time.Time
 
 	// we should have a proper sorted data to avoid surprises
-	tags.Sort()
-	issues.Sort()
-	mrs.Sort()
+	sort.Sort(&tags)
+	sort.Sort(&issues)
+	sort.Sort(&mrs)
 
 	// as our tags are sorted, lets iterate from newest to the oldest
 	for i, tag := range tags {
