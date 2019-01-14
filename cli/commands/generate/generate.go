@@ -138,7 +138,10 @@ func CLIFlags() []cli.Flag {
 func init() { // nolint: gochecknoinits
 	flags := CLIFlags()
 
-	connectorFlags, _ := connectors.CLIFlags(Connector) // nolint: gosec
+	connectorFlags, err := connectors.CLIFlags(Connector)
+	if err != nil {
+		panic(err)
+	}
 
 	flags = append(flags, connectorFlags...)
 
