@@ -142,6 +142,33 @@ func TestIssues_Filter(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Filtering of same day issue",
+			is: &data.Issues{
+				{
+					Name:       "Issue 1",
+					ClosedDate: time.Unix(1047483647, 0),
+				},
+				{
+					Name:       "Issue 2",
+					ClosedDate: time.Unix(1247483647, 0),
+				},
+				{
+					Name:       "Issue 3",
+					ClosedDate: time.Unix(1347483647, 0),
+				},
+			},
+			args: args{
+				fromDate: time.Unix(1057483647, 0),
+				toDate:   time.Unix(1247483647, 0),
+			},
+			wantRet: data.Issues{
+				{
+					Name:       "Issue 2",
+					ClosedDate: time.Unix(1247483647, 0),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
