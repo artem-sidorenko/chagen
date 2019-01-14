@@ -64,7 +64,8 @@ Closed issues
 Merged pull requests
 --------------------
 - MR 1 [\#1](https://test.example.com/mrs/1) ([testauthor](https://test.example.com/authors/testauthor))
-`,
+
+*This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`,
 		},
 	}
 	for _, tt := range tests {

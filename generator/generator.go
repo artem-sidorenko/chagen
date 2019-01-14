@@ -22,6 +22,7 @@ import (
 	"text/template"
 
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/info"
 )
 
 const changelogTemplate = `Changelog
@@ -46,12 +47,15 @@ Merged pull requests
 - {{.Name}} [\#{{.ID}}]({{.URL}}) ([{{.Author}}]({{.AuthorURL}}))
 {{- end}}
 {{- end}}
-{{ end}}`
+{{ end}}
+*This Changelog was automatically generated with [chagen {{.ChagenVersion}}]({{.ChagenURL}})*`
 
 // Generator is resposible for generation of Changelogs.
 // Each data field represents the data structure, which is consumed by the template.
 type Generator struct {
-	Releases data.Releases
+	Releases      data.Releases
+	ChagenVersion string
+	ChagenURL     string
 }
 
 // Render the content via template and write it to wr.
@@ -65,6 +69,8 @@ func (g *Generator) Render(wr io.Writer) error {
 // which is filled and initialized with release data
 func New(r data.Releases) *Generator {
 	return &Generator{
-		Releases: r,
+		Releases:      r,
+		ChagenVersion: info.Version(),
+		ChagenURL:     info.URL,
 	}
 }
