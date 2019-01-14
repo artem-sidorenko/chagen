@@ -58,7 +58,8 @@ func (m *MRs) Sort() {
 func (m *MRs) Filter(fromDate, toDate time.Time) MRs {
 	var ret MRs
 	for _, mr := range *m {
-		if mr.MergedDate.After(fromDate) && mr.MergedDate.Before(toDate) {
+		if mr.MergedDate.After(fromDate) &&
+			(mr.MergedDate.Before(toDate) || mr.MergedDate.Equal(toDate)) {
 			ret = append(ret, mr)
 		}
 	}

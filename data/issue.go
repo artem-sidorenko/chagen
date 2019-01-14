@@ -56,7 +56,8 @@ func (is *Issues) Sort() {
 func (is *Issues) Filter(fromDate, toDate time.Time) Issues {
 	var ret Issues
 	for _, issue := range *is {
-		if issue.ClosedDate.After(fromDate) && issue.ClosedDate.Before(toDate) {
+		if issue.ClosedDate.After(fromDate) &&
+			(issue.ClosedDate.Before(toDate) || issue.ClosedDate.Equal(toDate)) {
 			ret = append(ret, issue)
 		}
 	}

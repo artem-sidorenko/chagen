@@ -142,6 +142,33 @@ func TestMRs_Filter(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Filtering of same day MR",
+			m: &data.MRs{
+				{
+					Name:       "MR 1",
+					MergedDate: time.Unix(1047483647, 0),
+				},
+				{
+					Name:       "MR 2",
+					MergedDate: time.Unix(1247483647, 0),
+				},
+				{
+					Name:       "MR 3",
+					MergedDate: time.Unix(1347483647, 0),
+				},
+			},
+			args: args{
+				fromDate: time.Unix(1057483647, 0),
+				toDate:   time.Unix(1247483647, 0),
+			},
+			wantRet: data.MRs{
+				{
+					Name:       "MR 2",
+					MergedDate: time.Unix(1247483647, 0),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
