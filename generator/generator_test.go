@@ -87,6 +87,7 @@ func TestGenerator_Render(t *testing.T) {
 					},
 				},
 			},
+			// nolint: lll
 			wantWr: `Changelog
 =========
 
@@ -111,7 +112,8 @@ Merged pull requests
 Closed issues
 -------------
 - Test issue [\#1](https://example.com/issue/1)
-`,
+
+*This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`,
 			wantErr: false,
 		},
 	}

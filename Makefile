@@ -7,9 +7,9 @@ VERSION := $(shell git describe --tags --always --dirty)
 
 build: ## Build the development binaries
 	mkdir -p build
-	GOOS=linux GOARCH=amd64 go build -o build/chagen-linux-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
-	GOOS=darwin GOARCH=amd64 go build -o build/chagen-darwin-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
-	GOOS=windows GOARCH=amd64 go build -o build/chagen-windows-amd64 -ldflags "-X main.version=$(VERSION)" chagen.go
+	GOOS=linux GOARCH=amd64 go build -o build/chagen-linux-amd64 -ldflags "-X github.com/artem-sidorenko/chagen/internal/info.version=$(VERSION)" chagen.go
+	GOOS=darwin GOARCH=amd64 go build -o build/chagen-darwin-amd64 -ldflags "-X github.com/artem-sidorenko/chagen/internal/info.version=$(VERSION)" chagen.go
+	GOOS=windows GOARCH=amd64 go build -o build/chagen-windows-amd64 -ldflags "-X github.com/artem-sidorenko/chagen/internal/info.version=$(VERSION)" chagen.go
 
 prepare-env: ## Prepare the development/test environment
 	go get -u github.com/alecthomas/gometalinter
@@ -39,11 +39,11 @@ endif
 release: ## Build a new release
 	rm -rf release/$(VERSION)
 	mkdir -p release/$(VERSION)
-	GOOS=linux GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	GOOS=linux GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X github.com/artem-sidorenko/chagen/internal/info.version=$(VERSION)" chagen.go
 	tar cfzC release/$(VERSION)/chagen_$(VERSION)_Linux-64bit.tgz release/$(VERSION) chagen
-	GOOS=darwin GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	GOOS=darwin GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X github.com/artem-sidorenko/chagen/internal/info.version=$(VERSION)" chagen.go
 	tar cfzC release/$(VERSION)/chagen_$(VERSION)_MacOS-64bit.tgz release/$(VERSION) chagen
-	GOOS=windows GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X main.version=$(VERSION)" chagen.go
+	GOOS=windows GOARCH=amd64 go build -o release/$(VERSION)/chagen -ldflags "-X github.com/artem-sidorenko/chagen/internal/info.version=$(VERSION)" chagen.go
 	zip -FS -j release/$(VERSION)/chagen_$(VERSION)_Windows-64bit.zip release/$(VERSION)/chagen
 	rm release/$(VERSION)/chagen
 	cd release/$(VERSION); sha256sum * > chagen_$(VERSION)_checksums.sha256

@@ -23,6 +23,7 @@ import (
 
 	"github.com/artem-sidorenko/chagen/cli/commands"
 	_ "github.com/artem-sidorenko/chagen/cli/commands/generate" // enable generate subcommand
+	"github.com/artem-sidorenko/chagen/internal/info"
 
 	"github.com/urfave/cli"
 )
@@ -31,9 +32,9 @@ const usage = "Changelog generator for your projects"
 
 // Run provides the main encapsulation of control logic for CLI
 // basically its like main()
-func Run(version string) {
+func Run() {
 	app := cli.NewApp()
-	app.Version = version
+	app.Version = info.Version()
 	app.OnUsageError = onUsageError
 	app.ExitErrHandler = exitErrHandler
 	app.Usage = usage
@@ -42,8 +43,8 @@ func Run(version string) {
 	app.Commands = commands.GetCommands()
 	app.Authors = []cli.Author{
 		{
-			Name:  "Artem Sidorenko",
-			Email: "artem@posteo.de",
+			Name:  info.Author,
+			Email: info.Email,
 		},
 	}
 	err := app.Run(os.Args)
