@@ -18,6 +18,7 @@
 package github
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -26,8 +27,10 @@ import (
 	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/connectors/github/internal/client"
 	"github.com/artem-sidorenko/chagen/data"
 
+	"github.com/google/go-github/github"
 	"github.com/urfave/cli"
 )
 
@@ -37,11 +40,20 @@ const AccessTokenEnvVar = "CHAGEN_GITHUB_TOKEN" // nolint: gosec
 
 // Connector implements the GitHub connector
 type Connector struct {
-	API                 API
+	context             context.Context
+	client              *client.GitHubClient
 	Owner               string
 	Repo                string
 	ProjectURL          string
 	NewTagUseReleaseURL bool
+}
+
+// NewGitHubClientFunc links to the constructor, which is used to create Connector.client
+var NewGitHubClientFunc = client.NewGitHubClient // nolint: gochecknoglobals
+
+// formatErrorCode formats the error message for this connector
+func formatErrorCode(query string, err error) error {
+	return fmt.Errorf("GitHub query '%s' failed: %s", query, err)
 }
 
 // GetNewTagURL returns the URL for a new tag, which does not exist yet
@@ -52,10 +64,13 @@ func (c *Connector) GetNewTagURL(TagName string) (string, error) {
 // getTagURL returns the URL for a given tag.
 // If alwaysUseReleaseURL is true: URL is provided for release page,
 // even if it does not exist yet
-func (c *Connector) getTagURL(TagName string, alwaysUseReleaseURL bool) (string, error) {
-	release, err := c.API.GetReleaseByTag(c.Owner, c.Repo, TagName)
+func (c *Connector) getTagURL(tagName string, alwaysUseReleaseURL bool) (string, error) {
+	release, resp, err := c.client.Repositories.GetReleaseByTag(c.context, c.Owner, c.Repo, tagName)
 	if err != nil {
-		return "", err
+		// no release was found for this tag, this is no error for us
+		if resp.StatusCode != 404 {
+			return "", formatErrorCode("getTagURL", err)
+		}
 	}
 
 	// if GitHub release for this tag was found -> use it
@@ -70,9 +85,9 @@ func (c *Connector) getTagURL(TagName string, alwaysUseReleaseURL bool) (string,
 		}
 
 		if alwaysUseReleaseURL { // try to build own release url
-			u.Path = path.Join(u.Path, "/releases/"+TagName)
+			u.Path = path.Join(u.Path, "/releases/"+tagName)
 		} else { // build tag url
-			u.Path = path.Join(u.Path, "/tree/"+TagName)
+			u.Path = path.Join(u.Path, "/tree/"+tagName)
 		}
 		tagURL = u.String()
 	}
@@ -81,54 +96,77 @@ func (c *Connector) getTagURL(TagName string, alwaysUseReleaseURL bool) (string,
 
 // GetTags returns the git tags
 func (c *Connector) GetTags() (data.Tags, error) {
-	tags, err := c.API.ListTags(c.Owner, c.Repo)
-	if err != nil {
-		return nil, err
-	}
+	opt := &github.ListOptions{}
 
 	var ret data.Tags
-	for _, tag := range tags {
-		tagName := tag.GetName()
-		commit, err := c.API.GetCommit(c.Owner, c.Repo, tag.Commit.GetSHA())
+	for {
+		tags, resp, err := c.client.Repositories.ListTags(c.context, c.Owner, c.Repo, nil)
 		if err != nil {
-			return nil, err
+			return nil, formatErrorCode("GetTags", err)
 		}
 
-		tagURL, err := c.getTagURL(tagName, false)
-		if err != nil {
-			return nil, err
+		for _, tag := range tags {
+			tagName := tag.GetName()
+
+			commit, _, err := c.client.Repositories.GetCommit(c.context,
+				c.Owner, c.Repo, tag.Commit.GetSHA())
+			if err != nil {
+				return nil, formatErrorCode("GetTags", err)
+			}
+
+			tagURL, err := c.getTagURL(tagName, false)
+			if err != nil {
+				return nil, formatErrorCode("GetTags", err)
+			}
+
+			ret = append(ret, data.Tag{
+				Name:   tagName,
+				Commit: commit.Commit.GetSHA(),
+				Date:   commit.Commit.Committer.GetDate(),
+				URL:    tagURL,
+			})
 		}
 
-		ret = append(ret, data.Tag{
-			Name:   tagName,
-			Commit: commit.Commit.GetSHA(),
-			Date:   commit.Commit.Committer.GetDate(),
-			URL:    tagURL,
-		})
+		if resp.NextPage == 0 {
+			break
+		}
+
+		opt.Page = resp.NextPage
 	}
+
 	return ret, nil
 }
 
 // GetIssues returns the closed issues
 func (c *Connector) GetIssues() (data.Issues, error) {
-	issues, err := c.API.ListIssues(c.Owner, c.Repo)
-	if err != nil {
-		return nil, err
-	}
+	opt := &github.IssueListByRepoOptions{State: "closed"}
 
 	var ret data.Issues
-	for _, issue := range issues {
-		//ensure we have an issue and not PR
-		if issue.PullRequestLinks.GetURL() != "" {
-			continue
+	for {
+		issues, resp, err := c.client.Issues.ListByRepo(c.context, c.Owner, c.Repo, opt)
+		if err != nil {
+			return nil, formatErrorCode("GetIssues", err)
 		}
 
-		ret = append(ret, data.Issue{
-			ID:         issue.GetNumber(),
-			Name:       issue.GetTitle(),
-			ClosedDate: issue.GetClosedAt(),
-			URL:        issue.GetHTMLURL(),
-		})
+		for _, issue := range issues {
+			//ensure we have an issue and not PR
+			if issue.PullRequestLinks.GetURL() != "" {
+				continue
+			}
+
+			ret = append(ret, data.Issue{
+				ID:         issue.GetNumber(),
+				Name:       issue.GetTitle(),
+				ClosedDate: issue.GetClosedAt(),
+				URL:        issue.GetHTMLURL(),
+			})
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+
+		opt.Page = resp.NextPage
 	}
 
 	return ret, nil
@@ -136,26 +174,36 @@ func (c *Connector) GetIssues() (data.Issues, error) {
 
 //GetMRs returns the merged pull requests
 func (c *Connector) GetMRs() (data.MRs, error) {
-	prs, err := c.API.ListPRs(c.Owner, c.Repo)
-	if err != nil {
-		return nil, err
-	}
+	opt := &github.PullRequestListOptions{State: "closed"}
 
 	var ret data.MRs
-	for _, pr := range prs {
-		// we need only merged PRs, skip everything else
-		if pr.GetMergedAt() == (time.Time{}) {
-			continue
+	for {
+		prs, resp, err := c.client.PullRequests.List(c.context, c.Owner, c.Repo, opt)
+		if err != nil {
+			return nil, formatErrorCode("GetMRs", err)
 		}
 
-		ret = append(ret, data.MR{
-			ID:         pr.GetNumber(),
-			Name:       pr.GetTitle(),
-			MergedDate: pr.GetMergedAt(),
-			URL:        pr.GetHTMLURL(),
-			Author:     pr.User.GetLogin(),
-			AuthorURL:  pr.User.GetHTMLURL(),
-		})
+		for _, pr := range prs {
+			// we need only merged PRs, skip everything else
+			if pr.GetMergedAt() == (time.Time{}) {
+				continue
+			}
+
+			ret = append(ret, data.MR{
+				ID:         pr.GetNumber(),
+				Name:       pr.GetTitle(),
+				MergedDate: pr.GetMergedAt(),
+				URL:        pr.GetHTMLURL(),
+				Author:     pr.User.GetLogin(),
+				AuthorURL:  pr.User.GetHTMLURL(),
+			})
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+
+		opt.Page = resp.NextPage
 	}
 
 	return ret, nil
@@ -174,10 +222,11 @@ func New(ctx *cli.Context) (connectors.Connector, error) {
 	newTagUseReleaseURL := ctx.Bool("github-release-url")
 
 	return &Connector{
+		context:             context.Background(),
+		client:              NewGitHubClientFunc(context.Background(), os.Getenv(AccessTokenEnvVar)),
 		Owner:               owner,
 		Repo:                repo,
 		NewTagUseReleaseURL: newTagUseReleaseURL,
-		API:                 NewAPIClient(os.Getenv(AccessTokenEnvVar)),
 		ProjectURL:          fmt.Sprintf("https://github.com/%s/%s", owner, repo),
 	}, nil
 }

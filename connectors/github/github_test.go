@@ -22,102 +22,104 @@ import (
 	"testing"
 	"time"
 
-	cgithub "github.com/artem-sidorenko/chagen/connectors/github"
-	"github.com/artem-sidorenko/chagen/connectors/github/internal/testapiclient"
+	"github.com/artem-sidorenko/chagen/connectors"
+	"github.com/artem-sidorenko/chagen/connectors/github"
+	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
 	"github.com/artem-sidorenko/chagen/data"
-	"github.com/google/go-github/github"
+	tcli "github.com/artem-sidorenko/chagen/internal/testing/cli"
+
+	"github.com/urfave/cli"
 )
 
-// NewConnector returns a new Connector, initialited with test data
-// and provided test options
-func NewConnector(o testapiclient.Options) *cgithub.Connector {
-	return &cgithub.Connector{
-		API:        testapiclient.New(o),
-		Owner:      "testowner",
-		Repo:       "restrepo",
-		ProjectURL: "https://example.com/testowner/restrepo",
+func setupTestConnector(
+	retErrControl testclient.RetErr, newTagUseReleaseURL bool,
+) connectors.Connector {
+
+	github.NewGitHubClientFunc = testclient.New
+	cliFlags := map[string]string{
+		"github-owner": "testowner",
+		"github-repo":  "testrepo",
 	}
+	if newTagUseReleaseURL {
+		cliFlags["github-release-url"] = "true"
+	}
+
+	ctx := tcli.TestContext(github.CLIFlags(), cliFlags)
+
+	// initialize error values
+	testclient.RetErrControl = retErrControl
+
+	c, _ := github.New(ctx)
+
+	return c
 }
 
-func Test_connector_GetTags(t *testing.T) {
-	type fields struct {
-		TestAPIopts testapiclient.Options
-	}
+func TestGetTags(t *testing.T) {
 	tests := []struct {
-		name    string
-		fields  fields
-		want    data.Tags
-		wantErr error
+		name          string
+		retErrControl testclient.RetErr
+		want          data.Tags
+		wantErr       error
 	}{
 		{
 			name: "API returns proper data",
-			fields: fields{
-				TestAPIopts: testapiclient.Options{
-					ListTags:  true,
-					GetCommit: true,
-				},
-			},
 			want: data.Tags{
 				{
 					Name:   "v0.0.1",
 					Commit: "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc",
 					Date:   time.Unix(2147483647, 0),
-					URL:    "https://example.com/releases/v0.0.1",
+					URL:    "https://github.com/testowner/testrepo/releases/v0.0.1",
 				},
 				{
 					Name:   "v0.0.2",
 					Commit: "b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da",
 					Date:   time.Unix(2047483647, 0),
-					URL:    "https://example.com/testowner/restrepo/tree/v0.0.2",
+					URL:    "https://github.com/testowner/testrepo/tree/v0.0.2",
 				},
 			},
 		},
 		{
 			name: "ListTags call fails",
-			fields: fields{
-				TestAPIopts: testapiclient.Options{ListTags: false},
+			retErrControl: testclient.RetErr{
+				RetRepoServiceListTagsErr: true,
 			},
-			wantErr: errors.New("ListTags failed"),
+			wantErr: errors.New("GitHub query 'GetTags' failed: Can't fetch the tags"),
 		},
 		{
 			name: "GetCommit call fails",
-			fields: fields{
-				TestAPIopts: testapiclient.Options{ListTags: true, GetCommit: false},
+			retErrControl: testclient.RetErr{
+				RetRepoServiceGetCommitsErr: true,
 			},
-			wantErr: errors.New("GetCommit failed"),
+			wantErr: errors.New("GitHub query 'GetTags' failed: Can't fetch the commit"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewConnector(tt.fields.TestAPIopts)
+			c := setupTestConnector(tt.retErrControl, false)
+
 			got, err := c.GetTags()
+
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("Connector.GetTags() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Connector.GetTags() = %v, want %v", got, tt.want)
+				t.Errorf("Connector.GetTags() = %+v, want %+v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestConnector_GetIssues(t *testing.T) {
-	type fields struct {
-		TestAPIopts testapiclient.Options
-	}
+func TestGetIssues(t *testing.T) {
 	tests := []struct {
-		name    string
-		fields  fields
-		want    data.Issues
-		wantErr error
+		name          string
+		retErrControl testclient.RetErr
+		want          data.Issues
+		wantErr       error
 	}{
 		{
 			name: "API returns proper data",
-			fields: fields{
-				TestAPIopts: testapiclient.Options{ListIssues: true},
-			},
 			want: data.Issues{
 				data.Issue{
 					ID:         1234,
@@ -129,15 +131,16 @@ func TestConnector_GetIssues(t *testing.T) {
 		},
 		{
 			name: "ListIssues call fails",
-			fields: fields{
-				TestAPIopts: testapiclient.Options{ListIssues: false},
+			retErrControl: testclient.RetErr{
+				RetIssueServiceListByRepoErr: true,
 			},
-			wantErr: errors.New("ListIssues failed"),
+			wantErr: errors.New("GitHub query 'GetIssues' failed: Can't fetch the issues"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewConnector(tt.fields.TestAPIopts)
+			c := setupTestConnector(tt.retErrControl, false)
+
 			got, err := c.GetIssues()
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("Connector.GetIssues() error = %v, wantErr %v", err, tt.wantErr)
@@ -150,21 +153,15 @@ func TestConnector_GetIssues(t *testing.T) {
 	}
 }
 
-func TestConnector_GetMRs(t *testing.T) {
-	type fields struct {
-		TestAPIopts testapiclient.Options
-	}
+func TestGetMRs(t *testing.T) {
 	tests := []struct {
-		name    string
-		fields  fields
-		want    data.MRs
-		wantErr error
+		name          string
+		retErrControl testclient.RetErr
+		want          data.MRs
+		wantErr       error
 	}{
 		{
 			name: "API returns proper data",
-			fields: fields{
-				TestAPIopts: testapiclient.Options{ListPRs: true},
-			},
 			want: data.MRs{
 				data.MR{
 					ID:         1234,
@@ -178,15 +175,16 @@ func TestConnector_GetMRs(t *testing.T) {
 		},
 		{
 			name: "ListPRs call fails",
-			fields: fields{
-				TestAPIopts: testapiclient.Options{ListPRs: false},
+			retErrControl: testclient.RetErr{
+				RetPullRequestsListErr: true,
 			},
-			wantErr: errors.New("ListPRs failed"),
+			wantErr: errors.New("GitHub query 'GetMRs' failed: Can't fetch the PRs"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewConnector(tt.fields.TestAPIopts)
+			c := setupTestConnector(tt.retErrControl, false)
+
 			got, err := c.GetMRs()
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("Connector.GetMRs() error = %v, wantErr %v", err, tt.wantErr)
@@ -199,7 +197,7 @@ func TestConnector_GetMRs(t *testing.T) {
 	}
 }
 
-func TestConnector_GetNewTagURL(t *testing.T) {
+func TestGetNewTagURL(t *testing.T) {
 	type fields struct {
 		NewTagUseReleaseURL bool
 	}
@@ -221,7 +219,7 @@ func TestConnector_GetNewTagURL(t *testing.T) {
 			args: args{
 				TagName: "v0.0.1",
 			},
-			want: "https://example.com/testowner/restrepo/releases/v0.0.1",
+			want: "https://github.com/testowner/testrepo/releases/v0.0.1",
 		},
 		{
 			name: "Release is present, NewTagUseReleaseURL is enabled",
@@ -231,7 +229,7 @@ func TestConnector_GetNewTagURL(t *testing.T) {
 			args: args{
 				TagName: "v0.0.1",
 			},
-			want: "https://example.com/testowner/restrepo/releases/v0.0.1",
+			want: "https://github.com/testowner/testrepo/releases/v0.0.1",
 		},
 		{
 			name: "Release is not present, NewTagUseReleaseURL is disabled",
@@ -241,7 +239,7 @@ func TestConnector_GetNewTagURL(t *testing.T) {
 			args: args{
 				TagName: "v0.0.3",
 			},
-			want: "https://example.com/testowner/restrepo/tree/v0.0.3",
+			want: "https://github.com/testowner/testrepo/tree/v0.0.3",
 		},
 		{
 			name: "Release is not present, alwaysUseReleaseURL is enabled",
@@ -251,25 +249,13 @@ func TestConnector_GetNewTagURL(t *testing.T) {
 			args: args{
 				TagName: "v0.0.3",
 			},
-			want: "https://example.com/testowner/restrepo/releases/v0.0.3",
+			want: "https://github.com/testowner/testrepo/releases/v0.0.3",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &cgithub.Connector{
-				API: &testapiclient.TestAPIClient{
-					RetGetReleaseByTag: map[string]*github.RepositoryRelease{
-						"v0.0.1": {
-							TagName: testapiclient.GetStringPtr("v0.0.1"),
-							HTMLURL: testapiclient.GetStringPtr(
-								"https://example.com/testowner/restrepo/releases/v0.0.1",
-							),
-						},
-					},
-				},
-				ProjectURL:          "https://example.com/testowner/restrepo",
-				NewTagUseReleaseURL: tt.fields.NewTagUseReleaseURL,
-			}
+			c := setupTestConnector(testclient.RetErr{}, tt.fields.NewTagUseReleaseURL)
+
 			got, err := c.GetNewTagURL(tt.args.TagName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Connector.GetNewTagURL() error = %v, wantErr %v", err, tt.wantErr)
@@ -277,6 +263,70 @@ func TestConnector_GetNewTagURL(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Connector.GetNewTagURL() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func setupCLIContext(githubOwner, githubRepo bool) *cli.Context {
+	flags := map[string]string{}
+
+	if githubOwner {
+		flags["github-owner"] = "testowner"
+	}
+
+	if githubRepo {
+		flags["github-repo"] = "testrepo"
+	}
+
+	return tcli.TestContext(github.CLIFlags(), flags)
+}
+
+func TestNew(t *testing.T) {
+	type args struct {
+		githubOwner bool
+		githubRepo  bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "Proper CLI flags given",
+			args: args{
+				githubOwner: true,
+				githubRepo:  true,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "github-owner flag is missing",
+			args: args{
+				githubOwner: false,
+				githubRepo:  true,
+			},
+			wantErr: errors.New("Option --github-owner is required"),
+		},
+		{
+			name: "github-repo flag is missing",
+			args: args{
+				githubOwner: true,
+				githubRepo:  false,
+			},
+			wantErr: errors.New("Option --github-repo is required"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := github.New(setupCLIContext(tt.args.githubOwner, tt.args.githubRepo))
+
+			if (err != nil && tt.wantErr == nil) ||
+				(err == nil && tt.wantErr != nil) ||
+				((err != nil && tt.wantErr != nil) && (err.Error() != tt.wantErr.Error())) {
+
+				t.Errorf("New() got = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}
