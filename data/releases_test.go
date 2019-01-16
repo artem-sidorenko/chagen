@@ -104,6 +104,11 @@ func TestNewReleases(t *testing.T) {
 			issues, _ := conn.GetIssues()
 			mrs, _ := conn.GetMRs()
 			gotRet := data.NewReleases(tags, issues, mrs)
+			if len(gotRet) != len(tt.wantRet) {
+				t.Errorf("NewReleases() different amount of results. got %#v, want %#v",
+					len(gotRet), len(tt.wantRet))
+				t.FailNow()
+			}
 			for i := range gotRet {
 				if !reflect.DeepEqual(gotRet[i], tt.wantRet[i]) {
 					t.Errorf("\nNewReleases() [%v] = \n got %#v, \n want %#v", i, gotRet[i], tt.wantRet[i])
