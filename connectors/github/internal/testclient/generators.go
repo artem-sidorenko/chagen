@@ -67,13 +67,23 @@ func genResponse(statusCode int) *github.Response {
 func genIssue(
 	number int, title string,
 	closedAt time.Time, htmlURL string,
+	labels []string,
 ) *github.Issue {
+
+	var lbs []github.Label
+
+	for _, l := range labels {
+		lbs = append(lbs, github.Label{
+			Name: getStringPtr(l),
+		})
+	}
 
 	return &github.Issue{
 		Number:   getIntPtr(number),
 		Title:    getStringPtr(title),
 		ClosedAt: getTimePtr(closedAt),
 		HTMLURL:  getStringPtr(htmlURL),
+		Labels:   lbs,
 	}
 }
 
@@ -92,8 +102,16 @@ func genIssuePR(
 func genPR(
 	number int,
 	title, htmlURL, userLogin, userHTMLURL string,
-	mergedAt time.Time,
+	mergedAt time.Time, labels []string,
 ) *github.PullRequest {
+
+	var lbs []*github.Label
+
+	for _, l := range labels {
+		lbs = append(lbs, &github.Label{
+			Name: getStringPtr(l),
+		})
+	}
 
 	pr := &github.PullRequest{
 		Number:  getIntPtr(number),
@@ -103,6 +121,7 @@ func genPR(
 			Login:   getStringPtr(userLogin),
 			HTMLURL: getStringPtr(userHTMLURL),
 		},
+		Labels: lbs,
 	}
 
 	if (mergedAt != time.Time{}) {

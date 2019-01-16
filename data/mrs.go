@@ -28,6 +28,7 @@ type MR struct {
 	Author     string
 	AuthorURL  string
 	MergedDate time.Time
+	Labels     []string
 }
 
 // MRs is a slice with MR elements

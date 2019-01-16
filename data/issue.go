@@ -26,6 +26,7 @@ type Issue struct {
 	Name       string
 	ClosedDate time.Time
 	URL        string
+	Labels     []string
 }
 
 // Issues is a slice with Issue elements

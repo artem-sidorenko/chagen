@@ -171,6 +171,7 @@ func New(_ context.Context, _ string) *client.GitHubClient {
 			genIssue(
 				1234, "Test issue title",
 				time.Unix(1047483647, 0), "http://example.com/issues/1234",
+				[]string{"enhancement"},
 			),
 			genIssuePR(4321, "Test PR title", "https://example.com/prs/4321"),
 		},
@@ -180,9 +181,10 @@ func New(_ context.Context, _ string) *client.GitHubClient {
 		RetErrControl: RetErrControl,
 		RetPRs: []*github.PullRequest{
 			genPR(1234, "Test PR title", "https://example.com/pulls/1234",
-				"test-user", "https://example.com/users/test-user", time.Unix(1747483647, 0)),
+				"test-user", "https://example.com/users/test-user",
+				time.Unix(1747483647, 0), []string{"bugfix"}),
 			genPR(1233, "Second closed PR title", "https://example.com/pulls/1233",
-				"test-user", "https://example.com/users/test-user", time.Time{}),
+				"test-user", "https://example.com/users/test-user", time.Time{}, []string{}),
 		},
 	}
 
