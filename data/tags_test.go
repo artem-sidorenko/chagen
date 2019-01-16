@@ -18,6 +18,7 @@ package data_test
 
 import (
 	"reflect"
+	"regexp"
 	"sort"
 	"testing"
 	"time"
@@ -101,6 +102,68 @@ func TestTags_Sort(t *testing.T) {
 
 			if !reflect.DeepEqual(tt.t, tt.want) {
 				t.Errorf("sort.Sort(Tags), got %v, want %v", tt.t, tt.want)
+			}
+		})
+	}
+}
+
+func TestFilterTags(t *testing.T) {
+	type args struct {
+		ts     data.Tags
+		regexp *regexp.Regexp
+	}
+	tests := []struct {
+		name string
+		args args
+		want data.Tags
+	}{
+		{
+			name: "Filtering of tags",
+			args: args{
+				regexp: regexp.MustCompile(`^v\d+\.\d+\.\d+$`),
+				ts: data.Tags{
+					{
+						Name: "asdasdv1.16.55",
+						Date: time.Unix(1147493347, 0),
+					},
+					{
+						Name: "v1.16.55",
+						Date: time.Unix(1147483347, 0),
+					},
+					{
+						Name: "v0.0.2",
+						Date: time.Unix(1147483647, 0),
+					},
+					{
+						Name: "testing",
+						Date: time.Unix(1047483647, 0),
+					},
+					{
+						Name: "v0.0.3",
+						Date: time.Unix(1247483647, 0),
+					},
+				},
+			},
+			want: data.Tags{
+				{
+					Name: "v1.16.55",
+					Date: time.Unix(1147483347, 0),
+				},
+				{
+					Name: "v0.0.2",
+					Date: time.Unix(1147483647, 0),
+				},
+				{
+					Name: "v0.0.3",
+					Date: time.Unix(1247483647, 0),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := data.FilterTags(tt.args.ts, tt.args.regexp); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FilterIssuesByName() = %v, want %v", got, tt.want)
 			}
 		})
 	}
