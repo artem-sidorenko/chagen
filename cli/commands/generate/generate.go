@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/artem-sidorenko/chagen/cli/commands"
@@ -39,8 +40,9 @@ var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
 var Connector = "github" // nolint: gochecknoglobals
 
 // Generate implements the CLI subcommand generate
-func Generate(ctx *cli.Context) error {
+func Generate(ctx *cli.Context) error { // nolint: gocyclo
 	var filterRe *regexp.Regexp
+	var excludeLabels []string
 	var err error
 
 	if !ctx.Bool("no-filter-tags") { // if the flag is not there, lets apply the filter
@@ -53,12 +55,26 @@ func Generate(ctx *cli.Context) error {
 		}
 	}
 
+	ls := ctx.String("exclude-labels")
+	if ls != "" {
+		excludeLabels = strings.Split(ls, ",")
+		//trim spaces from label names
+		for i := range excludeLabels {
+			excludeLabels[i] = strings.Trim(excludeLabels[i], " ")
+		}
+	}
+
 	conn, err := connectors.NewConnector(Connector, ctx)
 	if err != nil {
 		return err
 	}
 
-	tags, issues, mrs, err := getConnectorData(conn, filterRe, ctx.String("new-release"))
+	tags, issues, mrs, err := getConnectorData(
+		conn,
+		filterRe,
+		excludeLabels,
+		ctx.String("new-release"),
+	)
 	if err != nil {
 		return err
 	}
@@ -96,6 +112,7 @@ func Generate(ctx *cli.Context) error {
 func getConnectorData(
 	conn connectors.Connector,
 	tagsFilter *regexp.Regexp,
+	excludeLabels []string,
 	newRelease string,
 ) (data.Tags, data.Issues, data.MRs, error) {
 
@@ -140,6 +157,12 @@ func getConnectorData(
 		return nil, nil, nil, err
 	}
 
+	// we should filter the labels
+	if len(excludeLabels) > 0 {
+		issues = data.FilterIssuesByLabel(issues, excludeLabels)
+		mrs = data.FilterMRsByLabel(mrs, excludeLabels)
+	}
+
 	return tags, issues, mrs, nil
 }
 
@@ -163,6 +186,11 @@ func CLIFlags() []cli.Flag {
 		cli.BoolFlag{
 			Name:  "no-filter-tags",
 			Usage: "Disable filtering of tags",
+		},
+		cli.StringFlag{
+			Name:  "exclude-labels",
+			Usage: "Exclude issues and MRs/PRs with specified labels `x,y,z`",
+			Value: "duplicate, question, invalid, wontfix, no changelog",
 		},
 	}
 }
