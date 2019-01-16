@@ -38,7 +38,7 @@ var Connector = "github" // nolint: gochecknoglobals
 
 // Generate implements the CLI subcommand generate
 func Generate(c *cli.Context) (err error) {
-	tags, issues, mrs, err := getConnectorData(c.String("new-release"), c)
+	tags, issues, mrs, err := getConnectorData(c)
 	if err != nil {
 		return nil
 	}
@@ -73,8 +73,7 @@ func Generate(c *cli.Context) (err error) {
 // getConnectorData returns all needed data from connector
 // if newRelease is specified, a new releases for
 // untagged activities is created
-func getConnectorData(newRelease string,
-	ctx *cli.Context) (data.Tags, data.Issues, data.MRs, error) {
+func getConnectorData(ctx *cli.Context) (data.Tags, data.Issues, data.MRs, error) {
 	var (
 		connector connectors.Connector
 		tags      data.Tags
@@ -93,6 +92,7 @@ func getConnectorData(newRelease string,
 		return nil, nil, nil, err
 	}
 
+	newRelease := ctx.String("new-release")
 	if newRelease != "" {
 		var relURL string
 		relURL, err = connector.GetNewTagURL(newRelease)
@@ -130,7 +130,7 @@ func CLIFlags() []cli.Flag {
 		},
 		cli.StringFlag{
 			Name:  "new-release, r",
-			Usage: "Create a new release for all issues and changes after the last release",
+			Usage: "Use the given release name and create a new release for all changes after the last tagged release", // nolint: lll
 		},
 	}
 }

@@ -18,6 +18,7 @@ package generate_test
 
 import (
 	"bytes"
+	"html/template"
 	"testing"
 
 	"github.com/artem-sidorenko/chagen/cli/commands/generate"
@@ -26,18 +27,26 @@ import (
 	_ "github.com/artem-sidorenko/chagen/internal/testing/testconnector"
 )
 
-func TestGenerate(t *testing.T) {
-	tests := []struct {
-		name       string
-		wantErr    bool
-		wantOutput string
-	}{
-		{
-			name:    "proper data",
-			wantErr: false,
-			// nolint: lll
-			wantOutput: `Changelog
+func genOutput(newRelease bool) string {
+	// nolint: lll
+	tpl := `Changelog
 =========
+
+{{- if .NewRelease }}
+
+## [v10.10.0](http://test.example.com/releases/v10.10.0) (16.01.2019)
+
+Closed issues
+-------------
+- Issue 3 [\#3](http://test.example.com/issues/3)
+- Issue 5 [\#5](http://test.example.com/issues/5)
+- Issue 4 [\#4](http://test.example.com/issues/4)
+
+Merged pull requests
+--------------------
+- MR 4 [\#4](https://test.example.com/mrs/4) ([testauthor](https://test.example.com/authors/testauthor))
+
+{{- end }}
 
 ## [v0.0.3](https://test.example.com/tags/v0.0.3) (13.07.2009)
 
@@ -65,13 +74,54 @@ Merged pull requests
 --------------------
 - MR 1 [\#1](https://test.example.com/mrs/1) ([testauthor](https://test.example.com/authors/testauthor))
 
-*This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`,
+*This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`
+
+	input := struct {
+		NewRelease bool
+	}{newRelease}
+
+	t := template.Must(template.New("Output template").Parse(tpl))
+
+	buf := &bytes.Buffer{}
+
+	t.Execute(buf, input)
+
+	return buf.String()
+}
+
+func TestGenerate(t *testing.T) {
+	type cliParams struct {
+		newRelease string
+	}
+
+	tests := []struct {
+		name       string
+		cliParams  cliParams
+		wantErr    bool
+		wantOutput string
+	}{
+		{
+			name:       "Default flags",
+			wantErr:    false,
+			wantOutput: genOutput(false),
+		},
+		{
+			name:    "With new release flag",
+			wantErr: false,
+			cliParams: cliParams{
+				newRelease: "v10.10.0",
+			},
+			wantOutput: genOutput(true),
 		},
 	}
 	for _, tt := range tests {
-		ctx := tcli.TestContext(generate.CLIFlags(), map[string]string{
+		cliFlags := map[string]string{
 			"file": "-",
-		})
+		}
+		if tt.cliParams.newRelease != "" {
+			cliFlags["new-release"] = tt.cliParams.newRelease
+		}
+		ctx := tcli.TestContext(generate.CLIFlags(), cliFlags)
 
 		output := &bytes.Buffer{}
 		generate.Stdout = output

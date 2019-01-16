@@ -75,6 +75,18 @@ func (*Connector) GetIssues() (data.Issues, error) {
 			ClosedDate: time.Unix(1347483647, 0),
 			URL:        "http://test.example.com/issues/3",
 		},
+		{
+			ID:         4,
+			Name:       "Issue 4",
+			ClosedDate: time.Unix(1297483647, 0),
+			URL:        "http://test.example.com/issues/4",
+		},
+		{
+			ID:         5,
+			Name:       "Issue 5",
+			ClosedDate: time.Unix(1298483647, 0),
+			URL:        "http://test.example.com/issues/5",
+		},
 	}, nil
 }
 
@@ -104,6 +116,14 @@ func (*Connector) GetMRs() (data.MRs, error) {
 			Author:     "testauthor",
 			AuthorURL:  "https://test.example.com/authors/testauthor",
 			URL:        "https://test.example.com/mrs/3",
+		},
+		{
+			ID:         4,
+			Name:       "MR 4",
+			MergedDate: time.Unix(1299483647, 0),
+			Author:     "testauthor",
+			AuthorURL:  "https://test.example.com/authors/testauthor",
+			URL:        "https://test.example.com/mrs/4",
 		},
 	}, nil
 }
