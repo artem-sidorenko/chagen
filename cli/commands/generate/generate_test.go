@@ -29,7 +29,7 @@ import (
 	_ "github.com/artem-sidorenko/chagen/internal/testing/testconnector"
 )
 
-func genOutput(newRelease, testingTag, secondTag bool) string {
+func genOutput(newRelease, testingTag, secondTag, excludedIssue bool) string {
 	// nolint: lll
 	tpl := `Changelog
 =========
@@ -41,7 +41,11 @@ func genOutput(newRelease, testingTag, secondTag bool) string {
 Closed issues
 -------------
 - Issue 3 [\#3](http://test.example.com/issues/3)
+{{- if .ExcludedIssue }}
+- Issue 6 [\#6](http://test.example.com/issues/6)
+{{- else }}
 - Issue 5 [\#5](http://test.example.com/issues/5)
+{{- end }}
 - Issue 4 [\#4](http://test.example.com/issues/4)
 
 Merged pull requests
@@ -93,10 +97,11 @@ Merged pull requests
 *This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`
 
 	input := struct {
-		NewRelease bool
-		TestingTag bool
-		SecondTag  bool
-	}{newRelease, testingTag, secondTag}
+		NewRelease    bool
+		TestingTag    bool
+		SecondTag     bool
+		ExcludedIssue bool
+	}{newRelease, testingTag, secondTag, excludedIssue}
 
 	t := template.Must(template.New("Output template").Parse(tpl))
 
@@ -109,9 +114,10 @@ Merged pull requests
 
 func TestGenerate(t *testing.T) { // nolint: gocyclo
 	type cliParams struct {
-		newRelease   string
-		noFilterTags bool
-		filterExpr   string
+		newRelease    string
+		noFilterTags  bool
+		filterExpr    string
+		excludeLabels string
 	}
 
 	tests := []struct {
@@ -122,28 +128,28 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 	}{
 		{
 			name:       "Default flags",
-			wantOutput: genOutput(false, false, true),
+			wantOutput: genOutput(false, false, true, false),
 		},
 		{
 			name: "With new release flag",
 			cliParams: cliParams{
 				newRelease: "v10.10.0",
 			},
-			wantOutput: genOutput(true, false, true),
+			wantOutput: genOutput(true, false, true, false),
 		},
 		{
 			name: "With --no-filter-tags",
 			cliParams: cliParams{
 				noFilterTags: true,
 			},
-			wantOutput: genOutput(false, true, true),
+			wantOutput: genOutput(false, true, true, false),
 		},
 		{
 			name: "With customized filter",
 			cliParams: cliParams{
 				filterExpr: `^v\d+\.\d+\.(1|3)+$`,
 			},
-			wantOutput: genOutput(false, false, false),
+			wantOutput: genOutput(false, false, false, false),
 		},
 		{
 			name: "With broken filter",
@@ -151,6 +157,14 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 				filterExpr: "(abdc",
 			},
 			wantErr: errors.New("Can't compile the regular expression: error parsing regexp: missing closing ): `(abdc`"), // nolint: lll
+		},
+		{
+			name: "With customized labels",
+			cliParams: cliParams{
+				excludeLabels: "issue5",
+				newRelease:    "v10.10.0",
+			},
+			wantOutput: genOutput(true, false, true, true),
 		},
 	}
 	for _, tt := range tests {
@@ -165,6 +179,9 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		}
 		if tt.cliParams.filterExpr != "" {
 			cliFlags["filter-tags"] = tt.cliParams.filterExpr
+		}
+		if tt.cliParams.excludeLabels != "" {
+			cliFlags["exclude-labels"] = tt.cliParams.excludeLabels
 		}
 		ctx := tcli.TestContext(generate.CLIFlags(), cliFlags)
 

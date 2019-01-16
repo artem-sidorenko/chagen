@@ -26,6 +26,7 @@ type Issue struct {
 	Name       string
 	ClosedDate time.Time
 	URL        string
+	Labels     []string
 }
 
 // Issues is a slice with Issue elements
@@ -52,6 +53,25 @@ func FilterIssues(is Issues, fromDate, toDate time.Time) Issues {
 	for _, issue := range is {
 		if issue.ClosedDate.After(fromDate) &&
 			(issue.ClosedDate.Before(toDate) || issue.ClosedDate.Equal(toDate)) {
+			ret = append(ret, issue)
+		}
+	}
+	return ret
+}
+
+// FilterIssuesByLabel filters out the issues with given labels
+func FilterIssuesByLabel(is Issues, withoutLabels []string) Issues {
+	var ret Issues
+	for _, issue := range is {
+		found := false
+		for _, label := range issue.Labels {
+			if sliceContains(withoutLabels, label) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
 			ret = append(ret, issue)
 		}
 	}

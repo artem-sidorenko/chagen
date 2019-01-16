@@ -100,6 +100,14 @@ func (*Connector) GetIssues() (data.Issues, error) {
 			Name:       "Issue 5",
 			ClosedDate: time.Unix(1298483647, 0),
 			URL:        "http://test.example.com/issues/5",
+			Labels:     []string{"issue5"},
+		},
+		{
+			ID:         6,
+			Name:       "Issue 6",
+			ClosedDate: time.Unix(1299483647, 0),
+			URL:        "http://test.example.com/issues/6",
+			Labels:     []string{"no changelog"},
 		},
 	}, nil
 }

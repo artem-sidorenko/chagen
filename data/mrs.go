@@ -28,6 +28,7 @@ type MR struct {
 	Author     string
 	AuthorURL  string
 	MergedDate time.Time
+	Labels     []string
 }
 
 // MRs is a slice with MR elements
@@ -54,6 +55,25 @@ func FilterMRs(m MRs, fromDate, toDate time.Time) MRs {
 	for _, mr := range m {
 		if mr.MergedDate.After(fromDate) &&
 			(mr.MergedDate.Before(toDate) || mr.MergedDate.Equal(toDate)) {
+			ret = append(ret, mr)
+		}
+	}
+	return ret
+}
+
+// FilterMRsByLabel filters out the MRs with given labels
+func FilterMRsByLabel(m MRs, withoutLabels []string) MRs {
+	var ret MRs
+	for _, mr := range m {
+		found := false
+		for _, label := range mr.Labels {
+			if sliceContains(withoutLabels, label) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
 			ret = append(ret, mr)
 		}
 	}

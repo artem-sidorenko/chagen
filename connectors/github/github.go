@@ -154,11 +154,19 @@ func (c *Connector) GetIssues() (data.Issues, error) {
 				continue
 			}
 
+			var lbs []string
+			if issue.Labels != nil && len(issue.Labels) > 0 {
+				for _, l := range issue.Labels {
+					lbs = append(lbs, *l.Name)
+				}
+			}
+
 			ret = append(ret, data.Issue{
 				ID:         issue.GetNumber(),
 				Name:       issue.GetTitle(),
 				ClosedDate: issue.GetClosedAt(),
 				URL:        issue.GetHTMLURL(),
+				Labels:     lbs,
 			})
 		}
 
@@ -189,6 +197,13 @@ func (c *Connector) GetMRs() (data.MRs, error) {
 				continue
 			}
 
+			var lbs []string
+			if pr.Labels != nil && len(pr.Labels) > 0 {
+				for _, l := range pr.Labels {
+					lbs = append(lbs, *l.Name)
+				}
+			}
+
 			ret = append(ret, data.MR{
 				ID:         pr.GetNumber(),
 				Name:       pr.GetTitle(),
@@ -196,6 +211,7 @@ func (c *Connector) GetMRs() (data.MRs, error) {
 				URL:        pr.GetHTMLURL(),
 				Author:     pr.User.GetLogin(),
 				AuthorURL:  pr.User.GetHTMLURL(),
+				Labels:     lbs,
 			})
 		}
 
