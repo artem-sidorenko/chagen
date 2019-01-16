@@ -27,12 +27,15 @@ import (
 	"github.com/urfave/cli"
 )
 
+// RetTestingTag controls whenether the testconnector should return the tag testingtag
+var RetTestingTag = false // nolint: gochecknoglobals
+
 // Connector implements the test connector
 type Connector struct{}
 
 // GetTags implements the connectors.Connector interface
-func (*Connector) GetTags() (data.Tags, error) {
-	return data.Tags{
+func (c *Connector) GetTags() (data.Tags, error) {
+	tags := data.Tags{
 		{
 			Name:   "v0.0.2",
 			Date:   time.Unix(1147483647, 0),
@@ -51,7 +54,18 @@ func (*Connector) GetTags() (data.Tags, error) {
 			Commit: "25362c337d524025bf98e978059bf9bcd2b56221",
 			URL:    "https://test.example.com/tags/v0.0.3",
 		},
-	}, nil
+	}
+
+	if RetTestingTag {
+		tags = append(tags, data.Tag{
+			Name:   "testingtag",
+			Date:   time.Unix(1147783647, 0),
+			Commit: "ad59c6b54ba53f54383d7c4661bdd4e29fe87c15",
+			URL:    "https://test.example.com/tags/testingtag",
+		})
+	}
+
+	return tags, nil
 }
 
 // GetIssues implements the connectors.Connector interface
@@ -74,6 +88,18 @@ func (*Connector) GetIssues() (data.Issues, error) {
 			Name:       "Issue 3",
 			ClosedDate: time.Unix(1347483647, 0),
 			URL:        "http://test.example.com/issues/3",
+		},
+		{
+			ID:         4,
+			Name:       "Issue 4",
+			ClosedDate: time.Unix(1297483647, 0),
+			URL:        "http://test.example.com/issues/4",
+		},
+		{
+			ID:         5,
+			Name:       "Issue 5",
+			ClosedDate: time.Unix(1298483647, 0),
+			URL:        "http://test.example.com/issues/5",
 		},
 	}, nil
 }
@@ -104,6 +130,14 @@ func (*Connector) GetMRs() (data.MRs, error) {
 			Author:     "testauthor",
 			AuthorURL:  "https://test.example.com/authors/testauthor",
 			URL:        "https://test.example.com/mrs/3",
+		},
+		{
+			ID:         4,
+			Name:       "MR 4",
+			MergedDate: time.Unix(1299483647, 0),
+			Author:     "testauthor",
+			AuthorURL:  "https://test.example.com/authors/testauthor",
+			URL:        "https://test.example.com/mrs/4",
 		},
 	}, nil
 }

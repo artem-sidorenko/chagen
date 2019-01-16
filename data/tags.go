@@ -17,6 +17,7 @@
 package data
 
 import (
+	"regexp"
 	"time"
 )
 
@@ -44,4 +45,15 @@ func (t *Tags) Less(i, j int) bool {
 // Swap implements the Sort.Interface
 func (t *Tags) Swap(i, j int) {
 	(*t)[i], (*t)[j] = (*t)[j], (*t)[i]
+}
+
+// FilterTags filters the tags based on the regexp and tag names
+func FilterTags(ts Tags, regexp *regexp.Regexp) Tags {
+	var ret Tags
+	for _, t := range ts {
+		if regexp.MatchString(t.Name) {
+			ret = append(ret, t)
+		}
+	}
+	return ret
 }

@@ -18,8 +18,10 @@
 package generate
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/artem-sidorenko/chagen/cli/commands"
@@ -37,16 +39,34 @@ var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
 var Connector = "github" // nolint: gochecknoglobals
 
 // Generate implements the CLI subcommand generate
-func Generate(c *cli.Context) (err error) {
-	tags, issues, mrs, err := getConnectorData(c.String("new-release"), c)
+func Generate(ctx *cli.Context) error {
+	var filterRe *regexp.Regexp
+	var err error
+
+	if !ctx.Bool("no-filter-tags") { // if the flag is not there, lets apply the filter
+		filterReStr := ctx.String("filter-tags")
+		if filterReStr == "" {
+			return fmt.Errorf("Regular expression for tag filtering should be defined")
+		}
+		if filterRe, err = regexp.Compile(filterReStr); err != nil {
+			return fmt.Errorf("Can't compile the regular expression: %v", err)
+		}
+	}
+
+	conn, err := connectors.NewConnector(Connector, ctx)
 	if err != nil {
-		return nil
+		return err
+	}
+
+	tags, issues, mrs, err := getConnectorData(conn, filterRe, ctx.String("new-release"))
+	if err != nil {
+		return err
 	}
 
 	gen := generator.New(data.NewReleases(tags, issues, mrs))
 
 	// use stdout if - is given, otherwise create a new file
-	filename := c.String("file")
+	filename := ctx.String("file")
 	var wr io.Writer
 	if filename != "-" {
 		var file *os.File
@@ -73,29 +93,32 @@ func Generate(c *cli.Context) (err error) {
 // getConnectorData returns all needed data from connector
 // if newRelease is specified, a new releases for
 // untagged activities is created
-func getConnectorData(newRelease string,
-	ctx *cli.Context) (data.Tags, data.Issues, data.MRs, error) {
+func getConnectorData(
+	conn connectors.Connector,
+	tagsFilter *regexp.Regexp,
+	newRelease string,
+) (data.Tags, data.Issues, data.MRs, error) {
+
 	var (
-		connector connectors.Connector
-		tags      data.Tags
-		issues    data.Issues
-		mrs       data.MRs
-		err       error
+		tags   data.Tags
+		issues data.Issues
+		mrs    data.MRs
+		err    error
 	)
 
-	connector, err = connectors.NewConnector(Connector, ctx)
+	tags, err = conn.GetTags()
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	tags, err = connector.GetTags()
-	if err != nil {
-		return nil, nil, nil, err
+	// we should apply the filter to the tags
+	if tagsFilter != nil {
+		tags = data.FilterTags(tags, tagsFilter)
 	}
 
 	if newRelease != "" {
 		var relURL string
-		relURL, err = connector.GetNewTagURL(newRelease)
+		relURL, err = conn.GetNewTagURL(newRelease)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -107,12 +130,12 @@ func getConnectorData(newRelease string,
 		})
 	}
 
-	issues, err = connector.GetIssues()
+	issues, err = conn.GetIssues()
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	mrs, err = connector.GetMRs()
+	mrs, err = conn.GetMRs()
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -130,7 +153,16 @@ func CLIFlags() []cli.Flag {
 		},
 		cli.StringFlag{
 			Name:  "new-release, r",
-			Usage: "Create a new release for all issues and changes after the last release",
+			Usage: "Use the given release name and create a new release for all changes after the last tagged release", // nolint: lll
+		},
+		cli.StringFlag{
+			Name:  "filter-tags, t",
+			Usage: "Only use tags, which match to the given regular expression",
+			Value: `^v\d+\.\d+\.\d+$`,
+		},
+		cli.BoolFlag{
+			Name:  "no-filter-tags",
+			Usage: "Disable filtering of tags",
 		},
 	}
 }
