@@ -180,3 +180,107 @@ func TestIssues_Filter(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterIssuesByLabel(t *testing.T) {
+	type args struct {
+		is            data.Issues
+		withoutLabels []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want data.Issues
+	}{
+		{
+			name: "Issues without any matching exclude labels",
+			args: args{
+				is: data.Issues{
+					{
+						Name:       "Issue 1",
+						ClosedDate: time.Unix(1047483647, 0),
+						Labels:     []string{"bugfix"},
+					},
+					{
+						Name:       "Issue 2",
+						ClosedDate: time.Unix(1247483647, 0),
+					},
+					{
+						Name:       "Issue 3",
+						ClosedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"enhancement"},
+					},
+				},
+				withoutLabels: []string{"no changelog", "wontfix"},
+			},
+			want: data.Issues{
+				{
+					Name:       "Issue 1",
+					ClosedDate: time.Unix(1047483647, 0),
+					Labels:     []string{"bugfix"},
+				},
+				{
+					Name:       "Issue 2",
+					ClosedDate: time.Unix(1247483647, 0),
+				},
+				{
+					Name:       "Issue 3",
+					ClosedDate: time.Unix(1347483647, 0),
+					Labels:     []string{"enhancement"},
+				},
+			},
+		},
+		{
+			name: "Issues with some matching exclude labels",
+			args: args{
+				is: data.Issues{
+					{
+						Name:       "Issue 1",
+						ClosedDate: time.Unix(1047483647, 0),
+						Labels:     []string{"bugfix", "enhancement"},
+					},
+					{
+						Name:       "Issue 2",
+						ClosedDate: time.Unix(1247483647, 0),
+						Labels:     []string{"no changelog"},
+					},
+					{
+						Name:       "Issue 3",
+						ClosedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"enhancement"},
+					},
+					{
+						Name:       "Issue 4",
+						ClosedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"enhancement", "no changelog"},
+					},
+					{
+						Name:       "Issue 5",
+						ClosedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"bug", "wontfix"},
+					},
+				},
+				withoutLabels: []string{"no changelog", "wontfix"},
+			},
+			want: data.Issues{
+				{
+					Name:       "Issue 1",
+					ClosedDate: time.Unix(1047483647, 0),
+					Labels:     []string{"bugfix", "enhancement"},
+				},
+				{
+					Name:       "Issue 3",
+					ClosedDate: time.Unix(1347483647, 0),
+					Labels:     []string{"enhancement"},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := data.FilterIssuesByLabel(tt.args.is,
+				tt.args.withoutLabels); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FilterIssuesByLabel() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

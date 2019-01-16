@@ -60,3 +60,22 @@ func FilterMRs(m MRs, fromDate, toDate time.Time) MRs {
 	}
 	return ret
 }
+
+// FilterMRsByLabel filters out the MRs with given labels
+func FilterMRsByLabel(m MRs, withoutLabels []string) MRs {
+	var ret MRs
+	for _, mr := range m {
+		found := false
+		for _, label := range mr.Labels {
+			if sliceContains(withoutLabels, label) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			ret = append(ret, mr)
+		}
+	}
+	return ret
+}

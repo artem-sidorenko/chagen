@@ -58,3 +58,22 @@ func FilterIssues(is Issues, fromDate, toDate time.Time) Issues {
 	}
 	return ret
 }
+
+// FilterIssuesByLabel filters out the issues with given labels
+func FilterIssuesByLabel(is Issues, withoutLabels []string) Issues {
+	var ret Issues
+	for _, issue := range is {
+		found := false
+		for _, label := range issue.Labels {
+			if sliceContains(withoutLabels, label) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			ret = append(ret, issue)
+		}
+	}
+	return ret
+}

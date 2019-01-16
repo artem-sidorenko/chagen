@@ -180,3 +180,107 @@ func TestMRs_Filter(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterMRsByLabel(t *testing.T) {
+	type args struct {
+		m             data.MRs
+		withoutLabels []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want data.MRs
+	}{
+		{
+			name: "MRs without any matching exclude labels",
+			args: args{
+				m: data.MRs{
+					{
+						Name:       "MR 1",
+						MergedDate: time.Unix(1047483647, 0),
+						Labels:     []string{"bugfix"},
+					},
+					{
+						Name:       "MR 2",
+						MergedDate: time.Unix(1247483647, 0),
+					},
+					{
+						Name:       "MR 3",
+						MergedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"enhancement"},
+					},
+				},
+				withoutLabels: []string{"no changelog", "wontfix"},
+			},
+			want: data.MRs{
+				{
+					Name:       "MR 1",
+					MergedDate: time.Unix(1047483647, 0),
+					Labels:     []string{"bugfix"},
+				},
+				{
+					Name:       "MR 2",
+					MergedDate: time.Unix(1247483647, 0),
+				},
+				{
+					Name:       "MR 3",
+					MergedDate: time.Unix(1347483647, 0),
+					Labels:     []string{"enhancement"},
+				},
+			},
+		},
+		{
+			name: "MRs with some matching exclude labels",
+			args: args{
+				m: data.MRs{
+					{
+						Name:       "MR 1",
+						MergedDate: time.Unix(1047483647, 0),
+						Labels:     []string{"bugfix", "enhancement"},
+					},
+					{
+						Name:       "MR 2",
+						MergedDate: time.Unix(1247483647, 0),
+						Labels:     []string{"no changelog"},
+					},
+					{
+						Name:       "MR 3",
+						MergedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"enhancement"},
+					},
+					{
+						Name:       "MR 4",
+						MergedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"enhancement", "no changelog"},
+					},
+					{
+						Name:       "MR 5",
+						MergedDate: time.Unix(1347483647, 0),
+						Labels:     []string{"bug", "wontfix"},
+					},
+				},
+				withoutLabels: []string{"no changelog", "wontfix"},
+			},
+			want: data.MRs{
+				{
+					Name:       "MR 1",
+					MergedDate: time.Unix(1047483647, 0),
+					Labels:     []string{"bugfix", "enhancement"},
+				},
+				{
+					Name:       "MR 3",
+					MergedDate: time.Unix(1347483647, 0),
+					Labels:     []string{"enhancement"},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := data.FilterMRsByLabel(tt.args.m,
+				tt.args.withoutLabels); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FilterMRsByLabel() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
