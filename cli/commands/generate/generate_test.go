@@ -21,6 +21,7 @@ import (
 	"errors"
 	"html/template"
 	"testing"
+	"time"
 
 	"github.com/artem-sidorenko/chagen/cli/commands/generate"
 	tcli "github.com/artem-sidorenko/chagen/internal/testing/cli"
@@ -36,7 +37,7 @@ func genOutput(newRelease, testingTag, secondTag, excludedIssue bool) string {
 
 {{- if .NewRelease }}
 
-## [v10.10.0](http://test.example.com/releases/v10.10.0) (16.01.2019)
+## [v10.10.0](http://test.example.com/releases/v10.10.0) ({{.NewReleaseDate}})
 
 Closed issues
 -------------
@@ -97,11 +98,12 @@ Merged pull requests
 *This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`
 
 	input := struct {
-		NewRelease    bool
-		TestingTag    bool
-		SecondTag     bool
-		ExcludedIssue bool
-	}{newRelease, testingTag, secondTag, excludedIssue}
+		NewRelease     bool
+		NewReleaseDate string
+		TestingTag     bool
+		SecondTag      bool
+		ExcludedIssue  bool
+	}{newRelease, time.Now().Format("02.01.2006"), testingTag, secondTag, excludedIssue}
 
 	t := template.Must(template.New("Output template").Parse(tpl))
 
