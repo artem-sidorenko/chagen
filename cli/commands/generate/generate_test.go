@@ -21,6 +21,7 @@ import (
 	"errors"
 	"html/template"
 	"testing"
+	"time"
 
 	"github.com/artem-sidorenko/chagen/cli/commands/generate"
 	tcli "github.com/artem-sidorenko/chagen/internal/testing/cli"
@@ -36,7 +37,7 @@ func genOutput(newRelease, testingTag, secondTag, excludedIssue bool) string {
 
 {{- if .NewRelease }}
 
-## [v10.10.0](http://test.example.com/releases/v10.10.0) (16.01.2019)
+## [v10.10.0](http://test.example.com/releases/v10.10.0) ({{.NewReleaseDate}})
 
 Closed issues
 -------------
@@ -97,11 +98,12 @@ Merged pull requests
 *This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`
 
 	input := struct {
-		NewRelease    bool
-		TestingTag    bool
-		SecondTag     bool
-		ExcludedIssue bool
-	}{newRelease, testingTag, secondTag, excludedIssue}
+		NewRelease     bool
+		NewReleaseDate string
+		TestingTag     bool
+		SecondTag      bool
+		ExcludedIssue  bool
+	}{newRelease, time.Now().Format("02.01.2006"), testingTag, secondTag, excludedIssue}
 
 	t := template.Must(template.New("Output template").Parse(tpl))
 
@@ -121,10 +123,11 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 	}
 
 	tests := []struct {
-		name       string
-		cliParams  cliParams
-		wantErr    error
-		wantOutput string
+		name                 string
+		cliParams            cliParams
+		repositoryExistsFail bool
+		wantErr              error
+		wantOutput           string
 	}{
 		{
 			name:       "Default flags",
@@ -166,6 +169,11 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 			},
 			wantOutput: genOutput(true, false, true, true),
 		},
+		{
+			name:                 "Repository not found",
+			repositoryExistsFail: true,
+			wantErr:              errors.New("Project not found"),
+		},
 	}
 	for _, tt := range tests {
 		cliFlags := map[string]string{
@@ -189,6 +197,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		generate.Stdout = output
 		generate.Connector = "testconnector"
 		testconnector.RetTestingTag = true
+		testconnector.RepositoryExistsFail = tt.repositoryExistsFail
 
 		t.Run(tt.name, func(t *testing.T) {
 			err := generate.Generate(ctx)
@@ -199,6 +208,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 				((err != nil && tt.wantErr != nil) && (err.Error() != tt.wantErr.Error())) {
 
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
+				t.FailNow()
 			}
 			if out != tt.wantOutput {
 				t.Errorf("Generate() output = %v, wantOutput %v", out, tt.wantOutput)

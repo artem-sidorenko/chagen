@@ -31,6 +31,7 @@ type Connector interface {
 	GetIssues() (data.Issues, error)
 	GetMRs() (data.MRs, error)
 	GetNewTagURL(string) (string, error)
+	RepositoryExists() (bool, error)
 }
 
 // NewConnectorFunc describes the constructor of Connector

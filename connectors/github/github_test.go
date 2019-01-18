@@ -18,6 +18,7 @@ package github_test
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -32,7 +33,7 @@ import (
 )
 
 func setupTestConnector(
-	retErrControl testclient.RetErr, newTagUseReleaseURL bool,
+	returnValue testclient.ReturnValueStr, newTagUseReleaseURL bool,
 ) connectors.Connector {
 
 	github.NewGitHubClientFunc = testclient.New
@@ -47,19 +48,78 @@ func setupTestConnector(
 	ctx := tcli.TestContext(github.CLIFlags(), cliFlags)
 
 	// initialize error values
-	testclient.RetErrControl = retErrControl
+	testclient.ReturnValue = returnValue
 
-	c, _ := github.New(ctx)
+	c, err := github.New(ctx)
+	if err != nil {
+		panic(fmt.Sprintf("Got error from test consturctor: %v", err))
+	}
 
 	return c
 }
 
+func TestConnector_RepositoryExists(t *testing.T) {
+	tests := []struct {
+		name        string
+		returnValue testclient.ReturnValueStr
+		want        bool
+		wantErr     error
+	}{
+		{
+			name: "API returns 200 for Ok",
+			returnValue: testclient.ReturnValueStr{
+				RetRepoServiceGetRespCode: 200,
+			},
+			want: true,
+		},
+		{
+			name: "API returns 404",
+			returnValue: testclient.ReturnValueStr{
+				RetRepoServiceGetRespCode: 404,
+			},
+			want: false,
+		},
+		{
+			name: "API returns unhandled error code 500",
+			returnValue: testclient.ReturnValueStr{
+				RetRepoServiceGetRespCode: 500,
+			},
+			wantErr: errors.New("GitHub query 'RepositoryExists' failed: unhandled HTTP response code 500"),
+		},
+		{
+			name: "Get returns an error",
+			returnValue: testclient.ReturnValueStr{
+				RetRepoServiceGetErr: true,
+			},
+			wantErr: errors.New("GitHub query 'RepositoryExists' failed: Can't fetch the repo data"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := setupTestConnector(tt.returnValue, false)
+
+			got, err := c.RepositoryExists()
+
+			if (err != nil && tt.wantErr == nil) ||
+				(err == nil && tt.wantErr != nil) ||
+				((err != nil && tt.wantErr != nil) && (err.Error() != tt.wantErr.Error())) {
+				t.Errorf("Connector.RepositoryExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("Connector.RepositoryExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGetTags(t *testing.T) {
 	tests := []struct {
-		name          string
-		retErrControl testclient.RetErr
-		want          data.Tags
-		wantErr       error
+		name        string
+		returnValue testclient.ReturnValueStr
+		want        data.Tags
+		wantErr     error
 	}{
 		{
 			name: "API returns proper data",
@@ -80,14 +140,14 @@ func TestGetTags(t *testing.T) {
 		},
 		{
 			name: "ListTags call fails",
-			retErrControl: testclient.RetErr{
+			returnValue: testclient.ReturnValueStr{
 				RetRepoServiceListTagsErr: true,
 			},
 			wantErr: errors.New("GitHub query 'GetTags' failed: Can't fetch the tags"),
 		},
 		{
 			name: "GetCommit call fails",
-			retErrControl: testclient.RetErr{
+			returnValue: testclient.ReturnValueStr{
 				RetRepoServiceGetCommitsErr: true,
 			},
 			wantErr: errors.New("GitHub query 'GetTags' failed: Can't fetch the commit"),
@@ -95,7 +155,7 @@ func TestGetTags(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := setupTestConnector(tt.retErrControl, false)
+			c := setupTestConnector(tt.returnValue, false)
 
 			got, err := c.GetTags()
 
@@ -113,10 +173,10 @@ func TestGetTags(t *testing.T) {
 
 func TestGetIssues(t *testing.T) {
 	tests := []struct {
-		name          string
-		retErrControl testclient.RetErr
-		want          data.Issues
-		wantErr       error
+		name        string
+		returnValue testclient.ReturnValueStr
+		want        data.Issues
+		wantErr     error
 	}{
 		{
 			name: "API returns proper data",
@@ -132,7 +192,7 @@ func TestGetIssues(t *testing.T) {
 		},
 		{
 			name: "ListIssues call fails",
-			retErrControl: testclient.RetErr{
+			returnValue: testclient.ReturnValueStr{
 				RetIssueServiceListByRepoErr: true,
 			},
 			wantErr: errors.New("GitHub query 'GetIssues' failed: Can't fetch the issues"),
@@ -140,7 +200,7 @@ func TestGetIssues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := setupTestConnector(tt.retErrControl, false)
+			c := setupTestConnector(tt.returnValue, false)
 
 			got, err := c.GetIssues()
 			if err != nil && err.Error() != tt.wantErr.Error() {
@@ -156,10 +216,10 @@ func TestGetIssues(t *testing.T) {
 
 func TestGetMRs(t *testing.T) {
 	tests := []struct {
-		name          string
-		retErrControl testclient.RetErr
-		want          data.MRs
-		wantErr       error
+		name        string
+		returnValue testclient.ReturnValueStr
+		want        data.MRs
+		wantErr     error
 	}{
 		{
 			name: "API returns proper data",
@@ -177,7 +237,7 @@ func TestGetMRs(t *testing.T) {
 		},
 		{
 			name: "ListPRs call fails",
-			retErrControl: testclient.RetErr{
+			returnValue: testclient.ReturnValueStr{
 				RetPullRequestsListErr: true,
 			},
 			wantErr: errors.New("GitHub query 'GetMRs' failed: Can't fetch the PRs"),
@@ -185,7 +245,7 @@ func TestGetMRs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := setupTestConnector(tt.retErrControl, false)
+			c := setupTestConnector(tt.returnValue, false)
 
 			got, err := c.GetMRs()
 			if err != nil && err.Error() != tt.wantErr.Error() {
@@ -256,7 +316,7 @@ func TestGetNewTagURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := setupTestConnector(testclient.RetErr{}, tt.fields.NewTagUseReleaseURL)
+			c := setupTestConnector(testclient.ReturnValueStr{}, tt.fields.NewTagUseReleaseURL)
 
 			got, err := c.GetNewTagURL(tt.args.TagName)
 			if (err != nil) != tt.wantErr {
@@ -290,9 +350,10 @@ func TestNew(t *testing.T) {
 		githubRepo  bool
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr error
+		name          string
+		args          args
+		retErrControl testclient.ReturnValueStr
+		wantErr       error
 	}{
 		{
 			name: "Proper CLI flags given",
@@ -321,6 +382,8 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			github.NewGitHubClientFunc = testclient.New
+			testclient.ReturnValue = tt.retErrControl
 			_, err := github.New(setupCLIContext(tt.args.githubOwner, tt.args.githubRepo))
 
 			if (err != nil && tt.wantErr == nil) ||

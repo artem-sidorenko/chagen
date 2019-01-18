@@ -69,6 +69,16 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 		return err
 	}
 
+	exists, err := conn.RepositoryExists()
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		// TODO: this should provide detailed information about repository: owner, repo name
+		return fmt.Errorf("Project not found")
+	}
+
 	tags, issues, mrs, err := getConnectorData(
 		conn,
 		filterRe,
