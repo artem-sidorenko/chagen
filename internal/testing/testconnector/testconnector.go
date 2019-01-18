@@ -27,11 +27,22 @@ import (
 	"github.com/urfave/cli"
 )
 
-// RetTestingTag controls whenether the testconnector should return the tag testingtag
-var RetTestingTag = false // nolint: gochecknoglobals
+// nolint: gochecknoglobals
+var (
+	// RetTestingTag controls whenether the testconnector should return the tag testingtag
+	RetTestingTag = false
+	// RepositoryExistsFail controls whenether the testconnector should
+	// fail in the RepositoryExists() call
+	RepositoryExistsFail = false
+)
 
 // Connector implements the test connector
 type Connector struct{}
+
+// RepositoryExists checks if referenced repository is present
+func (c *Connector) RepositoryExists() (bool, error) {
+	return !RepositoryExistsFail, nil
+}
 
 // GetTags implements the connectors.Connector interface
 func (c *Connector) GetTags() (data.Tags, error) {

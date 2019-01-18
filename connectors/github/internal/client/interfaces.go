@@ -38,6 +38,9 @@ type GithubRepoService interface {
 	GetReleaseByTag(
 		ctx context.Context,
 		owner, repo, tag string) (*github.RepositoryRelease, *github.Response, error)
+	Get(
+		ctx context.Context,
+		owner, repo string) (*github.Repository, *github.Response, error)
 }
 
 // GithubIssuesService describes the methods we use from

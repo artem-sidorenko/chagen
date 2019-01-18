@@ -56,6 +56,25 @@ func formatErrorCode(query string, err error) error {
 	return fmt.Errorf("GitHub query '%s' failed: %s", query, err)
 }
 
+// RepositoryExists checks if referenced repository is present
+func (c *Connector) RepositoryExists() (bool, error) {
+	_, resp, err := c.client.Repositories.Get(c.context, c.Owner, c.Repo)
+	if err != nil {
+		return false, formatErrorCode("RepositoryExists", err)
+	}
+	switch resp.StatusCode {
+	case 200:
+		return true, nil
+	case 404:
+		return false, nil
+	default:
+		return false, formatErrorCode(
+			"RepositoryExists",
+			fmt.Errorf("unhandled HTTP response code %v", resp.StatusCode),
+		)
+	}
+}
+
 // GetNewTagURL returns the URL for a new tag, which does not exist yet
 func (c *Connector) GetNewTagURL(TagName string) (string, error) {
 	return c.getTagURL(TagName, c.NewTagUseReleaseURL)

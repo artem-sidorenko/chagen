@@ -27,25 +27,27 @@ import (
 	"github.com/google/go-github/github"
 )
 
-// RetErr represents the possible error controlling of API calls for testing
+// ReturnValueStr represents the possible error controlling of API calls for testing
 // if a field is set to true - return error, otherwise not
-type RetErr struct {
+type ReturnValueStr struct {
 	RetRepoServiceListTagsErr    bool
 	RetRepoServiceGetCommitsErr  bool
 	RetIssueServiceListByRepoErr bool
 	RetPullRequestsListErr       bool
+	RetRepoServiceGetErr         bool
+	RetRepoServiceGetRespCode    int
 }
 
-// RetErrControl controls the error return values of API calls
+// ReturnValue controls the error return values of API calls
 // for testclient instances created by New
-var RetErrControl = RetErr{} // nolint: gochecknoglobals
+var ReturnValue = ReturnValueStr{} // nolint: gochecknoglobals
 
 // GitHubRepoService simulates the github.RepositoriesService
 type GitHubRepoService struct {
 	RetRepositoryTags     []*github.RepositoryTag
 	RetRepositoryCommits  map[string]*github.RepositoryCommit
 	RetRepositoryReleases map[string]*github.RepositoryRelease
-	RetErrControl         RetErr
+	ReturnValue           ReturnValueStr
 }
 
 // ListTags simulates the (github.RepositoriesService) ListTags call
@@ -55,7 +57,7 @@ func (g *GitHubRepoService) ListTags(
 	opt *github.ListOptions,
 ) ([]*github.RepositoryTag, *github.Response, error) {
 
-	if g.RetErrControl.RetRepoServiceListTagsErr {
+	if g.ReturnValue.RetRepoServiceListTagsErr {
 		return nil, nil, fmt.Errorf("Can't fetch the tags")
 	}
 
@@ -72,7 +74,7 @@ func (g *GitHubRepoService) GetCommit(
 	owner, repo, sha string,
 ) (*github.RepositoryCommit, *github.Response, error) {
 
-	if g.RetErrControl.RetRepoServiceGetCommitsErr {
+	if g.ReturnValue.RetRepoServiceGetCommitsErr {
 		return nil, nil, fmt.Errorf("Can't fetch the commit")
 	}
 
@@ -94,10 +96,28 @@ func (g *GitHubRepoService) GetReleaseByTag(
 	return nil, genResponse(404), nil
 }
 
+// Get simulates the (github.RepositoriesService) Get call
+func (g *GitHubRepoService) Get(
+	ctx context.Context,
+	owner, repo string) (*github.Repository, *github.Response, error) {
+
+	if g.ReturnValue.RetRepoServiceGetErr {
+		return nil, nil, fmt.Errorf("Can't fetch the repo data")
+	}
+
+	//if return code not defined, return 200 for Ok
+	respCode := 200
+	if g.ReturnValue.RetRepoServiceGetRespCode != 0 {
+		respCode = g.ReturnValue.RetRepoServiceGetRespCode
+	}
+
+	return nil, genResponse(respCode), nil
+}
+
 // GitHubIssueService simulates the github.IssuesService
 type GitHubIssueService struct {
 	RetIssues     []*github.Issue
-	RetErrControl RetErr
+	RetErrControl ReturnValueStr
 }
 
 // ListByRepo simulates the (github.IssuesService) ListByRepo call
@@ -121,7 +141,7 @@ func (g *GitHubIssueService) ListByRepo(
 // GitHubPullRequestsService simulates the github.PullRequestsService
 type GitHubPullRequestsService struct {
 	RetPRs        []*github.PullRequest
-	RetErrControl RetErr
+	RetErrControl ReturnValueStr
 }
 
 // List simulates the (github.PullRequestsService) ListByRepo call
@@ -144,7 +164,7 @@ func (g *GitHubPullRequestsService) List(
 // New returns the configured simulated github API client
 func New(_ context.Context, _ string) *client.GitHubClient {
 	r := &GitHubRepoService{
-		RetErrControl: RetErrControl,
+		ReturnValue: ReturnValue,
 		RetRepositoryTags: []*github.RepositoryTag{
 			genRepositoryTag("v0.0.1", "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc", time.Unix(2147483647, 0)),
 			genRepositoryTag("v0.0.2", "b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da", time.Unix(2047483647, 0)),
@@ -166,7 +186,7 @@ func New(_ context.Context, _ string) *client.GitHubClient {
 	}
 
 	i := &GitHubIssueService{
-		RetErrControl: RetErrControl,
+		RetErrControl: ReturnValue,
 		RetIssues: []*github.Issue{
 			genIssue(
 				1234, "Test issue title",
@@ -178,7 +198,7 @@ func New(_ context.Context, _ string) *client.GitHubClient {
 	}
 
 	p := &GitHubPullRequestsService{
-		RetErrControl: RetErrControl,
+		RetErrControl: ReturnValue,
 		RetPRs: []*github.PullRequest{
 			genPR(1234, "Test PR title", "https://example.com/pulls/1234",
 				"test-user", "https://example.com/users/test-user",

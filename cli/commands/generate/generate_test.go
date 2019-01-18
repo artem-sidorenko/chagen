@@ -123,10 +123,11 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 	}
 
 	tests := []struct {
-		name       string
-		cliParams  cliParams
-		wantErr    error
-		wantOutput string
+		name                 string
+		cliParams            cliParams
+		repositoryExistsFail bool
+		wantErr              error
+		wantOutput           string
 	}{
 		{
 			name:       "Default flags",
@@ -168,6 +169,11 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 			},
 			wantOutput: genOutput(true, false, true, true),
 		},
+		{
+			name:                 "Repository not found",
+			repositoryExistsFail: true,
+			wantErr:              errors.New("Project not found"),
+		},
 	}
 	for _, tt := range tests {
 		cliFlags := map[string]string{
@@ -191,6 +197,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		generate.Stdout = output
 		generate.Connector = "testconnector"
 		testconnector.RetTestingTag = true
+		testconnector.RepositoryExistsFail = tt.repositoryExistsFail
 
 		t.Run(tt.name, func(t *testing.T) {
 			err := generate.Generate(ctx)
@@ -201,6 +208,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 				((err != nil && tt.wantErr != nil) && (err.Error() != tt.wantErr.Error())) {
 
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
+				t.FailNow()
 			}
 			if out != tt.wantOutput {
 				t.Errorf("Generate() output = %v, wantOutput %v", out, tt.wantOutput)
