@@ -28,8 +28,6 @@ import (
 	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
 	"github.com/artem-sidorenko/chagen/data"
 	tcli "github.com/artem-sidorenko/chagen/internal/testing/cli"
-
-	"github.com/urfave/cli"
 )
 
 func setupTestConnector(
@@ -328,20 +326,6 @@ func TestGetNewTagURL(t *testing.T) {
 	}
 }
 
-func setupCLIContext(githubOwner, githubRepo bool) *cli.Context {
-	flags := map[string]string{}
-
-	if githubOwner {
-		flags["github-owner"] = "testowner"
-	}
-
-	if githubRepo {
-		flags["github-repo"] = "testrepo"
-	}
-
-	return tcli.TestContext(github.CLIFlags(), flags)
-}
-
 func TestNew(t *testing.T) {
 	type args struct {
 		githubOwner bool
@@ -380,9 +364,20 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			cliFlags := map[string]string{}
+			if tt.args.githubOwner {
+				cliFlags["github-owner"] = "testowner"
+			}
+
+			if tt.args.githubRepo {
+				cliFlags["github-repo"] = "testrepo"
+			}
+
+			ctx := tcli.TestContext(github.CLIFlags(), cliFlags)
+
 			github.NewGitHubClientFunc = testclient.New
 			testclient.ReturnValue = tt.retErrControl
-			_, err := github.New(setupCLIContext(tt.args.githubOwner, tt.args.githubRepo))
+			_, err := github.New(ctx)
 
 			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("New() got = %v, wantErr %v", err, tt.wantErr)
