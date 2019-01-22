@@ -58,7 +58,7 @@ func (g *GitHubRepoService) ListTags(
 ) ([]*github.RepositoryTag, *github.Response, error) {
 
 	if g.ReturnValue.RetRepoServiceListTagsErr {
-		return nil, nil, fmt.Errorf("Can't fetch the tags")
+		return nil, nil, fmt.Errorf("can't fetch the tags")
 	}
 
 	resp := &github.Response{
@@ -75,13 +75,13 @@ func (g *GitHubRepoService) GetCommit(
 ) (*github.RepositoryCommit, *github.Response, error) {
 
 	if g.ReturnValue.RetRepoServiceGetCommitsErr {
-		return nil, nil, fmt.Errorf("Can't fetch the commit")
+		return nil, nil, fmt.Errorf("can't fetch the commit")
 	}
 
 	if cm, ok := g.RetRepositoryCommits[sha]; ok {
 		return cm, nil, nil
 	}
-	return nil, nil, fmt.Errorf("Commit %v is not present", sha)
+	return nil, nil, fmt.Errorf("commit %v is not present", sha)
 }
 
 // GetReleaseByTag simulates the (github.RepositoriesService) GetCommit call
@@ -102,7 +102,7 @@ func (g *GitHubRepoService) Get(
 	owner, repo string) (*github.Repository, *github.Response, error) {
 
 	if g.ReturnValue.RetRepoServiceGetErr {
-		return nil, nil, fmt.Errorf("Can't fetch the repo data")
+		return nil, nil, fmt.Errorf("can't fetch the repo data")
 	}
 
 	//if return code not defined, return 200 for Ok
@@ -128,7 +128,7 @@ func (g *GitHubIssueService) ListByRepo(
 ) ([]*github.Issue, *github.Response, error) {
 
 	if g.RetErrControl.RetIssueServiceListByRepoErr {
-		return nil, nil, fmt.Errorf("Can't fetch the issues")
+		return nil, nil, fmt.Errorf("can't fetch the issues")
 	}
 
 	resp := &github.Response{
@@ -151,7 +151,7 @@ func (g *GitHubPullRequestsService) List(
 ) ([]*github.PullRequest, *github.Response, error) {
 
 	if g.RetErrControl.RetPullRequestsListErr {
-		return nil, nil, fmt.Errorf("Can't fetch the PRs")
+		return nil, nil, fmt.Errorf("can't fetch the PRs")
 	}
 
 	resp := &github.Response{

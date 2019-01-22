@@ -159,7 +159,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 			cliParams: cliParams{
 				filterExpr: "(abdc",
 			},
-			wantErr: errors.New("Can't compile the regular expression: error parsing regexp: missing closing ): `(abdc`"), // nolint: lll
+			wantErr: errors.New("can't compile the regular expression: error parsing regexp: missing closing ): `(abdc`"), // nolint: lll
 		},
 		{
 			name: "With customized labels",
@@ -172,7 +172,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		{
 			name:                 "Repository not found",
 			repositoryExistsFail: true,
-			wantErr:              errors.New("Project not found"),
+			wantErr:              errors.New("project not found"),
 		},
 	}
 	for _, tt := range tests {

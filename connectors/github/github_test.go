@@ -52,7 +52,7 @@ func setupTestConnector(
 
 	c, err := github.New(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("Got error from test consturctor: %v", err))
+		panic(fmt.Sprintf("got error from test consturctor: %v", err))
 	}
 
 	return c
@@ -91,7 +91,7 @@ func TestConnector_RepositoryExists(t *testing.T) {
 			returnValue: testclient.ReturnValueStr{
 				RetRepoServiceGetErr: true,
 			},
-			wantErr: errors.New("GitHub query 'RepositoryExists' failed: Can't fetch the repo data"),
+			wantErr: errors.New("GitHub query 'RepositoryExists' failed: can't fetch the repo data"),
 		},
 	}
 	for _, tt := range tests {
@@ -143,14 +143,14 @@ func TestGetTags(t *testing.T) {
 			returnValue: testclient.ReturnValueStr{
 				RetRepoServiceListTagsErr: true,
 			},
-			wantErr: errors.New("GitHub query 'GetTags' failed: Can't fetch the tags"),
+			wantErr: errors.New("GitHub query 'GetTags' failed: can't fetch the tags"),
 		},
 		{
 			name: "GetCommit call fails",
 			returnValue: testclient.ReturnValueStr{
 				RetRepoServiceGetCommitsErr: true,
 			},
-			wantErr: errors.New("GitHub query 'GetTags' failed: Can't fetch the commit"),
+			wantErr: errors.New("GitHub query 'GetTags' failed: can't fetch the commit"),
 		},
 	}
 	for _, tt := range tests {
@@ -195,7 +195,7 @@ func TestGetIssues(t *testing.T) {
 			returnValue: testclient.ReturnValueStr{
 				RetIssueServiceListByRepoErr: true,
 			},
-			wantErr: errors.New("GitHub query 'GetIssues' failed: Can't fetch the issues"),
+			wantErr: errors.New("GitHub query 'GetIssues' failed: can't fetch the issues"),
 		},
 	}
 	for _, tt := range tests {
@@ -240,7 +240,7 @@ func TestGetMRs(t *testing.T) {
 			returnValue: testclient.ReturnValueStr{
 				RetPullRequestsListErr: true,
 			},
-			wantErr: errors.New("GitHub query 'GetMRs' failed: Can't fetch the PRs"),
+			wantErr: errors.New("GitHub query 'GetMRs' failed: can't fetch the PRs"),
 		},
 	}
 	for _, tt := range tests {
@@ -369,7 +369,7 @@ func TestNew(t *testing.T) {
 				githubOwner: false,
 				githubRepo:  true,
 			},
-			wantErr: errors.New("Option --github-owner is required"),
+			wantErr: errors.New("option --github-owner is required"),
 		},
 		{
 			name: "github-repo flag is missing",
@@ -377,7 +377,7 @@ func TestNew(t *testing.T) {
 				githubOwner: true,
 				githubRepo:  false,
 			},
-			wantErr: errors.New("Option --github-repo is required"),
+			wantErr: errors.New("option --github-repo is required"),
 		},
 	}
 	for _, tt := range tests {
