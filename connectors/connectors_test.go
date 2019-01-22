@@ -77,7 +77,7 @@ func TestCLIFlags(t *testing.T) {
 			args: args{
 				id: "testmissing",
 			},
-			wantErr: errors.New("Unknown connector: testmissing"),
+			wantErr: errors.New("unknown connector: testmissing"),
 		},
 	}
 	for _, tt := range tests {
@@ -119,7 +119,7 @@ func TestNewConnector(t *testing.T) {
 			args: args{
 				id: "testmissing",
 			},
-			wantErr: errors.New("Unknown connector: testmissing"),
+			wantErr: errors.New("unknown connector: testmissing"),
 		},
 	}
 	for _, tt := range tests {

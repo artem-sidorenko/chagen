@@ -248,11 +248,11 @@ func (c *Connector) GetMRs() (data.MRs, error) {
 func New(ctx *cli.Context) (connectors.Connector, error) {
 	owner := ctx.String("github-owner")
 	if owner == "" {
-		return nil, errors.New("Option --github-owner is required")
+		return nil, errors.New("option --github-owner is required")
 	}
 	repo := ctx.String("github-repo")
 	if repo == "" {
-		return nil, errors.New("Option --github-repo is required")
+		return nil, errors.New("option --github-repo is required")
 	}
 	newTagUseReleaseURL := ctx.Bool("github-release-url")
 

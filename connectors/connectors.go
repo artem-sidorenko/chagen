@@ -90,7 +90,7 @@ func CLIFlags(id string) ([]cli.Flag, error) {
 // Returns nil if everything ok, error otherwise
 func checkConnector(id string) error {
 	if _, ok := connectors[id]; !ok {
-		return fmt.Errorf("Unknown connector: %s", id)
+		return fmt.Errorf("unknown connector: %s", id)
 	}
 	return nil
 }

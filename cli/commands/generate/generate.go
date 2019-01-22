@@ -48,10 +48,10 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 	if !ctx.Bool("no-filter-tags") { // if the flag is not there, lets apply the filter
 		filterReStr := ctx.String("filter-tags")
 		if filterReStr == "" {
-			return fmt.Errorf("Regular expression for tag filtering should be defined")
+			return fmt.Errorf("regular expression for tag filtering should be defined")
 		}
 		if filterRe, err = regexp.Compile(filterReStr); err != nil {
-			return fmt.Errorf("Can't compile the regular expression: %v", err)
+			return fmt.Errorf("can't compile the regular expression: %v", err)
 		}
 	}
 
@@ -76,7 +76,7 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 
 	if !exists {
 		// TODO: this should provide detailed information about repository: owner, repo name
-		return fmt.Errorf("Project not found")
+		return fmt.Errorf("project not found")
 	}
 
 	tags, issues, mrs, err := getConnectorData(
