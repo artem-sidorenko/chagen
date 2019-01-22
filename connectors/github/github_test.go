@@ -100,9 +100,7 @@ func TestConnector_RepositoryExists(t *testing.T) {
 
 			got, err := c.RepositoryExists()
 
-			if (err != nil && tt.wantErr == nil) ||
-				(err == nil && tt.wantErr != nil) ||
-				((err != nil && tt.wantErr != nil) && (err.Error() != tt.wantErr.Error())) {
+			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Connector.RepositoryExists() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -159,7 +157,7 @@ func TestGetTags(t *testing.T) {
 
 			got, err := c.GetTags()
 
-			if err != nil && err.Error() != tt.wantErr.Error() {
+			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Connector.GetTags() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -203,7 +201,7 @@ func TestGetIssues(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 
 			got, err := c.GetIssues()
-			if err != nil && err.Error() != tt.wantErr.Error() {
+			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Connector.GetIssues() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -248,7 +246,7 @@ func TestGetMRs(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 
 			got, err := c.GetMRs()
-			if err != nil && err.Error() != tt.wantErr.Error() {
+			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Connector.GetMRs() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -386,10 +384,7 @@ func TestNew(t *testing.T) {
 			testclient.ReturnValue = tt.retErrControl
 			_, err := github.New(setupCLIContext(tt.args.githubOwner, tt.args.githubRepo))
 
-			if (err != nil && tt.wantErr == nil) ||
-				(err == nil && tt.wantErr != nil) ||
-				((err != nil && tt.wantErr != nil) && (err.Error() != tt.wantErr.Error())) {
-
+			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("New() got = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
