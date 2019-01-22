@@ -168,6 +168,14 @@ func TestGetTags(t *testing.T) {
 	}
 }
 
+func BenchmarkGetTags(b *testing.B) {
+	c := setupTestConnector(testclient.ReturnValueStr{}, false)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = c.GetTags()
+	}
+}
+
 func TestGetIssues(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -208,6 +216,14 @@ func TestGetIssues(t *testing.T) {
 				t.Errorf("Connector.GetIssues() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkGetIssues(b *testing.B) {
+	c := setupTestConnector(testclient.ReturnValueStr{}, false)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = c.GetIssues()
 	}
 }
 
@@ -253,6 +269,14 @@ func TestGetMRs(t *testing.T) {
 				t.Errorf("Connector.GetMRs() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkGetMRs(b *testing.B) {
+	c := setupTestConnector(testclient.ReturnValueStr{}, false)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = c.GetMRs()
 	}
 }
 
