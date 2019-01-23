@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"errors"
 	"html/template"
+	"reflect"
 	"testing"
 	"time"
 
@@ -203,10 +204,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 			err := generate.Generate(ctx)
 			out := string(output.String())
 
-			if (err != nil && tt.wantErr == nil) ||
-				(err == nil && tt.wantErr != nil) ||
-				((err != nil && tt.wantErr != nil) && (err.Error() != tt.wantErr.Error())) {
-
+			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 				t.FailNow()
 			}

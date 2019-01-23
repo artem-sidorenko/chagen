@@ -114,7 +114,6 @@ Closed issues
 - Test issue [\#1](https://example.com/issue/1)
 
 *This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*`,
-			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
