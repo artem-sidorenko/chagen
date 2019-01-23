@@ -61,7 +61,7 @@ func TestConnector_MRs(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 			cerr := make(chan error, 1)
 
-			cgot, _ := c.MRs(context.Background(), cerr)
+			cgot := c.MRs(context.Background(), cerr, nil)
 			var got data.MRs
 			for t := range cgot {
 				got = append(got, t)
