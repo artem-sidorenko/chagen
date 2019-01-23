@@ -143,45 +143,29 @@ func (c *Connector) GetTags() (data.Tags, error) {
 
 // GetIssues returns the closed issues
 func (c *Connector) GetIssues() (data.Issues, error) {
-	opt := &github.IssueListByRepoOptions{State: "closed"}
+	ctx, cancel := context.WithCancel(c.context)
+	defer cancel()
+
+	cerr := make(chan error)
+
+	cissues := c.listIssues(ctx, cerr)
+	cdissues := c.processIssues(ctx, cerr, cissues)
 
 	var ret data.Issues
 	for {
-		issues, resp, err := c.client.Issues.ListByRepo(c.context, c.Owner, c.Repo, opt)
-		if err != nil {
+		select {
+		case <-c.context.Done():
+			return ret, c.context.Err()
+		case err := <-cerr:
 			return nil, formatErrorCode("GetIssues", err)
-		}
-
-		for _, issue := range issues {
-			//ensure we have an issue and not PR
-			if issue.PullRequestLinks.GetURL() != "" {
-				continue
+		case issue, ok := <-cdissues:
+			if ok {
+				ret = append(ret, issue)
+			} else { //channel closed
+				return ret, nil
 			}
-
-			var lbs []string
-			if issue.Labels != nil && len(issue.Labels) > 0 {
-				for _, l := range issue.Labels {
-					lbs = append(lbs, *l.Name)
-				}
-			}
-
-			ret = append(ret, data.Issue{
-				ID:         issue.GetNumber(),
-				Name:       issue.GetTitle(),
-				ClosedDate: issue.GetClosedAt(),
-				URL:        issue.GetHTMLURL(),
-				Labels:     lbs,
-			})
 		}
-
-		if resp.NextPage == 0 {
-			break
-		}
-
-		opt.Page = resp.NextPage
 	}
-
-	return ret, nil
 }
 
 //GetMRs returns the merged pull requests
