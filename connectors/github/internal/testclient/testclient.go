@@ -101,17 +101,19 @@ func (g *GitHubRepoService) Get(
 	ctx context.Context,
 	owner, repo string) (*github.Repository, *github.Response, error) {
 
-	if g.ReturnValue.RetRepoServiceGetErr {
-		return nil, nil, fmt.Errorf("can't fetch the repo data")
-	}
-
 	//if return code not defined, return 200 for Ok
 	respCode := 200
 	if g.ReturnValue.RetRepoServiceGetRespCode != 0 {
 		respCode = g.ReturnValue.RetRepoServiceGetRespCode
 	}
 
-	return nil, genResponse(respCode), nil
+	response := genResponse(respCode)
+
+	if g.ReturnValue.RetRepoServiceGetErr {
+		return nil, response, fmt.Errorf("can't fetch the repo data")
+	}
+
+	return nil, response, nil
 }
 
 // GitHubIssueService simulates the github.IssuesService
