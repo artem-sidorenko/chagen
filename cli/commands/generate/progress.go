@@ -23,18 +23,26 @@ import (
 	"strconv"
 )
 
-// printProgress prints the current processing progress on given output using the given channels.
-// Routine exists then context ctx cancels
+// printProgress prints the current processing progress on given output
+// using the input on returned channels.
+// Print goroutine exists then context ctx cancels or all channels are closed
 func printProgress( // nolint: gocyclo
 	ctx context.Context,
 	out io.Writer,
-	ctagscounter <-chan bool,
-	cmaxtags <-chan int,
-	cissuescounter <-chan bool,
-	cmaxissues <-chan int,
-	cmrscounter <-chan bool,
-	cmaxmrs <-chan int,
+) (
+	ctagscounter chan<- bool,
+	cmaxtags chan<- int,
+	cissuescounter chan<- bool,
+	cmaxissues chan<- int,
+	cmrscounter chan<- bool,
+	cmaxmrs chan<- int,
 ) {
+	lctagscounter := make(chan bool)
+	lcmaxtags := make(chan int)
+	lcissuescounter := make(chan bool)
+	lcmaxissues := make(chan int)
+	lmrscounter := make(chan bool)
+	lcmaxmrs := make(chan int)
 
 	go func() {
 		var tagscounter int
@@ -44,35 +52,56 @@ func printProgress( // nolint: gocyclo
 		maxissues := "X"
 		maxmrs := "X"
 
+		// print newline character when leaving the progress printing routine
+		defer func() {
+			fmt.Fprintf(out, "\n") // nolint: errcheck
+		}()
+
 		for {
 			select {
 			case <-ctx.Done():
-				fmt.Fprintf(out, "\n") // nolint: errcheck
 				return
-			case _, ok := <-ctagscounter:
+			case _, ok := <-lctagscounter:
 				if ok {
 					tagscounter++
+				} else {
+					lctagscounter = nil
 				}
-			case v, ok := <-cmaxtags:
+			case v, ok := <-lcmaxtags:
 				if ok {
 					maxtags = strconv.Itoa(v)
+				} else {
+					lcmaxtags = nil
 				}
-			case _, ok := <-cissuescounter:
+			case _, ok := <-lcissuescounter:
 				if ok {
 					issuescounter++
+				} else {
+					lcissuescounter = nil
 				}
-			case v, ok := <-cmaxissues:
+			case v, ok := <-lcmaxissues:
 				if ok {
 					maxissues = strconv.Itoa(v)
+				} else {
+					lcmaxissues = nil
 				}
-			case _, ok := <-cmrscounter:
+			case _, ok := <-lmrscounter:
 				if ok {
 					mrscounter++
+				} else {
+					lmrscounter = nil
 				}
-			case v, ok := <-cmaxmrs:
+			case v, ok := <-lcmaxmrs:
 				if ok {
 					maxmrs = strconv.Itoa(v)
+				} else {
+					lcmaxmrs = nil
 				}
+			}
+
+			if lctagscounter == nil && lcmaxtags == nil &&
+				lcissuescounter == nil && lcmaxissues == nil && lmrscounter == nil && lcmaxmrs == nil {
+				return
 			}
 
 			fmt.Fprintf(out, // nolint: errcheck
@@ -84,4 +113,7 @@ func printProgress( // nolint: gocyclo
 		}
 	}()
 
+	return lctagscounter, lcmaxtags,
+		lcissuescounter, lcmaxissues,
+		lmrscounter, lcmaxmrs
 }

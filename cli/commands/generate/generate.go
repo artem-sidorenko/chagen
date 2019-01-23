@@ -200,20 +200,15 @@ func getConnectorData(
 	defer cancel()
 
 	cerr := make(chan error)
-	ctagscounter := make(chan bool)
-	cissuescounter := make(chan bool)
-	cmrscounter := make(chan bool)
 
-	ctags, cmaxtags := conn.Tags(ctx, cerr)
-	cissues, cmaxissues := conn.Issues(ctx, cerr)
-	cmrs, cmaxmrs := conn.MRs(ctx, cerr)
-
-	printProgress(
-		ctx, ProgressStdout,
-		ctagscounter, cmaxtags,
+	// invoke the progress printer
+	ctagscounter, cmaxtags,
 		cissuescounter, cmaxissues,
-		cmrscounter, cmaxmrs,
-	)
+		cmrscounter, cmaxmrs := printProgress(ctx, ProgressStdout)
+
+	ctags := conn.Tags(ctx, cerr, cmaxtags)
+	cissues := conn.Issues(ctx, cerr, cmaxissues)
+	cmrs := conn.MRs(ctx, cerr, cmaxmrs)
 
 	tags, issues, mrs, err := collectData(
 		ctx,
