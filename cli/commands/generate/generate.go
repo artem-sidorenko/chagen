@@ -121,34 +121,49 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 }
 
 // collectData fans-in data from different channels to the data structures
-func collectData(
+func collectData( // nolint: gocyclo
 	ctx context.Context,
 	ctags <-chan data.Tag,
 	ctagscounter chan<- bool,
+	cissues <-chan data.Issue,
+	cissuescounter chan<- bool,
 	cerr <-chan error,
-) (data.Tags, error) {
-	var tags data.Tags
+) (
+	data.Tags,
+	data.Issues,
+	error,
+) {
+	var (
+		tags   data.Tags
+		issues data.Issues
+	)
 
 	for {
 		select {
 		case <-ctx.Done():
-			return tags, ctx.Err()
+			return tags, issues, ctx.Err()
 		case err, ok := <-cerr:
 			if ok {
-				return nil, err
+				return nil, nil, err
 			}
 		case t, ok := <-ctags:
 			if ok {
 				tags = append(tags, t)
 				ctagscounter <- true
-			} else { // tags are done, nil the channel
+			} else { // tags are finished, nil the channel
 				ctags = nil
 			}
+		case i, ok := <-cissues:
+			if ok {
+				issues = append(issues, i)
+				cissuescounter <- true
+			} else { // issues are finished, nil the channel
+				cissues = nil
+			}
 		}
-
 		// all channels finished, return data
-		if ctags == nil {
-			return tags, nil
+		if ctags == nil && cissues == nil {
+			return tags, issues, nil
 		}
 	}
 }
@@ -174,13 +189,26 @@ func getConnectorData(
 	defer cancel()
 
 	cerr := make(chan error)
-	ccurtags := make(chan bool)
+	ctagscounter := make(chan bool)
+	cissuescounter := make(chan bool)
 
 	ctags, cmaxtags := conn.Tags(ctx, cerr)
+	cissues, cmaxissues := conn.Issues(ctx, cerr)
 
-	printProgress(ctx, ProgressStdout, ccurtags, cmaxtags)
+	printProgress(
+		ctx, ProgressStdout,
+		ctagscounter, cmaxtags,
+		cissuescounter, cmaxissues,
+	)
 
-	tags, err := collectData(ctx, ctags, ccurtags, cerr)
+	tags, issues, err := collectData(
+		ctx,
+		ctags,
+		ctagscounter,
+		cissues,
+		cissuescounter,
+		cerr,
+	)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -202,11 +230,6 @@ func getConnectorData(
 			Date: time.Now(),
 			URL:  relURL,
 		})
-	}
-
-	issues, err = conn.GetIssues()
-	if err != nil {
-		return nil, nil, nil, err
 	}
 
 	mrs, err = conn.GetMRs()

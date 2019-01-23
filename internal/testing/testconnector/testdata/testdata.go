@@ -46,3 +46,47 @@ func Tags() data.Tags {
 		},
 	}
 }
+
+// Issues returns some issues
+func Issues() data.Issues {
+	return data.Issues{
+		{
+			ID:         2,
+			Name:       "Issue 2",
+			ClosedDate: time.Unix(1247483647, 0),
+			URL:        "http://test.example.com/issues/2",
+		},
+		{
+			ID:         1,
+			Name:       "Issue 1",
+			ClosedDate: time.Unix(1047483647, 0),
+			URL:        "http://test.example.com/issues/1",
+		},
+		{
+			ID:         3,
+			Name:       "Issue 3",
+			ClosedDate: time.Unix(1347483647, 0),
+			URL:        "http://test.example.com/issues/3",
+		},
+		{
+			ID:         4,
+			Name:       "Issue 4",
+			ClosedDate: time.Unix(1297483647, 0),
+			URL:        "http://test.example.com/issues/4",
+		},
+		{
+			ID:         5,
+			Name:       "Issue 5",
+			ClosedDate: time.Unix(1298483647, 0),
+			URL:        "http://test.example.com/issues/5",
+			Labels:     []string{"issue5"},
+		},
+		{
+			ID:         6,
+			Name:       "Issue 6",
+			ClosedDate: time.Unix(1299483647, 0),
+			URL:        "http://test.example.com/issues/6",
+			Labels:     []string{"no changelog"},
+		},
+	}
+}

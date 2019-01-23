@@ -33,7 +33,9 @@ type testConnector struct{}
 func (t *testConnector) Tags(_ context.Context, _ chan<- error) (<-chan data.Tag, <-chan int) {
 	return nil, nil
 }
-func (t *testConnector) GetIssues() (data.Issues, error)     { return nil, nil }
+func (t *testConnector) Issues(_ context.Context, _ chan<- error) (<-chan data.Issue, <-chan int) {
+	return nil, nil
+}
 func (t *testConnector) GetMRs() (data.MRs, error)           { return nil, nil }
 func (t *testConnector) GetNewTagURL(string) (string, error) { return "", nil }
 func (t *testConnector) RepositoryExists() (bool, error)     { return true, nil }

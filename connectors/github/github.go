@@ -67,33 +67,6 @@ func (c *Connector) RepositoryExists() (bool, error) {
 	}
 }
 
-// GetIssues returns the closed issues
-func (c *Connector) GetIssues() (data.Issues, error) {
-	ctx, cancel := context.WithCancel(c.context)
-	defer cancel()
-
-	cerr := make(chan error)
-
-	cissues := c.listIssues(ctx, cerr)
-	cdissues := c.processIssues(ctx, cerr, cissues)
-
-	var ret data.Issues
-	for {
-		select {
-		case <-c.context.Done():
-			return ret, c.context.Err()
-		case err := <-cerr:
-			return nil, formatErrorCode("GetIssues", err)
-		case issue, ok := <-cdissues:
-			if ok {
-				ret = append(ret, issue)
-			} else { //channel closed
-				return ret, nil
-			}
-		}
-	}
-}
-
 // GetMRs returns the merged pull requests
 func (c *Connector) GetMRs() (data.MRs, error) {
 	ctx, cancel := context.WithCancel(c.context)

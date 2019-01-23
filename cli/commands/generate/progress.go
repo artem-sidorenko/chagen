@@ -25,16 +25,20 @@ import (
 
 // printProgress prints the current processing progress on given output using the given channels.
 // Routine exists then context ctx cancels
-func printProgress(
+func printProgress( // nolint: gocyclo
 	ctx context.Context,
 	out io.Writer,
 	ctagscounter <-chan bool,
 	cmaxtags <-chan int,
+	cissuescounter <-chan bool,
+	cmaxissues <-chan int,
 ) {
 
 	go func() {
 		var tagscounter int
+		var issuescounter int
 		maxtags := "X"
+		maxissues := "X"
 
 		for {
 			select {
@@ -49,9 +53,21 @@ func printProgress(
 				if ok {
 					maxtags = strconv.Itoa(v)
 				}
+			case _, ok := <-cissuescounter:
+				if ok {
+					issuescounter++
+				}
+			case v, ok := <-cmaxissues:
+				if ok {
+					maxissues = strconv.Itoa(v)
+				}
 			}
 
-			fmt.Fprintf(out, "\rProgress: %v/%v tags", tagscounter, maxtags) // nolint: errcheck
+			fmt.Fprintf(out, // nolint: errcheck
+				"\rProgress: %v/%v tags, %v/%v issues",
+				tagscounter, maxtags,
+				issuescounter, maxissues,
+			)
 		}
 	}()
 

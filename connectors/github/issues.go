@@ -24,7 +24,27 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func (c *Connector) listIssues(ctx context.Context, cerr chan error) <-chan []*github.Issue {
+// Issues returns the issues via channels.
+// Returns possible errors via given cerr channel
+// cissues returns issues
+// cmaxissues returns the max available amount of issues
+func (c *Connector) Issues(
+	ctx context.Context,
+	cerr chan<- error,
+) (
+	ctags <-chan data.Issue,
+	cmaxtags <-chan int,
+) {
+	issues := c.listIssues(ctx, cerr)
+	dissues := c.processIssues(ctx, cerr, issues)
+
+	return dissues, nil
+}
+
+func (c *Connector) listIssues(
+	ctx context.Context,
+	cerr chan<- error,
+) <-chan []*github.Issue {
 	ret := make(chan []*github.Issue)
 
 	go func() {
@@ -58,7 +78,7 @@ func (c *Connector) listIssues(ctx context.Context, cerr chan error) <-chan []*g
 
 func (c *Connector) processIssues(
 	ctx context.Context,
-	_ chan error,
+	_ chan<- error,
 	cissues <-chan []*github.Issue,
 ) <-chan data.Issue {
 

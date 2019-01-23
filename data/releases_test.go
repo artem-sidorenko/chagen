@@ -102,7 +102,7 @@ func TestNewReleases(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			conn := &testconnector.Connector{}
 			tags := testdata.Tags()
-			issues, _ := conn.GetIssues()
+			issues := testdata.Issues()
 			mrs, _ := conn.GetMRs()
 			gotRet := data.NewReleases(tags, issues, mrs)
 			if len(gotRet) != len(tt.wantRet) {

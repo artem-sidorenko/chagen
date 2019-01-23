@@ -111,57 +111,6 @@ func TestConnector_RepositoryExists(t *testing.T) {
 	}
 }
 
-func TestGetIssues(t *testing.T) {
-	tests := []struct {
-		name        string
-		returnValue testclient.ReturnValueStr
-		want        data.Issues
-		wantErr     error
-	}{
-		{
-			name: "API returns proper data",
-			want: data.Issues{
-				data.Issue{
-					ID:         1234,
-					Name:       "Test issue title",
-					ClosedDate: time.Unix(1047483647, 0),
-					URL:        "http://example.com/issues/1234",
-					Labels:     []string{"enhancement"},
-				},
-			},
-		},
-		{
-			name: "ListIssues call fails",
-			returnValue: testclient.ReturnValueStr{
-				RetIssueServiceListByRepoErr: true,
-			},
-			wantErr: errors.New("GitHub query 'GetIssues' failed: can't fetch the issues"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := setupTestConnector(tt.returnValue, false)
-
-			got, err := c.GetIssues()
-			if !reflect.DeepEqual(err, tt.wantErr) {
-				t.Errorf("Connector.GetIssues() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Connector.GetIssues() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func BenchmarkGetIssues(b *testing.B) {
-	c := setupTestConnector(testclient.ReturnValueStr{}, false)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, _ = c.GetIssues()
-	}
-}
-
 func TestGetMRs(t *testing.T) {
 	tests := []struct {
 		name        string
