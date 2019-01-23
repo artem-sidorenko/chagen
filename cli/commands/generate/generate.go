@@ -18,6 +18,7 @@
 package generate
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -36,6 +37,9 @@ import (
 
 // Stdout references the Stdout writer for generate command
 var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
+// ProgressStdout references the Stdout writer for progress information
+var ProgressStdout io.Writer = os.Stdout // nolint: gochecknoglobals
+
 // Connector references the connector ID used for generation
 var Connector = "github" // nolint: gochecknoglobals
 
@@ -116,6 +120,65 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 	return err
 }
 
+// collectData fans-in data from different channels to the data structures
+func collectData( // nolint: gocyclo
+	ctx context.Context,
+	ctags <-chan data.Tag,
+	ctagscounter chan<- bool,
+	cissues <-chan data.Issue,
+	cissuescounter chan<- bool,
+	cmrs <-chan data.MR,
+	cmrscounter chan<- bool,
+	cerr <-chan error,
+) (
+	data.Tags,
+	data.Issues,
+	data.MRs,
+	error,
+) {
+	var (
+		tags   data.Tags
+		issues data.Issues
+		mrs    data.MRs
+	)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return tags, issues, mrs, ctx.Err()
+		case err, ok := <-cerr:
+			if ok {
+				return nil, nil, nil, err
+			}
+		case t, ok := <-ctags:
+			if ok {
+				tags = append(tags, t)
+				ctagscounter <- true
+			} else { // tags are finished, nil the channel
+				ctags = nil
+			}
+		case i, ok := <-cissues:
+			if ok {
+				issues = append(issues, i)
+				cissuescounter <- true
+			} else { // issues are finished, nil the channel
+				cissues = nil
+			}
+		case m, ok := <-cmrs:
+			if ok {
+				mrs = append(mrs, m)
+				cmrscounter <- true
+			} else { // MRs are finished, nil the channel
+				cmrs = nil
+			}
+		}
+		// all channels finished, return data
+		if ctags == nil && cissues == nil && cmrs == nil {
+			return tags, issues, mrs, nil
+		}
+	}
+}
+
 // getConnectorData returns all needed data from connector
 // if newRelease is specified, a new releases for
 // untagged activities is created
@@ -130,10 +193,38 @@ func getConnectorData(
 		tags   data.Tags
 		issues data.Issues
 		mrs    data.MRs
-		err    error
 	)
 
-	tags, err = conn.GetTags()
+	// one minute for data collection should be enougth for now
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	cerr := make(chan error)
+	ctagscounter := make(chan bool)
+	cissuescounter := make(chan bool)
+	cmrscounter := make(chan bool)
+
+	ctags, cmaxtags := conn.Tags(ctx, cerr)
+	cissues, cmaxissues := conn.Issues(ctx, cerr)
+	cmrs, cmaxmrs := conn.MRs(ctx, cerr)
+
+	printProgress(
+		ctx, ProgressStdout,
+		ctagscounter, cmaxtags,
+		cissuescounter, cmaxissues,
+		cmrscounter, cmaxmrs,
+	)
+
+	tags, issues, mrs, err := collectData(
+		ctx,
+		ctags,
+		ctagscounter,
+		cissues,
+		cissuescounter,
+		cmrs,
+		cmrscounter,
+		cerr,
+	)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -155,16 +246,6 @@ func getConnectorData(
 			Date: time.Now(),
 			URL:  relURL,
 		})
-	}
-
-	issues, err = conn.GetIssues()
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	mrs, err = conn.GetMRs()
-	if err != nil {
-		return nil, nil, nil, err
 	}
 
 	// we should filter the labels

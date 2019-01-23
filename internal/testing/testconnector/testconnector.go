@@ -19,10 +19,12 @@
 package testconnector
 
 import (
+	"context"
 	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/testconnector/testdata"
 
 	"github.com/urfave/cli"
 )
@@ -37,35 +39,23 @@ var (
 )
 
 // Connector implements the test connector
-type Connector struct{}
+type Connector struct {
+}
 
 // RepositoryExists checks if referenced repository is present
 func (c *Connector) RepositoryExists() (bool, error) {
 	return !RepositoryExistsFail, nil
 }
 
-// GetTags implements the connectors.Connector interface
-func (c *Connector) GetTags() (data.Tags, error) {
-	tags := data.Tags{
-		{
-			Name:   "v0.0.2",
-			Date:   time.Unix(1147483647, 0),
-			Commit: "b6a735dcb420a82865abe8c194900e59f6af9dea",
-			URL:    "https://test.example.com/tags/v0.0.2",
-		},
-		{
-			Name:   "v0.0.1",
-			Date:   time.Unix(1047483647, 0),
-			Commit: "d85645cbe6288cce5e5d066f8c7864040266cce3",
-			URL:    "https://test.example.com/tags/v0.0.1",
-		},
-		{
-			Name:   "v0.0.3",
-			Date:   time.Unix(1247483647, 0),
-			Commit: "25362c337d524025bf98e978059bf9bcd2b56221",
-			URL:    "https://test.example.com/tags/v0.0.3",
-		},
-	}
+// Tags implements the connectors.Connector interface
+func (c *Connector) Tags(
+	_ context.Context,
+	cerr chan<- error,
+) (
+	<-chan data.Tag,
+	<-chan int,
+) {
+	tags := testdata.Tags()
 
 	if RetTestingTag {
 		tags = append(tags, data.Tag{
@@ -76,89 +66,59 @@ func (c *Connector) GetTags() (data.Tags, error) {
 		})
 	}
 
-	return tags, nil
+	ctags := make(chan data.Tag)
+
+	go func() {
+		defer close(ctags)
+
+		for _, t := range tags {
+			ctags <- t
+		}
+	}()
+
+	return ctags, nil
 }
 
-// GetIssues implements the connectors.Connector interface
-func (*Connector) GetIssues() (data.Issues, error) {
-	return data.Issues{
-		{
-			ID:         2,
-			Name:       "Issue 2",
-			ClosedDate: time.Unix(1247483647, 0),
-			URL:        "http://test.example.com/issues/2",
-		},
-		{
-			ID:         1,
-			Name:       "Issue 1",
-			ClosedDate: time.Unix(1047483647, 0),
-			URL:        "http://test.example.com/issues/1",
-		},
-		{
-			ID:         3,
-			Name:       "Issue 3",
-			ClosedDate: time.Unix(1347483647, 0),
-			URL:        "http://test.example.com/issues/3",
-		},
-		{
-			ID:         4,
-			Name:       "Issue 4",
-			ClosedDate: time.Unix(1297483647, 0),
-			URL:        "http://test.example.com/issues/4",
-		},
-		{
-			ID:         5,
-			Name:       "Issue 5",
-			ClosedDate: time.Unix(1298483647, 0),
-			URL:        "http://test.example.com/issues/5",
-			Labels:     []string{"issue5"},
-		},
-		{
-			ID:         6,
-			Name:       "Issue 6",
-			ClosedDate: time.Unix(1299483647, 0),
-			URL:        "http://test.example.com/issues/6",
-			Labels:     []string{"no changelog"},
-		},
-	}, nil
+// Issues implements the connectors.Connector interface
+func (c *Connector) Issues(
+	_ context.Context,
+	cerr chan<- error,
+) (
+	<-chan data.Issue,
+	<-chan int,
+) {
+	cissues := make(chan data.Issue)
+
+	go func() {
+		defer close(cissues)
+
+		for _, t := range testdata.Issues() {
+			cissues <- t
+		}
+	}()
+
+	return cissues, nil
 }
 
-// GetMRs implements the connectors.Connector interface
-func (*Connector) GetMRs() (data.MRs, error) {
-	return data.MRs{
-		{
-			ID:         2,
-			Name:       "MR 2",
-			MergedDate: time.Unix(1247483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/2",
-		},
-		{
-			ID:         1,
-			Name:       "MR 1",
-			MergedDate: time.Unix(1047483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/1",
-		},
-		{
-			ID:         3,
-			Name:       "MR 3",
-			MergedDate: time.Unix(1057483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/3",
-		},
-		{
-			ID:         4,
-			Name:       "MR 4",
-			MergedDate: time.Unix(1299483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/4",
-		},
-	}, nil
+// MRs implements the connectors.Connector interface
+func (c *Connector) MRs(
+	_ context.Context,
+	cerr chan<- error,
+) (
+	<-chan data.MR,
+	<-chan int,
+) {
+	cmrs := make(chan data.MR)
+
+	go func() {
+		defer close(cmrs)
+
+		for _, t := range testdata.MRs() {
+			cmrs <- t
+		}
+	}()
+
+	return cmrs, nil
 }
 
 // GetNewTagURL implements the connectors.Connector interface

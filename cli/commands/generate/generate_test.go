@@ -196,13 +196,18 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 
 		output := &bytes.Buffer{}
 		generate.Stdout = output
+
+		// avoid progress output
+		progressOutput := &bytes.Buffer{}
+		generate.ProgressStdout = progressOutput
+
 		generate.Connector = "testconnector"
 		testconnector.RetTestingTag = true
 		testconnector.RepositoryExistsFail = tt.repositoryExistsFail
 
 		t.Run(tt.name, func(t *testing.T) {
 			err := generate.Generate(ctx)
-			out := string(output.String())
+			out := output.String()
 
 			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
