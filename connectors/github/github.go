@@ -24,13 +24,11 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/connectors/github/internal/client"
 	"github.com/artem-sidorenko/chagen/data"
 
-	"github.com/google/go-github/github"
 	"github.com/urfave/cli"
 )
 
@@ -168,49 +166,31 @@ func (c *Connector) GetIssues() (data.Issues, error) {
 	}
 }
 
-//GetMRs returns the merged pull requests
+// GetMRs returns the merged pull requests
 func (c *Connector) GetMRs() (data.MRs, error) {
-	opt := &github.PullRequestListOptions{State: "closed"}
+	ctx, cancel := context.WithCancel(c.context)
+	defer cancel()
+
+	cerr := make(chan error)
+
+	cprs := c.listPRs(ctx, cerr)
+	cdmrs := c.processPRs(ctx, cerr, cprs)
 
 	var ret data.MRs
 	for {
-		prs, resp, err := c.client.PullRequests.List(c.context, c.Owner, c.Repo, opt)
-		if err != nil {
+		select {
+		case <-c.context.Done():
+			return ret, c.context.Err()
+		case err := <-cerr:
 			return nil, formatErrorCode("GetMRs", err)
-		}
-
-		for _, pr := range prs {
-			// we need only merged PRs, skip everything else
-			if pr.GetMergedAt() == (time.Time{}) {
-				continue
+		case mr, ok := <-cdmrs:
+			if ok {
+				ret = append(ret, mr)
+			} else { //channel closed
+				return ret, nil
 			}
-
-			var lbs []string
-			if pr.Labels != nil && len(pr.Labels) > 0 {
-				for _, l := range pr.Labels {
-					lbs = append(lbs, *l.Name)
-				}
-			}
-
-			ret = append(ret, data.MR{
-				ID:         pr.GetNumber(),
-				Name:       pr.GetTitle(),
-				MergedDate: pr.GetMergedAt(),
-				URL:        pr.GetHTMLURL(),
-				Author:     pr.User.GetLogin(),
-				AuthorURL:  pr.User.GetHTMLURL(),
-				Labels:     lbs,
-			})
 		}
-
-		if resp.NextPage == 0 {
-			break
-		}
-
-		opt.Page = resp.NextPage
 	}
-
-	return ret, nil
 }
 
 // New returns a new initialized Connector or error if any
