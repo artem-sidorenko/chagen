@@ -48,7 +48,8 @@ Merged pull requests
 {{- end}}
 {{- end}}
 {{ end}}
-*This Changelog was automatically generated with [chagen {{.ChagenVersion}}]({{.ChagenURL}})*`
+*This Changelog was automatically generated with [chagen {{.ChagenVersion}}]({{.ChagenURL}})*
+`
 
 // Generator is resposible for generation of Changelogs.
 // Each data field represents the data structure, which is consumed by the template.
