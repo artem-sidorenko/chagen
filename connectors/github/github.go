@@ -116,45 +116,29 @@ func (c *Connector) getTagURL(tagName string, alwaysUseReleaseURL bool) (string,
 
 // GetTags returns the git tags
 func (c *Connector) GetTags() (data.Tags, error) {
-	opt := &github.ListOptions{}
+	ctx, cancel := context.WithCancel(c.context)
+	defer cancel()
+
+	cerr := make(chan error)
+
+	ctags := c.listTags(ctx, cerr)
+	cdtags := c.processTags(ctx, cerr, ctags)
 
 	var ret data.Tags
 	for {
-		tags, resp, err := c.client.Repositories.ListTags(c.context, c.Owner, c.Repo, nil)
-		if err != nil {
+		select {
+		case <-c.context.Done():
+			return ret, c.context.Err()
+		case err := <-cerr:
 			return nil, formatErrorCode("GetTags", err)
-		}
-
-		for _, tag := range tags {
-			tagName := tag.GetName()
-
-			commit, _, err := c.client.Repositories.GetCommit(c.context,
-				c.Owner, c.Repo, tag.Commit.GetSHA())
-			if err != nil {
-				return nil, formatErrorCode("GetTags", err)
+		case tag, ok := <-cdtags:
+			if ok {
+				ret = append(ret, tag)
+			} else { //channel closed
+				return ret, nil
 			}
-
-			tagURL, err := c.getTagURL(tagName, false)
-			if err != nil {
-				return nil, formatErrorCode("GetTags", err)
-			}
-
-			ret = append(ret, data.Tag{
-				Name:   tagName,
-				Commit: commit.Commit.GetSHA(),
-				Date:   commit.Commit.Committer.GetDate(),
-				URL:    tagURL,
-			})
 		}
-
-		if resp.NextPage == 0 {
-			break
-		}
-
-		opt.Page = resp.NextPage
 	}
-
-	return ret, nil
 }
 
 // GetIssues returns the closed issues
