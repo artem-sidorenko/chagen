@@ -18,28 +18,10 @@
 package connectors
 
 import (
-	"context"
 	"fmt"
-
-	"github.com/artem-sidorenko/chagen/data"
 
 	"github.com/urfave/cli"
 )
-
-// Connector describes the interface of connectors to the data sources
-type Connector interface {
-	Tags(
-		ctx context.Context,
-		cerr chan<- error,
-	) (
-		ctags <-chan data.Tag,
-		cmaxtags <-chan int,
-	)
-	GetIssues() (data.Issues, error)
-	GetMRs() (data.MRs, error)
-	GetNewTagURL(string) (string, error)
-	RepositoryExists() (bool, error)
-}
 
 // NewConnectorFunc describes the constructor of Connector
 type NewConnectorFunc func(*cli.Context) (Connector, error)
