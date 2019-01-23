@@ -32,13 +32,17 @@ func printProgress( // nolint: gocyclo
 	cmaxtags <-chan int,
 	cissuescounter <-chan bool,
 	cmaxissues <-chan int,
+	cmrscounter <-chan bool,
+	cmaxmrs <-chan int,
 ) {
 
 	go func() {
 		var tagscounter int
 		var issuescounter int
+		var mrscounter int
 		maxtags := "X"
 		maxissues := "X"
+		maxmrs := "X"
 
 		for {
 			select {
@@ -61,12 +65,21 @@ func printProgress( // nolint: gocyclo
 				if ok {
 					maxissues = strconv.Itoa(v)
 				}
+			case _, ok := <-cmrscounter:
+				if ok {
+					mrscounter++
+				}
+			case v, ok := <-cmaxmrs:
+				if ok {
+					maxmrs = strconv.Itoa(v)
+				}
 			}
 
 			fmt.Fprintf(out, // nolint: errcheck
-				"\rProgress: %v/%v tags, %v/%v issues",
+				"\rProgress: %v/%v tags, %v/%v issues, %v/%v MRs/PRs",
 				tagscounter, maxtags,
 				issuescounter, maxissues,
+				mrscounter, maxmrs,
 			)
 		}
 	}()

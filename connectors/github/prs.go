@@ -25,7 +25,27 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func (c *Connector) listPRs(ctx context.Context, cerr chan error) <-chan []*github.PullRequest {
+// MRs returns the PRs via channels.
+// Returns possible errors via given cerr channel
+// cmrs returns MRs
+// cmaxmrs returns the max available amount of MRs
+func (c *Connector) MRs(
+	ctx context.Context,
+	cerr chan<- error,
+) (
+	cmrs <-chan data.MR,
+	cmaxmrs <-chan int,
+) {
+	mrs := c.listPRs(ctx, cerr)
+	dmrs := c.processPRs(ctx, cerr, mrs)
+
+	return dmrs, nil
+}
+
+func (c *Connector) listPRs(
+	ctx context.Context,
+	cerr chan<- error,
+) <-chan []*github.PullRequest {
 	ret := make(chan []*github.PullRequest)
 
 	go func() {
@@ -59,7 +79,7 @@ func (c *Connector) listPRs(ctx context.Context, cerr chan error) <-chan []*gith
 
 func (c *Connector) processPRs(
 	ctx context.Context,
-	_ chan error,
+	_ chan<- error,
 	cprs <-chan []*github.PullRequest,
 ) <-chan data.MR {
 

@@ -21,12 +21,10 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/connectors/github"
 	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
-	"github.com/artem-sidorenko/chagen/data"
 	tcli "github.com/artem-sidorenko/chagen/internal/testing/cli"
 )
 
@@ -108,59 +106,6 @@ func TestConnector_RepositoryExists(t *testing.T) {
 				t.Errorf("Connector.RepositoryExists() = %v, want %v", got, tt.want)
 			}
 		})
-	}
-}
-
-func TestGetMRs(t *testing.T) {
-	tests := []struct {
-		name        string
-		returnValue testclient.ReturnValueStr
-		want        data.MRs
-		wantErr     error
-	}{
-		{
-			name: "API returns proper data",
-			want: data.MRs{
-				data.MR{
-					ID:         1234,
-					Name:       "Test PR title",
-					URL:        "https://example.com/pulls/1234",
-					Author:     "test-user",
-					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(1747483647, 0),
-					Labels:     []string{"bugfix"},
-				},
-			},
-		},
-		{
-			name: "ListPRs call fails",
-			returnValue: testclient.ReturnValueStr{
-				RetPullRequestsListErr: true,
-			},
-			wantErr: errors.New("GitHub query 'GetMRs' failed: can't fetch the PRs"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := setupTestConnector(tt.returnValue, false)
-
-			got, err := c.GetMRs()
-			if !reflect.DeepEqual(err, tt.wantErr) {
-				t.Errorf("Connector.GetMRs() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Connector.GetMRs() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func BenchmarkGetMRs(b *testing.B) {
-	c := setupTestConnector(testclient.ReturnValueStr{}, false)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, _ = c.GetMRs()
 	}
 }
 

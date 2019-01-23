@@ -36,7 +36,9 @@ func (t *testConnector) Tags(_ context.Context, _ chan<- error) (<-chan data.Tag
 func (t *testConnector) Issues(_ context.Context, _ chan<- error) (<-chan data.Issue, <-chan int) {
 	return nil, nil
 }
-func (t *testConnector) GetMRs() (data.MRs, error)           { return nil, nil }
+func (t *testConnector) MRs(_ context.Context, _ chan<- error) (<-chan data.MR, <-chan int) {
+	return nil, nil
+}
 func (t *testConnector) GetNewTagURL(string) (string, error) { return "", nil }
 func (t *testConnector) RepositoryExists() (bool, error)     { return true, nil }
 

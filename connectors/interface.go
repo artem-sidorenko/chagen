@@ -38,7 +38,13 @@ type Connector interface {
 		cissues <-chan data.Issue,
 		cmaxissues <-chan int,
 	)
-	GetMRs() (data.MRs, error)
+	MRs(
+		ctx context.Context,
+		cerr chan<- error,
+	) (
+		cmr <-chan data.MR,
+		cmaxmrs <-chan int,
+	)
 	GetNewTagURL(string) (string, error)
 	RepositoryExists() (bool, error)
 }

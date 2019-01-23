@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/artem-sidorenko/chagen/data"
-	"github.com/artem-sidorenko/chagen/internal/testing/testconnector"
 	"github.com/artem-sidorenko/chagen/internal/testing/testconnector/testdata"
 )
 
@@ -100,10 +99,9 @@ func TestNewReleases(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			conn := &testconnector.Connector{}
 			tags := testdata.Tags()
 			issues := testdata.Issues()
-			mrs, _ := conn.GetMRs()
+			mrs := testdata.MRs()
 			gotRet := data.NewReleases(tags, issues, mrs)
 			if len(gotRet) != len(tt.wantRet) {
 				t.Errorf("NewReleases() different amount of results. got %#v, want %#v",

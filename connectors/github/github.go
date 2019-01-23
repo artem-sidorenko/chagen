@@ -25,7 +25,6 @@ import (
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/connectors/github/internal/client"
-	"github.com/artem-sidorenko/chagen/data"
 
 	"github.com/urfave/cli"
 )
@@ -64,33 +63,6 @@ func (c *Connector) RepositoryExists() (bool, error) {
 			"RepositoryExists",
 			fmt.Errorf("unhandled HTTP response code %v", resp.StatusCode),
 		)
-	}
-}
-
-// GetMRs returns the merged pull requests
-func (c *Connector) GetMRs() (data.MRs, error) {
-	ctx, cancel := context.WithCancel(c.context)
-	defer cancel()
-
-	cerr := make(chan error)
-
-	cprs := c.listPRs(ctx, cerr)
-	cdmrs := c.processPRs(ctx, cerr, cprs)
-
-	var ret data.MRs
-	for {
-		select {
-		case <-c.context.Done():
-			return ret, c.context.Err()
-		case err := <-cerr:
-			return nil, formatErrorCode("GetMRs", err)
-		case mr, ok := <-cdmrs:
-			if ok {
-				ret = append(ret, mr)
-			} else { //channel closed
-				return ret, nil
-			}
-		}
 	}
 }
 

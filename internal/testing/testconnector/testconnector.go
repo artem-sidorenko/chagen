@@ -100,42 +100,25 @@ func (c *Connector) Issues(
 	return cissues, nil
 }
 
-// GetMRs implements the connectors.Connector interface
-func (*Connector) GetMRs() (data.MRs, error) {
-	return data.MRs{
-		{
-			ID:         2,
-			Name:       "MR 2",
-			MergedDate: time.Unix(1247483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/2",
-		},
-		{
-			ID:         1,
-			Name:       "MR 1",
-			MergedDate: time.Unix(1047483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/1",
-		},
-		{
-			ID:         3,
-			Name:       "MR 3",
-			MergedDate: time.Unix(1057483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/3",
-		},
-		{
-			ID:         4,
-			Name:       "MR 4",
-			MergedDate: time.Unix(1299483647, 0),
-			Author:     "testauthor",
-			AuthorURL:  "https://test.example.com/authors/testauthor",
-			URL:        "https://test.example.com/mrs/4",
-		},
-	}, nil
+// MRs implements the connectors.Connector interface
+func (c *Connector) MRs(
+	_ context.Context,
+	cerr chan<- error,
+) (
+	<-chan data.MR,
+	<-chan int,
+) {
+	cmrs := make(chan data.MR)
+
+	go func() {
+		defer close(cmrs)
+
+		for _, t := range testdata.MRs() {
+			cmrs <- t
+		}
+	}()
+
+	return cmrs, nil
 }
 
 // GetNewTagURL implements the connectors.Connector interface

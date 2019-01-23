@@ -127,24 +127,28 @@ func collectData( // nolint: gocyclo
 	ctagscounter chan<- bool,
 	cissues <-chan data.Issue,
 	cissuescounter chan<- bool,
+	cmrs <-chan data.MR,
+	cmrscounter chan<- bool,
 	cerr <-chan error,
 ) (
 	data.Tags,
 	data.Issues,
+	data.MRs,
 	error,
 ) {
 	var (
 		tags   data.Tags
 		issues data.Issues
+		mrs    data.MRs
 	)
 
 	for {
 		select {
 		case <-ctx.Done():
-			return tags, issues, ctx.Err()
+			return tags, issues, mrs, ctx.Err()
 		case err, ok := <-cerr:
 			if ok {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 		case t, ok := <-ctags:
 			if ok {
@@ -160,10 +164,17 @@ func collectData( // nolint: gocyclo
 			} else { // issues are finished, nil the channel
 				cissues = nil
 			}
+		case m, ok := <-cmrs:
+			if ok {
+				mrs = append(mrs, m)
+				cmrscounter <- true
+			} else { // MRs are finished, nil the channel
+				cmrs = nil
+			}
 		}
 		// all channels finished, return data
-		if ctags == nil && cissues == nil {
-			return tags, issues, nil
+		if ctags == nil && cissues == nil && cmrs == nil {
+			return tags, issues, mrs, nil
 		}
 	}
 }
@@ -191,22 +202,27 @@ func getConnectorData(
 	cerr := make(chan error)
 	ctagscounter := make(chan bool)
 	cissuescounter := make(chan bool)
+	cmrscounter := make(chan bool)
 
 	ctags, cmaxtags := conn.Tags(ctx, cerr)
 	cissues, cmaxissues := conn.Issues(ctx, cerr)
+	cmrs, cmaxmrs := conn.MRs(ctx, cerr)
 
 	printProgress(
 		ctx, ProgressStdout,
 		ctagscounter, cmaxtags,
 		cissuescounter, cmaxissues,
+		cmrscounter, cmaxmrs,
 	)
 
-	tags, issues, err := collectData(
+	tags, issues, mrs, err := collectData(
 		ctx,
 		ctags,
 		ctagscounter,
 		cissues,
 		cissuescounter,
+		cmrs,
+		cmrscounter,
 		cerr,
 	)
 	if err != nil {
@@ -230,11 +246,6 @@ func getConnectorData(
 			Date: time.Now(),
 			URL:  relURL,
 		})
-	}
-
-	mrs, err = conn.GetMRs()
-	if err != nil {
-		return nil, nil, nil, err
 	}
 
 	// we should filter the labels
