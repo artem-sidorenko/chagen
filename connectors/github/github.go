@@ -60,13 +60,14 @@ func formatErrorCode(query string, err error) error {
 func (c *Connector) RepositoryExists() (bool, error) {
 	_, resp, err := c.client.Repositories.Get(c.context, c.Owner, c.Repo)
 	if err != nil {
+		if resp.StatusCode == 404 { // not found isn't an error
+			return false, nil
+		}
 		return false, formatErrorCode("RepositoryExists", err)
 	}
 	switch resp.StatusCode {
 	case 200:
 		return true, nil
-	case 404:
-		return false, nil
 	default:
 		return false, formatErrorCode(
 			"RepositoryExists",

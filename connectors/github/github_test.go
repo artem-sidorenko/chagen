@@ -76,6 +76,7 @@ func TestConnector_RepositoryExists(t *testing.T) {
 			name: "API returns 404",
 			returnValue: testclient.ReturnValueStr{
 				RetRepoServiceGetRespCode: 404,
+				RetRepoServiceGetErr:      true,
 			},
 			want: false,
 		},
