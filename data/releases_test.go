@@ -23,6 +23,7 @@ import (
 
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/internal/testing/testconnector"
+	"github.com/artem-sidorenko/chagen/internal/testing/testconnector/testdata"
 )
 
 func TestNewReleases(t *testing.T) {
@@ -100,7 +101,7 @@ func TestNewReleases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			conn := &testconnector.Connector{}
-			tags, _ := conn.GetTags()
+			tags := testdata.Tags()
 			issues, _ := conn.GetIssues()
 			mrs, _ := conn.GetMRs()
 			gotRet := data.NewReleases(tags, issues, mrs)

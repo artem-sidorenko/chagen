@@ -18,6 +18,7 @@
 package connectors
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/artem-sidorenko/chagen/data"
@@ -27,7 +28,13 @@ import (
 
 // Connector describes the interface of connectors to the data sources
 type Connector interface {
-	GetTags() (data.Tags, error)
+	Tags(
+		ctx context.Context,
+		cerr chan<- error,
+	) (
+		ctags <-chan data.Tag,
+		cmaxtags <-chan int,
+	)
 	GetIssues() (data.Issues, error)
 	GetMRs() (data.MRs, error)
 	GetNewTagURL(string) (string, error)

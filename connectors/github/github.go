@@ -67,33 +67,6 @@ func (c *Connector) RepositoryExists() (bool, error) {
 	}
 }
 
-// GetTags returns the git tags
-func (c *Connector) GetTags() (data.Tags, error) {
-	ctx, cancel := context.WithCancel(c.context)
-	defer cancel()
-
-	cerr := make(chan error)
-
-	ctags := c.listTags(ctx, cerr)
-	cdtags := c.processTags(ctx, cerr, ctags)
-
-	var ret data.Tags
-	for {
-		select {
-		case <-c.context.Done():
-			return ret, c.context.Err()
-		case err := <-cerr:
-			return nil, formatErrorCode("GetTags", err)
-		case tag, ok := <-cdtags:
-			if ok {
-				ret = append(ret, tag)
-			} else { //channel closed
-				return ret, nil
-			}
-		}
-	}
-}
-
 // GetIssues returns the closed issues
 func (c *Connector) GetIssues() (data.Issues, error) {
 	ctx, cancel := context.WithCancel(c.context)

@@ -18,6 +18,7 @@
 package generate
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -36,6 +37,9 @@ import (
 
 // Stdout references the Stdout writer for generate command
 var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
+// ProgressStdout references the Stdout writer for progress information
+var ProgressStdout io.Writer = os.Stdout // nolint: gochecknoglobals
+
 // Connector references the connector ID used for generation
 var Connector = "github" // nolint: gochecknoglobals
 
@@ -116,6 +120,39 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 	return err
 }
 
+// collectData fans-in data from different channels to the data structures
+func collectData(
+	ctx context.Context,
+	ctags <-chan data.Tag,
+	ctagscounter chan<- bool,
+	cerr <-chan error,
+) (data.Tags, error) {
+	var tags data.Tags
+
+	for {
+		select {
+		case <-ctx.Done():
+			return tags, ctx.Err()
+		case err, ok := <-cerr:
+			if ok {
+				return nil, err
+			}
+		case t, ok := <-ctags:
+			if ok {
+				tags = append(tags, t)
+				ctagscounter <- true
+			} else { // tags are done, nil the channel
+				ctags = nil
+			}
+		}
+
+		// all channels finished, return data
+		if ctags == nil {
+			return tags, nil
+		}
+	}
+}
+
 // getConnectorData returns all needed data from connector
 // if newRelease is specified, a new releases for
 // untagged activities is created
@@ -130,10 +167,20 @@ func getConnectorData(
 		tags   data.Tags
 		issues data.Issues
 		mrs    data.MRs
-		err    error
 	)
 
-	tags, err = conn.GetTags()
+	// one minute for data collection should be enougth for now
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	cerr := make(chan error)
+	ccurtags := make(chan bool)
+
+	ctags, cmaxtags := conn.Tags(ctx, cerr)
+
+	printProgress(ctx, ProgressStdout, ccurtags, cmaxtags)
+
+	tags, err := collectData(ctx, ctags, ccurtags, cerr)
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -19,10 +19,12 @@
 package testconnector
 
 import (
+	"context"
 	"time"
 
 	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/testconnector/testdata"
 
 	"github.com/urfave/cli"
 )
@@ -37,35 +39,23 @@ var (
 )
 
 // Connector implements the test connector
-type Connector struct{}
+type Connector struct {
+}
 
 // RepositoryExists checks if referenced repository is present
 func (c *Connector) RepositoryExists() (bool, error) {
 	return !RepositoryExistsFail, nil
 }
 
-// GetTags implements the connectors.Connector interface
-func (c *Connector) GetTags() (data.Tags, error) {
-	tags := data.Tags{
-		{
-			Name:   "v0.0.2",
-			Date:   time.Unix(1147483647, 0),
-			Commit: "b6a735dcb420a82865abe8c194900e59f6af9dea",
-			URL:    "https://test.example.com/tags/v0.0.2",
-		},
-		{
-			Name:   "v0.0.1",
-			Date:   time.Unix(1047483647, 0),
-			Commit: "d85645cbe6288cce5e5d066f8c7864040266cce3",
-			URL:    "https://test.example.com/tags/v0.0.1",
-		},
-		{
-			Name:   "v0.0.3",
-			Date:   time.Unix(1247483647, 0),
-			Commit: "25362c337d524025bf98e978059bf9bcd2b56221",
-			URL:    "https://test.example.com/tags/v0.0.3",
-		},
-	}
+// Tags implements the connectors.Connector interface
+func (c *Connector) Tags(
+	_ context.Context,
+	cerr chan<- error,
+) (
+	<-chan data.Tag,
+	<-chan int,
+) {
+	tags := testdata.Tags()
 
 	if RetTestingTag {
 		tags = append(tags, data.Tag{
@@ -76,7 +66,17 @@ func (c *Connector) GetTags() (data.Tags, error) {
 		})
 	}
 
-	return tags, nil
+	ctags := make(chan data.Tag)
+
+	go func() {
+		defer close(ctags)
+
+		for _, t := range tags {
+			ctags <- t
+		}
+	}()
+
+	return ctags, nil
 }
 
 // GetIssues implements the connectors.Connector interface

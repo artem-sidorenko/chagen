@@ -25,9 +25,29 @@ import (
 	"github.com/google/go-github/github"
 )
 
+// Tags returns the git tags via channels.
+// Returns possible errors via given cerr channel
+// ctags returns tags
+// cmaxtags returns the max available amount of tags
+func (c *Connector) Tags(
+	ctx context.Context,
+	cerr chan<- error,
+) (
+	ctags <-chan data.Tag,
+	cmaxtags <-chan int,
+) {
+	tags := c.listTags(ctx, cerr)
+	dtags := c.processTags(ctx, cerr, tags)
+
+	return dtags, nil
+}
+
 // listTags gets the tags from GitHub client and returns them via channel
 // possible errors are returned via given cerr channel
-func (c *Connector) listTags(ctx context.Context, cerr chan error) <-chan []*github.RepositoryTag {
+func (c *Connector) listTags(
+	ctx context.Context,
+	cerr chan<- error,
+) <-chan []*github.RepositoryTag {
 	ret := make(chan []*github.RepositoryTag)
 
 	go func() {
@@ -63,7 +83,7 @@ func (c *Connector) listTags(ctx context.Context, cerr chan error) <-chan []*git
 // possible errors are returned via given cerr channel
 func (c *Connector) processTags(
 	ctx context.Context,
-	cerr chan error,
+	cerr chan<- error,
 	ctags <-chan []*github.RepositoryTag,
 ) <-chan data.Tag {
 
