@@ -25,6 +25,13 @@ import (
 	"github.com/google/go-github/github"
 )
 
+// TagsPerPage defined how many tags are fetched per page
+var TagsPerPage = 30 // nolint: gochecknoglobals
+
+const (
+	tagProcessingRoutines = 10
+)
+
 // Tags returns the git tags via channels.
 // Returns possible errors via given cerr channel
 // ctags returns tags
@@ -36,44 +43,139 @@ func (c *Connector) Tags(
 	ctags <-chan data.Tag,
 	cmaxtags <-chan int,
 ) {
-	tags := c.listTags(ctx, cerr)
-	dtags := c.processTags(ctx, cerr, tags)
+	tags := make(chan []*github.RepositoryTag)
+	maxtags := make(chan int)
 
-	return dtags, nil
-}
-
-// listTags gets the tags from GitHub client and returns them via channel
-// possible errors are returned via given cerr channel
-func (c *Connector) listTags(
-	ctx context.Context,
-	cerr chan<- error,
-) <-chan []*github.RepositoryTag {
-	ret := make(chan []*github.RepositoryTag)
+	// establshing the local error handling with local context
+	// if we get any local errors, cancel all local running routines,
+	// close channels and pass the error to the caller
+	sctx, cancel := context.WithCancel(ctx)
+	scerr := make(chan error)
 
 	go func() {
-		defer close(ret)
-
-		opt := &github.ListOptions{}
-		for {
-			tags, resp, err := c.client.Repositories.ListTags(ctx, c.Owner, c.Repo, opt)
-			if err != nil {
-				cerr <- err
-				return
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case ret <- tags:
-			}
-
-			if resp.NextPage == 0 {
-				break
-			}
-
-			opt.Page = resp.NextPage
+		select {
+		case <-ctx.Done():
+			return
+		case err := <-scerr:
+			cancel()
+			cerr <- err
 		}
 	}()
+
+	// process the list of tags in the background
+	// this is a bit special and complex:
+	// - we have to request the first page of information in order to know the
+	//   amount of data we would get
+	// - we do not throw this page away, but we completely use the data delivered
+	// - to be DRY we have to use processTagPage, so we have to use the
+	//   tags channel in processTagPage and processTagPages,
+	//   so we can't close the tags channel in processTagPages
+	// - we share the wg sync group in order to know when all go routines
+	//   are finished and we can close the channels
+	go func() {
+		var wg sync.WaitGroup
+
+		// we use this func to close all related channels and invoke it in two places:
+		// - we might have to close them early, where no sub goroutines are invoked
+		//   (see the first data fetch and err handling)
+		// - we close them after all goroutines are finished
+		closeCh := func() {
+			close(tags)
+			close(maxtags)
+		}
+
+		// get the first page in order to know the amount of data
+		resp, n, err := c.processTagPage(sctx, 1, tags)
+		if err != nil {
+			scerr <- err
+			closeCh()
+			return
+		}
+
+		if resp.LastPage == 0 { // if we have only one page, we already know the amount of data
+			maxtags <- n
+		} else {
+			// spawn goroutines for page processing
+			cpages := c.processTagPages(sctx, scerr, maxtags, tags, &wg, resp.LastPage)
+			// spawn for each page an own go routine
+			// we start from the last page as we want to get the max amount of data fast
+			for i := resp.LastPage; i >= 2; i-- {
+				cpages <- i
+			}
+			close(cpages)
+		}
+
+		go func() { // all processing routines are done -> close the channels
+			wg.Wait()
+			closeCh()
+		}()
+	}()
+
+	dtags := c.processTags(sctx, scerr, tags)
+
+	return dtags, maxtags
+}
+
+// processTagPage gets the tags from GitHub for given page and returns them via
+// given channel. tagCount contains the amount of tags in the current response
+func (c *Connector) processTagPage(
+	ctx context.Context,
+	page int,
+	ret chan<- []*github.RepositoryTag,
+) (
+	resp *github.Response,
+	tagsCount int,
+	err error,
+) {
+	tags, resp, err := c.client.Repositories.ListTags(
+		ctx,
+		c.Owner,
+		c.Repo,
+		&github.ListOptions{Page: page, PerPage: TagsPerPage},
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	select {
+	case <-ctx.Done():
+		return nil, 0, nil
+	case ret <- tags:
+		return resp, len(tags), nil
+	}
+}
+
+// processTagPages processes  GitHub tag page numbers, given in the cpages channel and returns
+// the GH RepositoryTag data structures via channel
+// possible errors are returned via given cerr channel
+func (c *Connector) processTagPages(
+	ctx context.Context,
+	cerr chan<- error,
+	cmaxtags chan<- int,
+	tags chan<- []*github.RepositoryTag,
+	wg *sync.WaitGroup,
+	lastPage int,
+) (cpages chan<- int) {
+	ret := make(chan int)
+
+	for i := 0; i < tagProcessingRoutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for page := range ret {
+				_, n, err := c.processTagPage(ctx, page, tags)
+				if err != nil {
+					cerr <- err
+					return
+				}
+
+				if page == lastPage { // this is the last page, lets calculate amount of data
+					cmaxtags <- n + (lastPage-1)*TagsPerPage
+				}
+			}
+		}()
+	}
 
 	return ret
 }
@@ -90,7 +192,7 @@ func (c *Connector) processTags(
 	ret := make(chan data.Tag)
 	var wg sync.WaitGroup
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < tagProcessingRoutines; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

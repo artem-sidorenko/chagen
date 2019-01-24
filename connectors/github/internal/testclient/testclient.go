@@ -61,11 +61,28 @@ func (g *GitHubRepoService) ListTags(
 		return nil, nil, fmt.Errorf("can't fetch the tags")
 	}
 
-	resp := &github.Response{
-		NextPage: 0,
+	lastpage := len(g.RetRepositoryTags) / opt.PerPage
+	if (len(g.RetRepositoryTags) % opt.PerPage) != 0 {
+		lastpage++
 	}
 
-	return g.RetRepositoryTags, resp, nil
+	nextpage := 0
+	if opt.Page < lastpage {
+		nextpage = opt.Page + 1
+	}
+
+	resp := &github.Response{
+		NextPage: nextpage,
+		LastPage: lastpage,
+	}
+
+	start := opt.PerPage * (opt.Page - 1)
+	end := opt.PerPage * opt.Page
+	if end > len(g.RetRepositoryTags) {
+		end = len(g.RetRepositoryTags)
+	}
+
+	return g.RetRepositoryTags[start:end], resp, nil
 }
 
 // GetCommit simulates the (github.RepositoriesService) GetCommit call
