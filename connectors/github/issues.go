@@ -31,14 +31,14 @@ import (
 func (c *Connector) Issues(
 	ctx context.Context,
 	cerr chan<- error,
-	cmaxissues chan<- int,
 ) (
 	ctags <-chan data.Issue,
+	cmaxissues <-chan int,
 ) {
 	issues := c.listIssues(ctx, cerr)
 	dissues := c.processIssues(ctx, cerr, issues)
 
-	return dissues
+	return dissues, nil
 }
 
 func (c *Connector) listIssues(

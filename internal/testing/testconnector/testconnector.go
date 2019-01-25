@@ -51,8 +51,10 @@ func (c *Connector) RepositoryExists() (bool, error) {
 func (c *Connector) Tags(
 	_ context.Context,
 	cerr chan<- error,
-	cmaxtags chan<- int,
-) <-chan data.Tag {
+) (
+	<-chan data.Tag,
+	<-chan int,
+) {
 	tags := testdata.Tags()
 
 	if RetTestingTag {
@@ -74,15 +76,17 @@ func (c *Connector) Tags(
 		}
 	}()
 
-	return ctags
+	return ctags, nil
 }
 
 // Issues implements the connectors.Connector interface
 func (c *Connector) Issues(
 	_ context.Context,
 	cerr chan<- error,
-	cmaxissues chan<- int,
-) <-chan data.Issue {
+) (
+	<-chan data.Issue,
+	<-chan int,
+) {
 	cissues := make(chan data.Issue)
 
 	go func() {
@@ -93,15 +97,17 @@ func (c *Connector) Issues(
 		}
 	}()
 
-	return cissues
+	return cissues, nil
 }
 
 // MRs implements the connectors.Connector interface
 func (c *Connector) MRs(
 	_ context.Context,
 	cerr chan<- error,
-	cmaxmrs chan<- int,
-) <-chan data.MR {
+) (
+	<-chan data.MR,
+	<-chan int,
+) {
 	cmrs := make(chan data.MR)
 
 	go func() {
@@ -112,7 +118,7 @@ func (c *Connector) MRs(
 		}
 	}()
 
-	return cmrs
+	return cmrs, nil
 }
 
 // GetNewTagURL implements the connectors.Connector interface

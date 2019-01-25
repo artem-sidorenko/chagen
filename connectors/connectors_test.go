@@ -30,14 +30,14 @@ import (
 
 type testConnector struct{}
 
-func (t *testConnector) Tags(_ context.Context, _ chan<- error, _ chan<- int) <-chan data.Tag {
-	return nil
+func (t *testConnector) Tags(_ context.Context, _ chan<- error) (<-chan data.Tag, <-chan int) {
+	return nil, nil
 }
-func (t *testConnector) Issues(_ context.Context, _ chan<- error, _ chan<- int) <-chan data.Issue {
-	return nil
+func (t *testConnector) Issues(_ context.Context, _ chan<- error) (<-chan data.Issue, <-chan int) {
+	return nil, nil
 }
-func (t *testConnector) MRs(_ context.Context, _ chan<- error, _ chan<- int) <-chan data.MR {
-	return nil
+func (t *testConnector) MRs(_ context.Context, _ chan<- error) (<-chan data.MR, <-chan int) {
+	return nil, nil
 }
 func (t *testConnector) GetNewTagURL(string) (string, error) { return "", nil }
 func (t *testConnector) RepositoryExists() (bool, error)     { return true, nil }

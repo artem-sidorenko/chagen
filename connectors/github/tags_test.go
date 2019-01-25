@@ -71,7 +71,7 @@ func TestConnector_Tags(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 			cerr := make(chan error, 1)
 
-			cgot := c.Tags(context.Background(), cerr, nil)
+			cgot, _ := c.Tags(context.Background(), cerr)
 			var got data.Tags
 			for t := range cgot {
 				got = append(got, t)

@@ -59,7 +59,7 @@ func TestConnector_Issues(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 			cerr := make(chan error, 1)
 
-			cgot := c.Issues(context.Background(), cerr, nil)
+			cgot, _ := c.Issues(context.Background(), cerr)
 			var got data.Issues
 			for t := range cgot {
 				got = append(got, t)

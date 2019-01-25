@@ -199,17 +199,28 @@ func getConnectorData(
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
+	// we use cerr to track the possible errors in all goroutines invoked here
 	cerr := make(chan error)
+	defer close(cerr)
+
+	ctags, cmaxtags := conn.Tags(ctx, cerr)
+	cissues, cmaxissues := conn.Issues(ctx, cerr)
+	cmrs, cmaxmrs := conn.MRs(ctx, cerr)
+
+	// create progress counters
+	// each send operation increments the displayed counter
+	ctagscounter := make(chan bool)
+	cissuescounter := make(chan bool)
+	cmrscounter := make(chan bool)
 
 	// invoke the progress printer
-	ctagscounter, cmaxtags,
+	printProgress(
+		ctx, ProgressStdout,
+		ctagscounter, cmaxtags,
 		cissuescounter, cmaxissues,
-		cmrscounter, cmaxmrs := printProgress(ctx, ProgressStdout)
+		cmrscounter, cmaxmrs)
 
-	ctags := conn.Tags(ctx, cerr, cmaxtags)
-	cissues := conn.Issues(ctx, cerr, cmaxissues)
-	cmrs := conn.MRs(ctx, cerr, cmaxmrs)
-
+	//fan-in everything
 	tags, issues, mrs, err := collectData(
 		ctx,
 		ctags,
@@ -220,6 +231,10 @@ func getConnectorData(
 		cmrscounter,
 		cerr,
 	)
+	// release the progress counters and only then process the possible errors
+	close(ctagscounter)
+	close(cissuescounter)
+	close(cmrscounter)
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -32,14 +32,14 @@ import (
 func (c *Connector) Tags(
 	ctx context.Context,
 	cerr chan<- error,
-	cmaxtags chan<- int,
 ) (
 	ctags <-chan data.Tag,
+	cmaxtags <-chan int,
 ) {
 	tags := c.listTags(ctx, cerr)
 	dtags := c.processTags(ctx, cerr, tags)
 
-	return dtags
+	return dtags, nil
 }
 
 // listTags gets the tags from GitHub client and returns them via channel
