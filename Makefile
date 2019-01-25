@@ -17,8 +17,10 @@ prepare-env: ## Prepare the development/test environment
 	go get -u github.com/tcnksm/ghr
 
 test: ## Run the tests
-	go test $$(go list ./... | grep -v /vendor/)
+	go test -timeout 10s -race -cpu 4  $$(go list ./... | grep -v /vendor/)
 	gometalinter --enable-all --disable=dupl --deadline=300s --line-length=100 -s vendor ./...
+# calculate the coverage only if everything was ok (see go test, coverage can have side effects)
+	go test -timeout 10s -cover  $$(go list ./... | grep -v /vendor/)
 
 prepare-release: ## Prepare a new release
 ifndef NEW_VERSION
