@@ -24,6 +24,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/artem-sidorenko/chagen/internal/testing/helpers"
+
 	"github.com/artem-sidorenko/chagen/connectors/github"
 
 	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
@@ -36,6 +38,7 @@ func TestConnector_Tags(t *testing.T) {
 		returnValue testclient.ReturnValueStr
 		want        data.Tags
 		wantErr     error
+		wantMaxtags []int
 	}{
 		{
 			name: "API returns proper data",
@@ -113,6 +116,7 @@ func TestConnector_Tags(t *testing.T) {
 					URL:    "https://github.com/testowner/testrepo/releases/v0.0.1",
 				},
 			},
+			wantMaxtags: []int{12},
 		},
 		{
 			name: "ListTags call fails",
@@ -136,7 +140,7 @@ func TestConnector_Tags(t *testing.T) {
 			cerr := make(chan error, 1)
 
 			cgot, cmaxtags := c.Tags(context.Background(), cerr)
-			<-cmaxtags
+			gotmaxtags := helpers.GetChannelValuesInt(cmaxtags)
 
 			var got data.Tags
 			for t := range cgot {
@@ -154,6 +158,12 @@ func TestConnector_Tags(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Connector.Tags() = %+v, want %+v", got, tt.want)
+			}
+
+			if err == nil { // compare the processed tags only in non-error situation
+				if !reflect.DeepEqual(gotmaxtags, tt.wantMaxtags) {
+					t.Errorf("Connector.Tags() maxtags = %v, want %v", gotmaxtags, tt.wantMaxtags)
+				}
 			}
 		})
 	}
