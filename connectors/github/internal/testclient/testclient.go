@@ -163,29 +163,46 @@ func (g *GitHubPullRequestsService) List(
 	return g.RetPRs, resp, nil
 }
 
+type gitHubRepoServiceInput struct {
+	tag            string
+	commit         string
+	time           time.Time
+	releasePresent bool
+}
+
+// newGitHubRepoService returns initialized instance of GitHubRepoService
+// completely filled with provided testdata
+func newGitHubRepoService(rsinput []gitHubRepoServiceInput) *GitHubRepoService {
+	rtags := []*github.RepositoryTag{}
+	rcommits := map[string]*github.RepositoryCommit{}
+	rreleases := map[string]*github.RepositoryRelease{}
+	for _, v := range rsinput {
+		rtags = append(rtags, genRepositoryTag(v.tag, v.commit, v.time))
+		rcommits[v.commit] = genRepositoryCommit(v.commit, v.time)
+		if v.releasePresent {
+			rreleases[v.tag] = genRepositoryRelease(
+				v.tag,
+				fmt.Sprintf("https://github.com/testowner/testrepo/releases/%v", v.tag),
+			)
+		}
+	}
+
+	r := &GitHubRepoService{
+		ReturnValue:           ReturnValue,
+		RetRepositoryTags:     rtags,
+		RetRepositoryCommits:  rcommits,
+		RetRepositoryReleases: rreleases,
+	}
+
+	return r
+}
+
 // New returns the configured simulated github API client
 func New(_ context.Context, _ string) *client.GitHubClient {
-	r := &GitHubRepoService{
-		ReturnValue: ReturnValue,
-		RetRepositoryTags: []*github.RepositoryTag{
-			genRepositoryTag("v0.0.1", "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc", time.Unix(2147483647, 0)),
-			genRepositoryTag("v0.0.2", "b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da", time.Unix(2047483647, 0)),
-		},
-		RetRepositoryCommits: map[string]*github.RepositoryCommit{
-			"7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc": genRepositoryCommit(
-				"7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc",
-				time.Unix(2147483647, 0),
-			),
-			"b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da": genRepositoryCommit(
-				"b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da",
-				time.Unix(2047483647, 0),
-			),
-		},
-		RetRepositoryReleases: map[string]*github.RepositoryRelease{
-			"v0.0.1": genRepositoryRelease("v0.0.1",
-				"https://github.com/testowner/testrepo/releases/v0.0.1"),
-		},
-	}
+	r := newGitHubRepoService([]gitHubRepoServiceInput{
+		{"v0.0.1", "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc", time.Unix(2147483647, 0), true},
+		{"v0.0.2", "b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da", time.Unix(2047483647, 0), false},
+	})
 
 	i := &GitHubIssueService{
 		RetErrControl: ReturnValue,
