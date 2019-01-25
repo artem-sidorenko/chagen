@@ -145,11 +145,7 @@ func TestConnector_Tags(t *testing.T) {
 			// sort the tags to have the stable order
 			sort.Sort(&got)
 
-			var err error
-			select {
-			case err = <-cerr:
-			default:
-			}
+			err := <-cerr
 
 			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Connector.Tags() error = %v, wantErr %v", err, tt.wantErr)

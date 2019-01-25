@@ -52,6 +52,14 @@ func (c *Connector) Tags(
 	sctx, cancel := context.WithCancel(ctx)
 	scerr := make(chan error)
 
+	// wait groups we use for diffrerent sub routine groups:
+	// - TagPage processing (lists we get from API)
+	// - Tag processing
+	//   (specifc elements with more details and additional API calls)
+	// the main goal here is to close properly the scerr channel after nobody
+	// needs them
+	var wgTP, wgT sync.WaitGroup
+
 	go func() {
 		select {
 		case <-ctx.Done():
@@ -73,7 +81,6 @@ func (c *Connector) Tags(
 	// - we share the wg sync group in order to know when all go routines
 	//   are finished and we can close the channels
 	go func() {
-		var wg sync.WaitGroup
 
 		// we use this func to close all related channels and invoke it in two places:
 		// - we might have to close them early, where no sub goroutines are invoked
@@ -87,7 +94,7 @@ func (c *Connector) Tags(
 		// get the first page in order to know the amount of data
 		resp, n, err := c.processTagPage(sctx, 1, tags)
 		if err != nil {
-			scerr <- err
+			nonBlockingErrSend(sctx, scerr, err)
 			closeCh()
 			return
 		}
@@ -96,7 +103,7 @@ func (c *Connector) Tags(
 			maxtags <- n
 		} else {
 			// spawn goroutines for page processing
-			cpages := c.processTagPages(sctx, scerr, maxtags, tags, &wg, resp.LastPage)
+			cpages := c.processTagPages(sctx, scerr, maxtags, tags, &wgTP, resp.LastPage)
 			// spawn for each page an own go routine
 			// we start from the last page as we want to get the max amount of data fast
 			for i := resp.LastPage; i >= 2; i-- {
@@ -106,12 +113,19 @@ func (c *Connector) Tags(
 		}
 
 		go func() { // all processing routines are done -> close the channels
-			wg.Wait()
+			wgTP.Wait()
 			closeCh()
 		}()
 	}()
 
-	dtags := c.processTags(sctx, scerr, tags)
+	dtags := c.processTags(sctx, scerr, tags, &wgT)
+
+	// close the local error channel when nobody needs them
+	go func() {
+		wgTP.Wait()
+		wgT.Wait()
+		close(scerr)
+	}()
 
 	return dtags, maxtags
 }
@@ -166,7 +180,7 @@ func (c *Connector) processTagPages(
 			for page := range ret {
 				_, n, err := c.processTagPage(ctx, page, tags)
 				if err != nil {
-					cerr <- err
+					nonBlockingErrSend(ctx, cerr, err)
 					return
 				}
 
@@ -187,10 +201,10 @@ func (c *Connector) processTags(
 	ctx context.Context,
 	cerr chan<- error,
 	ctags <-chan []*github.RepositoryTag,
+	wg *sync.WaitGroup,
 ) <-chan data.Tag {
 
 	ret := make(chan data.Tag)
-	var wg sync.WaitGroup
 
 	for i := 0; i < tagProcessingRoutines; i++ {
 		wg.Add(1)
@@ -204,13 +218,13 @@ func (c *Connector) processTags(
 					commit, _, err := c.client.Repositories.GetCommit(ctx,
 						c.Owner, c.Repo, tag.Commit.GetSHA())
 					if err != nil {
-						cerr <- err
+						nonBlockingErrSend(ctx, cerr, err)
 						return
 					}
 
 					tagURL, err := c.getTagURL(tagName, false)
 					if err != nil {
-						cerr <- err
+						nonBlockingErrSend(ctx, cerr, err)
 						return
 					}
 
