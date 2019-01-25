@@ -27,23 +27,23 @@ type Connector interface {
 	Tags(
 		ctx context.Context,
 		cerr chan<- error,
-		cmaxtags chan<- int,
 	) (
 		ctags <-chan data.Tag,
+		cmaxtags <-chan int,
 	)
 	Issues(
 		ctx context.Context,
 		cerr chan<- error,
-		cmaxissues chan<- int,
 	) (
 		cissues <-chan data.Issue,
+		cmaxissues <-chan int,
 	)
 	MRs(
 		ctx context.Context,
 		cerr chan<- error,
-		cmaxmrs chan<- int,
 	) (
 		cmr <-chan data.MR,
+		cmaxmrs <-chan int,
 	)
 	GetNewTagURL(string) (string, error)
 	RepositoryExists() (bool, error)

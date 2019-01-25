@@ -29,21 +29,13 @@ import (
 func printProgress( // nolint: gocyclo
 	ctx context.Context,
 	out io.Writer,
-) (
-	ctagscounter chan<- bool,
-	cmaxtags chan<- int,
-	cissuescounter chan<- bool,
-	cmaxissues chan<- int,
-	cmrscounter chan<- bool,
-	cmaxmrs chan<- int,
+	ctagscounter <-chan bool,
+	cmaxtags <-chan int,
+	cissuescounter <-chan bool,
+	cmaxissues <-chan int,
+	cmrscounter <-chan bool,
+	cmaxmrs <-chan int,
 ) {
-	lctagscounter := make(chan bool)
-	lcmaxtags := make(chan int)
-	lcissuescounter := make(chan bool)
-	lcmaxissues := make(chan int)
-	lmrscounter := make(chan bool)
-	lcmaxmrs := make(chan int)
-
 	go func() {
 		var tagscounter int
 		var issuescounter int
@@ -61,46 +53,47 @@ func printProgress( // nolint: gocyclo
 			select {
 			case <-ctx.Done():
 				return
-			case _, ok := <-lctagscounter:
+			case _, ok := <-ctagscounter:
 				if ok {
 					tagscounter++
 				} else {
-					lctagscounter = nil
+					ctagscounter = nil
 				}
-			case v, ok := <-lcmaxtags:
+			case v, ok := <-cmaxtags:
 				if ok {
 					maxtags = strconv.Itoa(v)
 				} else {
-					lcmaxtags = nil
+					cmaxtags = nil
 				}
-			case _, ok := <-lcissuescounter:
+			case _, ok := <-cissuescounter:
 				if ok {
 					issuescounter++
 				} else {
-					lcissuescounter = nil
+					cissuescounter = nil
 				}
-			case v, ok := <-lcmaxissues:
+			case v, ok := <-cmaxissues:
 				if ok {
 					maxissues = strconv.Itoa(v)
 				} else {
-					lcmaxissues = nil
+					cmaxissues = nil
 				}
-			case _, ok := <-lmrscounter:
+			case _, ok := <-cmrscounter:
 				if ok {
 					mrscounter++
 				} else {
-					lmrscounter = nil
+					cmrscounter = nil
 				}
-			case v, ok := <-lcmaxmrs:
+			case v, ok := <-cmaxmrs:
 				if ok {
 					maxmrs = strconv.Itoa(v)
 				} else {
-					lcmaxmrs = nil
+					cmaxmrs = nil
 				}
 			}
 
-			if lctagscounter == nil && lcmaxtags == nil &&
-				lcissuescounter == nil && lcmaxissues == nil && lmrscounter == nil && lcmaxmrs == nil {
+			if ctagscounter == nil && cmaxtags == nil &&
+				cissuescounter == nil && cmaxissues == nil &&
+				cmrscounter == nil && cmaxmrs == nil {
 				return
 			}
 
@@ -112,8 +105,4 @@ func printProgress( // nolint: gocyclo
 			)
 		}
 	}()
-
-	return lctagscounter, lcmaxtags,
-		lcissuescounter, lcmaxissues,
-		lmrscounter, lcmaxmrs
 }

@@ -32,14 +32,14 @@ import (
 func (c *Connector) MRs(
 	ctx context.Context,
 	cerr chan<- error,
-	cmaxmrs chan<- int,
 ) (
 	cmrs <-chan data.MR,
+	cmaxmrs <-chan int,
 ) {
 	mrs := c.listPRs(ctx, cerr)
 	dmrs := c.processPRs(ctx, cerr, mrs)
 
-	return dmrs
+	return dmrs, nil
 }
 
 func (c *Connector) listPRs(
