@@ -62,9 +62,9 @@ func TestGetNewTagURL(t *testing.T) {
 				NewTagUseReleaseURL: false,
 			},
 			args: args{
-				TagName: "v0.0.3",
+				TagName: "v0.2.3",
 			},
-			want: "https://github.com/testowner/testrepo/tree/v0.0.3",
+			want: "https://github.com/testowner/testrepo/tree/v0.2.3",
 		},
 		{
 			name: "Release is not present, alwaysUseReleaseURL is enabled",
@@ -72,9 +72,9 @@ func TestGetNewTagURL(t *testing.T) {
 				NewTagUseReleaseURL: true,
 			},
 			args: args{
-				TagName: "v0.0.3",
+				TagName: "v0.2.3",
 			},
-			want: "https://github.com/testowner/testrepo/releases/v0.0.3",
+			want: "https://github.com/testowner/testrepo/releases/v0.2.3",
 		},
 	}
 	for _, tt := range tests {
