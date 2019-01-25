@@ -201,7 +201,6 @@ func getConnectorData(
 
 	// we use cerr to track the possible errors in all goroutines invoked here
 	cerr := make(chan error)
-	defer close(cerr)
 
 	ctags, cmaxtags := conn.Tags(ctx, cerr)
 	cissues, cmaxissues := conn.Issues(ctx, cerr)
@@ -231,10 +230,11 @@ func getConnectorData(
 		cmrscounter,
 		cerr,
 	)
-	// release the progress counters and only then process the possible errors
+	// release the progress counters and err channel and only then process the possible errors
 	close(ctagscounter)
 	close(cissuescounter)
 	close(cmrscounter)
+	close(cerr)
 	if err != nil {
 		return nil, nil, nil, err
 	}
