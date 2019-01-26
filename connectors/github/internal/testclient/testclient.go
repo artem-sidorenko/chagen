@@ -312,8 +312,21 @@ func New(_ context.Context, _ string) *client.GitHubClient {
 	})
 
 	p := newGitHubPullRequestsService([]gitHubPullRequestsServiceInput{
-		{1234, "Test PR title", "test-user", time.Unix(1747483647, 0), []string{"bugfix"}},
-		{1233, "Second closed PR title", "test-user", time.Time{}, []string{}},
+		{2214, "Test PR title 1", "test-user", time.Unix(2047094647, 0), []string{"bugfix"}},
+		{2224, "Test PR title 2", "test-user2", time.Unix(2047194647, 0), nil},
+		{2234, "Test PR title 3", "test-user", time.Unix(2047294647, 0),
+			[]string{"enhancement", "bugfix"}},
+		{2244, "Test PR title 4 closed", "test-user", time.Time{}, []string{"wontfix"}},
+		{2254, "Test PR title 5", "test-user", time.Unix(2047494647, 0), []string{"bugfix"}},
+		{2264, "Test PR title 6", "test-user", time.Unix(2047594647, 0), []string{"enhancement"}},
+		{2274, "Test PR title 7", "test5-user", time.Unix(2047694647, 0), []string{"bugfix"}},
+		{2284, "Test PR title 8", "test-user", time.Unix(2047794647, 0), []string{"invalid"}},
+		{2294, "Test PR title 9", "test-user", time.Unix(2047894647, 0), []string{"bugfix"}},
+		{2304, "Test PR title 10", "test-user", time.Unix(2047994647, 0), []string{"bugfix"}},
+		{2314, "Test PR title 11", "test-user8", time.Unix(2048094647, 0), []string{"no changelog"}},
+		{2324, "Test PR title 12 closed", "test-user", time.Time{}, []string{"bugfix"}},
+		{2334, "Test PR title 13", "test-user", time.Unix(2048294647, 0), []string{"bugfix"}},
+		{2344, "Test PR title 14", "te77st-user", time.Unix(2048394647, 0), []string{"bugfix"}},
 	})
 
 	return &client.GitHubClient{
