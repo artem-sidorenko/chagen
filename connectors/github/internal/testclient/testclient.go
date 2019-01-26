@@ -204,14 +204,78 @@ func newGitHubRepoService(rsinput []gitHubRepoServiceInput) *GitHubRepoService {
 		}
 	}
 
-	r := &GitHubRepoService{
+	return &GitHubRepoService{
 		ReturnValue:           ReturnValue,
 		RetRepositoryTags:     rtags,
 		RetRepositoryCommits:  rcommits,
 		RetRepositoryReleases: rreleases,
 	}
+}
 
-	return r
+type gitHubIssueServiceInput struct {
+	id       int
+	title    string
+	closedAt time.Time
+	labels   []string
+	PR       bool
+}
+
+// newGitHubIssueService returns initialized instance of GitHubIssueService
+// completely filled with provided testdata
+func newGitHubIssueService(isinput []gitHubIssueServiceInput) *GitHubIssueService {
+	rissues := []*github.Issue{}
+
+	for _, v := range isinput {
+		var i *github.Issue
+		if v.PR {
+			i = genIssuePR(
+				v.id, v.title, fmt.Sprintf("https://example.com/prs/%v", v.id),
+			)
+		} else {
+			i = genIssue(
+				v.id, v.title, v.closedAt,
+				fmt.Sprintf("http://example.com/issues/%v", v.id),
+				v.labels,
+			)
+		}
+		rissues = append(rissues, i)
+	}
+
+	return &GitHubIssueService{
+		RetErrControl: ReturnValue,
+		RetIssues:     rissues,
+	}
+}
+
+type gitHubPullRequestsServiceInput struct {
+	id       int
+	title    string
+	username string
+	mergedAt time.Time
+	labels   []string
+}
+
+// newGitHubPullRequestsService returns initialized instance of GitHubPullRequestsService
+// completely filled with provided testdata
+func newGitHubPullRequestsService(
+	psinput []gitHubPullRequestsServiceInput,
+) *GitHubPullRequestsService {
+
+	rprs := []*github.PullRequest{}
+
+	for _, v := range psinput {
+		rprs = append(rprs, genPR(
+			v.id, v.title,
+			fmt.Sprintf("https://example.com/pulls/%v", v.id),
+			v.username, fmt.Sprintf("https://example.com/users/%v", v.username),
+			v.mergedAt, v.labels,
+		))
+	}
+
+	return &GitHubPullRequestsService{
+		RetErrControl: ReturnValue,
+		RetPRs:        rprs,
+	}
 }
 
 // New returns the configured simulated github API client
@@ -231,28 +295,15 @@ func New(_ context.Context, _ string) *client.GitHubClient {
 		{"v0.1.2", "d8351413f688c96c2c5d6fe58ebf5ac17f545bc0", time.Unix(2048183647, 0), true},
 	})
 
-	i := &GitHubIssueService{
-		RetErrControl: ReturnValue,
-		RetIssues: []*github.Issue{
-			genIssue(
-				1234, "Test issue title",
-				time.Unix(1047483647, 0), "http://example.com/issues/1234",
-				[]string{"enhancement"},
-			),
-			genIssuePR(4321, "Test PR title", "https://example.com/prs/4321"),
-		},
-	}
+	i := newGitHubIssueService([]gitHubIssueServiceInput{
+		{1234, "Test issue title", time.Unix(1047483647, 0), []string{"enhancement"}, false},
+		{4321, "Test PR title", time.Unix(1047493647, 0), nil, true},
+	})
 
-	p := &GitHubPullRequestsService{
-		RetErrControl: ReturnValue,
-		RetPRs: []*github.PullRequest{
-			genPR(1234, "Test PR title", "https://example.com/pulls/1234",
-				"test-user", "https://example.com/users/test-user",
-				time.Unix(1747483647, 0), []string{"bugfix"}),
-			genPR(1233, "Second closed PR title", "https://example.com/pulls/1233",
-				"test-user", "https://example.com/users/test-user", time.Time{}, []string{}),
-		},
-	}
+	p := newGitHubPullRequestsService([]gitHubPullRequestsServiceInput{
+		{1234, "Test PR title", "test-user", time.Unix(1747483647, 0), []string{"bugfix"}},
+		{1233, "Second closed PR title", "test-user", time.Time{}, []string{}},
+	})
 
 	return &client.GitHubClient{
 		Repositories: r,
