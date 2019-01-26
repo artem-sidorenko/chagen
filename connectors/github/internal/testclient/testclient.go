@@ -61,26 +61,7 @@ func (g *GitHubRepoService) ListTags(
 		return nil, nil, fmt.Errorf("can't fetch the tags")
 	}
 
-	lastpage := len(g.RetRepositoryTags) / opt.PerPage
-	if (len(g.RetRepositoryTags) % opt.PerPage) != 0 {
-		lastpage++
-	}
-
-	nextpage := 0
-	if opt.Page < lastpage {
-		nextpage = opt.Page + 1
-	}
-
-	resp := &github.Response{
-		NextPage: nextpage,
-		LastPage: lastpage,
-	}
-
-	start := opt.PerPage * (opt.Page - 1)
-	end := opt.PerPage * opt.Page
-	if end > len(g.RetRepositoryTags) {
-		end = len(g.RetRepositoryTags)
-	}
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetRepositoryTags))
 
 	return g.RetRepositoryTags[start:end], resp, nil
 }
@@ -150,11 +131,9 @@ func (g *GitHubIssueService) ListByRepo(
 		return nil, nil, fmt.Errorf("can't fetch the issues")
 	}
 
-	resp := &github.Response{
-		NextPage: 0,
-	}
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetIssues))
 
-	return g.RetIssues, resp, nil
+	return g.RetIssues[start:end], resp, nil
 }
 
 // GitHubPullRequestsService simulates the github.PullRequestsService
@@ -173,11 +152,9 @@ func (g *GitHubPullRequestsService) List(
 		return nil, nil, fmt.Errorf("can't fetch the PRs")
 	}
 
-	resp := &github.Response{
-		NextPage: 0,
-	}
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetPRs))
 
-	return g.RetPRs, resp, nil
+	return g.RetPRs[start:end], resp, nil
 }
 
 type gitHubRepoServiceInput struct {
