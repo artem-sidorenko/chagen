@@ -16,7 +16,11 @@
 
 package testclient
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/go-github/github"
+)
 
 // getStringPtr returns a pointer for a given string
 func getStringPtr(s string) *string {
@@ -31,4 +35,37 @@ func getIntPtr(i int) *int {
 // getTimePtr returns a pointer for a given Time
 func getTimePtr(t time.Time) *time.Time {
 	return &t
+}
+
+// calcPaging calculates the paging options for simulation
+func calcPaging(page, perPage, lenElements int) (resp *github.Response, start, end int) {
+	if perPage == 0 { // return all elements if no paging is requested
+		return &github.Response{
+			NextPage: 0,
+			LastPage: 0,
+		}, 0, lenElements
+	}
+	lastPage := lenElements / perPage
+	// some elements are over full pages, we will have another non-complete page
+	if (lenElements % perPage) != 0 {
+		lastPage++
+	}
+
+	nextPage := 0
+	if page < lastPage {
+		nextPage = page + 1
+	}
+
+	resp = &github.Response{
+		NextPage: nextPage,
+		LastPage: lastPage,
+	}
+
+	start = perPage * (page - 1)
+	end = perPage * page
+	if end > lenElements {
+		end = lenElements
+	}
+
+	return resp, start, end
 }

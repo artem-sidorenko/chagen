@@ -61,26 +61,7 @@ func (g *GitHubRepoService) ListTags(
 		return nil, nil, fmt.Errorf("can't fetch the tags")
 	}
 
-	lastpage := len(g.RetRepositoryTags) / opt.PerPage
-	if (len(g.RetRepositoryTags) % opt.PerPage) != 0 {
-		lastpage++
-	}
-
-	nextpage := 0
-	if opt.Page < lastpage {
-		nextpage = opt.Page + 1
-	}
-
-	resp := &github.Response{
-		NextPage: nextpage,
-		LastPage: lastpage,
-	}
-
-	start := opt.PerPage * (opt.Page - 1)
-	end := opt.PerPage * opt.Page
-	if end > len(g.RetRepositoryTags) {
-		end = len(g.RetRepositoryTags)
-	}
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetRepositoryTags))
 
 	return g.RetRepositoryTags[start:end], resp, nil
 }
@@ -150,11 +131,9 @@ func (g *GitHubIssueService) ListByRepo(
 		return nil, nil, fmt.Errorf("can't fetch the issues")
 	}
 
-	resp := &github.Response{
-		NextPage: 0,
-	}
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetIssues))
 
-	return g.RetIssues, resp, nil
+	return g.RetIssues[start:end], resp, nil
 }
 
 // GitHubPullRequestsService simulates the github.PullRequestsService
@@ -173,11 +152,9 @@ func (g *GitHubPullRequestsService) List(
 		return nil, nil, fmt.Errorf("can't fetch the PRs")
 	}
 
-	resp := &github.Response{
-		NextPage: 0,
-	}
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetPRs))
 
-	return g.RetPRs, resp, nil
+	return g.RetPRs[start:end], resp, nil
 }
 
 type gitHubRepoServiceInput struct {
@@ -204,14 +181,78 @@ func newGitHubRepoService(rsinput []gitHubRepoServiceInput) *GitHubRepoService {
 		}
 	}
 
-	r := &GitHubRepoService{
+	return &GitHubRepoService{
 		ReturnValue:           ReturnValue,
 		RetRepositoryTags:     rtags,
 		RetRepositoryCommits:  rcommits,
 		RetRepositoryReleases: rreleases,
 	}
+}
 
-	return r
+type gitHubIssueServiceInput struct {
+	id       int
+	title    string
+	closedAt time.Time
+	labels   []string
+	PR       bool
+}
+
+// newGitHubIssueService returns initialized instance of GitHubIssueService
+// completely filled with provided testdata
+func newGitHubIssueService(isinput []gitHubIssueServiceInput) *GitHubIssueService {
+	rissues := []*github.Issue{}
+
+	for _, v := range isinput {
+		var i *github.Issue
+		if v.PR {
+			i = genIssuePR(
+				v.id, v.title, fmt.Sprintf("https://example.com/prs/%v", v.id),
+			)
+		} else {
+			i = genIssue(
+				v.id, v.title, v.closedAt,
+				fmt.Sprintf("http://example.com/issues/%v", v.id),
+				v.labels,
+			)
+		}
+		rissues = append(rissues, i)
+	}
+
+	return &GitHubIssueService{
+		RetErrControl: ReturnValue,
+		RetIssues:     rissues,
+	}
+}
+
+type gitHubPullRequestsServiceInput struct {
+	id       int
+	title    string
+	username string
+	mergedAt time.Time
+	labels   []string
+}
+
+// newGitHubPullRequestsService returns initialized instance of GitHubPullRequestsService
+// completely filled with provided testdata
+func newGitHubPullRequestsService(
+	psinput []gitHubPullRequestsServiceInput,
+) *GitHubPullRequestsService {
+
+	rprs := []*github.PullRequest{}
+
+	for _, v := range psinput {
+		rprs = append(rprs, genPR(
+			v.id, v.title,
+			fmt.Sprintf("https://example.com/pulls/%v", v.id),
+			v.username, fmt.Sprintf("https://example.com/users/%v", v.username),
+			v.mergedAt, v.labels,
+		))
+	}
+
+	return &GitHubPullRequestsService{
+		RetErrControl: ReturnValue,
+		RetPRs:        rprs,
+	}
 }
 
 // New returns the configured simulated github API client
@@ -231,28 +272,39 @@ func New(_ context.Context, _ string) *client.GitHubClient {
 		{"v0.1.2", "d8351413f688c96c2c5d6fe58ebf5ac17f545bc0", time.Unix(2048183647, 0), true},
 	})
 
-	i := &GitHubIssueService{
-		RetErrControl: ReturnValue,
-		RetIssues: []*github.Issue{
-			genIssue(
-				1234, "Test issue title",
-				time.Unix(1047483647, 0), "http://example.com/issues/1234",
-				[]string{"enhancement"},
-			),
-			genIssuePR(4321, "Test PR title", "https://example.com/prs/4321"),
-		},
-	}
+	i := newGitHubIssueService([]gitHubIssueServiceInput{
+		{1214, "Test issue title 1", time.Unix(2047093647, 0), []string{"enhancement"}, false},
+		{1227, "Test issue title 2", time.Unix(2047193647, 0), []string{"enhancement", "bugfix"}, false},
+		{1239, "Test PR title 3", time.Unix(2047293647, 0), nil, true},
+		{1244, "Test issue title 4", time.Unix(2047393647, 0), nil, false},
+		{1254, "Test PR title 5", time.Unix(2047493647, 0), []string{"wontfix"}, true},
+		{1264, "Test issue title 6", time.Unix(2047593647, 0), []string{"invalid"}, false},
+		{1274, "Test issue title 7", time.Unix(2047693647, 0), []string{"no changelog"}, false},
+		{1284, "Test PR title 8", time.Unix(2047793647, 0), []string{"enhancement"}, true},
+		{1294, "Test issue title 9", time.Unix(2047893647, 0), []string{}, false},
+		{1304, "Test issue title 10", time.Unix(2047993647, 0), []string{"wontfix"}, false},
+		{1214, "Test PR title 11", time.Unix(2048093647, 0), []string{"enhancement"}, true},
+		{1224, "Test issue title 12", time.Unix(2048193647, 0), nil, false},
+		{1234, "Test issue title 13", time.Unix(2048293647, 0), []string{"enhancement"}, false},
+	})
 
-	p := &GitHubPullRequestsService{
-		RetErrControl: ReturnValue,
-		RetPRs: []*github.PullRequest{
-			genPR(1234, "Test PR title", "https://example.com/pulls/1234",
-				"test-user", "https://example.com/users/test-user",
-				time.Unix(1747483647, 0), []string{"bugfix"}),
-			genPR(1233, "Second closed PR title", "https://example.com/pulls/1233",
-				"test-user", "https://example.com/users/test-user", time.Time{}, []string{}),
-		},
-	}
+	p := newGitHubPullRequestsService([]gitHubPullRequestsServiceInput{
+		{2214, "Test PR title 1", "test-user", time.Unix(2047094647, 0), []string{"bugfix"}},
+		{2224, "Test PR title 2", "test-user2", time.Unix(2047194647, 0), nil},
+		{2234, "Test PR title 3", "test-user", time.Unix(2047294647, 0),
+			[]string{"enhancement", "bugfix"}},
+		{2244, "Test PR title 4 closed", "test-user", time.Time{}, []string{"wontfix"}},
+		{2254, "Test PR title 5", "test-user", time.Unix(2047494647, 0), []string{"bugfix"}},
+		{2264, "Test PR title 6", "test-user", time.Unix(2047594647, 0), []string{"enhancement"}},
+		{2274, "Test PR title 7", "test5-user", time.Unix(2047694647, 0), []string{"bugfix"}},
+		{2284, "Test PR title 8", "test-user", time.Unix(2047794647, 0), []string{"invalid"}},
+		{2294, "Test PR title 9", "test-user", time.Unix(2047894647, 0), []string{"bugfix"}},
+		{2304, "Test PR title 10", "test-user", time.Unix(2047994647, 0), []string{"bugfix"}},
+		{2314, "Test PR title 11", "test-user8", time.Unix(2048094647, 0), []string{"no changelog"}},
+		{2324, "Test PR title 12 closed", "test-user", time.Time{}, []string{"bugfix"}},
+		{2334, "Test PR title 13", "test-user", time.Unix(2048294647, 0), []string{"bugfix"}},
+		{2344, "Test PR title 14", "te77st-user", time.Unix(2048394647, 0), []string{"bugfix"}},
+	})
 
 	return &client.GitHubClient{
 		Repositories: r,
