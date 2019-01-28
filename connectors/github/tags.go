@@ -80,7 +80,10 @@ func (c *Connector) Tags(
 	//   so we can't close the tags channel in processTagPages
 	// - we share the wg sync group in order to know when all go routines
 	//   are finished and we can close the channels
+	wgTP.Add(1)
 	go func() {
+		// waitgroup for goroutines, which get spawned here
+		var wg sync.WaitGroup
 
 		// we use this func to close all related channels and invoke it in two places:
 		// - we might have to close them early, where no sub goroutines are invoked
@@ -103,7 +106,7 @@ func (c *Connector) Tags(
 			maxtags <- n
 		} else {
 			// spawn goroutines for page processing
-			cpages := c.processTagPages(sctx, scerr, maxtags, tags, &wgTP, resp.LastPage)
+			cpages := c.processTagPages(sctx, scerr, maxtags, tags, &wg, resp.LastPage)
 			// spawn for each page an own go routine
 			// we start from the last page as we want to get the max amount of data fast
 			for i := resp.LastPage; i >= 2; i-- {
@@ -112,9 +115,10 @@ func (c *Connector) Tags(
 			close(cpages)
 		}
 
-		go func() { // all processing routines are done -> close the channels
-			wgTP.Wait()
+		go func() { // all processing routines are done -> close the channels and report we are done
+			wg.Wait()
 			closeCh()
+			wgTP.Done()
 		}()
 	}()
 
