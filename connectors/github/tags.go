@@ -64,9 +64,11 @@ func (c *Connector) Tags(
 		select {
 		case <-ctx.Done():
 			return
-		case err := <-scerr:
-			cancel()
-			cerr <- err
+		case err, ok := <-scerr:
+			if ok {
+				cancel()
+				cerr <- err
+			}
 		}
 	}()
 
