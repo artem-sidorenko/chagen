@@ -27,18 +27,22 @@ import (
 // Issues returns the issues via channels.
 // Returns possible errors via given cerr channel
 // cissues returns issues
+// cissuescounter returns the channel, which ticks when an issue is proceeded
 // cmaxissues returns the max available amount of issues
 func (c *Connector) Issues(
 	ctx context.Context,
 	cerr chan<- error,
 ) (
 	ctags <-chan data.Issue,
+	cissuescounter <-chan bool,
 	cmaxissues <-chan int,
 ) {
-	issues := c.listIssues(ctx, cerr)
-	dissues := c.processIssues(ctx, cerr, issues)
+	issuescounter := make(chan bool, 100)
 
-	return dissues, nil
+	issues := c.listIssues(ctx, cerr)
+	dissues := c.processIssues(ctx, cerr, issues, issuescounter)
+
+	return dissues, issuescounter, nil
 }
 
 func (c *Connector) listIssues(
@@ -80,6 +84,7 @@ func (c *Connector) processIssues(
 	ctx context.Context,
 	_ chan<- error,
 	cissues <-chan []*github.Issue,
+	cissuescounter chan<- bool,
 ) <-chan data.Issue {
 
 	ret := make(chan data.Issue)
@@ -92,6 +97,7 @@ func (c *Connector) processIssues(
 
 			for issues := range cissues {
 				for _, issue := range issues {
+					cissuescounter <- true
 					//ensure we have an issue and not PR
 					if issue.PullRequestLinks.GetURL() != "" {
 						continue

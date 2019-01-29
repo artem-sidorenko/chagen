@@ -35,17 +35,20 @@ const (
 // MRs returns the PRs via channels.
 // Returns possible errors via given cerr channel
 // cmrs returns MRs
+// cmrscounter returns the channel, which ticks when a PR is proceeded
 // cmaxmrs returns the max available amount of MRs
 func (c *Connector) MRs(
 	ctx context.Context,
 	cerr chan<- error,
 ) (
 	cmrs <-chan data.MR,
+	cmrscounter <-chan bool,
 	cmaxmrs <-chan int,
 ) {
 	// for detailed comments, please see the tags.go
 	mrs := make(chan []*github.PullRequest)
 	maxmrs := make(chan int)
+	mrscounter := make(chan bool, 100)
 
 	sctx, cancel := context.WithCancel(ctx)
 	scerr := make(chan error)
@@ -98,15 +101,16 @@ func (c *Connector) MRs(
 		}()
 	}()
 
-	dmrs := c.processPRs(ctx, cerr, mrs, &wgT)
+	dmrs := c.processPRs(ctx, cerr, mrs, mrscounter, &wgT)
 
 	go func() {
 		wgTP.Wait()
 		wgT.Wait()
 		close(scerr)
+		close(mrscounter)
 	}()
 
-	return dmrs, maxmrs
+	return dmrs, mrscounter, maxmrs
 }
 
 // processPRPage gets the PRs from GitHub for given page and returns them via
@@ -185,6 +189,7 @@ func (c *Connector) processPRs(
 	ctx context.Context,
 	_ chan<- error,
 	cprs <-chan []*github.PullRequest,
+	cmrscounter chan<- bool,
 	wg *sync.WaitGroup,
 ) <-chan data.MR {
 
@@ -197,6 +202,7 @@ func (c *Connector) processPRs(
 
 			for prs := range cprs {
 				for _, pr := range prs {
+					cmrscounter <- true
 					// we need only merged PRs, skip everything else
 					if pr.GetMergedAt() == (time.Time{}) {
 						continue

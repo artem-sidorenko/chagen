@@ -168,7 +168,7 @@ func TestConnector_MRs(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 			cerr := make(chan error, 1)
 
-			cgot, cmaxmrs := c.MRs(context.Background(), cerr)
+			cgot, _, cmaxmrs := c.MRs(context.Background(), cerr)
 			gotmaxmrs := helpers.GetChannelValuesInt(cmaxmrs)
 
 			var got data.MRs

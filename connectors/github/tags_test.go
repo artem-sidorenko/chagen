@@ -139,7 +139,7 @@ func TestConnector_Tags(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 			cerr := make(chan error, 1)
 
-			cgot, cmaxtags := c.Tags(context.Background(), cerr)
+			cgot, _, cmaxtags := c.Tags(context.Background(), cerr)
 			gotmaxtags := helpers.GetChannelValuesInt(cmaxtags)
 
 			var got data.Tags
