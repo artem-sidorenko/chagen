@@ -165,7 +165,7 @@ func (c *Connector) processTagPage(
 	}
 }
 
-// processTagPages processes  GitHub tag page numbers, given in the cpages channel and returns
+// processTagPages processes GitHub tag page numbers, given in the cpages channel and returns
 // the GH RepositoryTag data structures via channel
 // possible errors are returned via given cerr channel
 func (c *Connector) processTagPages(
