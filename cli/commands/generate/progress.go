@@ -53,23 +53,11 @@ func printProgress( // nolint: gocyclo
 			select {
 			case <-ctx.Done():
 				return
-			case _, ok := <-ctagscounter:
-				if ok {
-					tagscounter++
-				} else {
-					ctagscounter = nil
-				}
 			case v, ok := <-cmaxtags:
 				if ok {
 					maxtags = strconv.Itoa(v)
 				} else {
 					cmaxtags = nil
-				}
-			case _, ok := <-cissuescounter:
-				if ok {
-					issuescounter++
-				} else {
-					cissuescounter = nil
 				}
 			case v, ok := <-cmaxissues:
 				if ok {
@@ -77,17 +65,29 @@ func printProgress( // nolint: gocyclo
 				} else {
 					cmaxissues = nil
 				}
-			case _, ok := <-cmrscounter:
-				if ok {
-					mrscounter++
-				} else {
-					cmrscounter = nil
-				}
 			case v, ok := <-cmaxmrs:
 				if ok {
 					maxmrs = strconv.Itoa(v)
 				} else {
 					cmaxmrs = nil
+				}
+			case _, ok := <-ctagscounter:
+				if ok {
+					tagscounter++
+				} else {
+					ctagscounter = nil
+				}
+			case _, ok := <-cissuescounter:
+				if ok {
+					issuescounter++
+				} else {
+					cissuescounter = nil
+				}
+			case _, ok := <-cmrscounter:
+				if ok {
+					mrscounter++
+				} else {
+					cmrscounter = nil
 				}
 			}
 
