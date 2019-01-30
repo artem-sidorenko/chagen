@@ -149,6 +149,8 @@ func TestConnector_Tags(t *testing.T) {
 			// sort the tags to have the stable order
 			sort.Sort(&got)
 
+			// sleep and allow the possible error to be delivered to the channel
+			time.Sleep(time.Millisecond * 200)
 			var err error
 			select {
 			case err = <-cerr:
