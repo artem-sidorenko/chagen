@@ -29,6 +29,7 @@ type Connector interface {
 		cerr chan<- error,
 	) (
 		ctags <-chan data.Tag,
+		ctagsscounter <-chan bool,
 		cmaxtags <-chan int,
 	)
 	Issues(
@@ -36,6 +37,7 @@ type Connector interface {
 		cerr chan<- error,
 	) (
 		cissues <-chan data.Issue,
+		cissuescounter <-chan bool,
 		cmaxissues <-chan int,
 	)
 	MRs(
@@ -43,6 +45,7 @@ type Connector interface {
 		cerr chan<- error,
 	) (
 		cmr <-chan data.MR,
+		cmrscounter <-chan bool,
 		cmaxmrs <-chan int,
 	)
 	GetNewTagURL(string) (string, error)

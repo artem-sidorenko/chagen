@@ -53,6 +53,7 @@ func (c *Connector) Tags(
 	cerr chan<- error,
 ) (
 	<-chan data.Tag,
+	<-chan bool,
 	<-chan int,
 ) {
 	tags := testdata.Tags()
@@ -76,7 +77,7 @@ func (c *Connector) Tags(
 		}
 	}()
 
-	return ctags, nil
+	return ctags, nil, nil
 }
 
 // Issues implements the connectors.Connector interface
@@ -85,6 +86,7 @@ func (c *Connector) Issues(
 	cerr chan<- error,
 ) (
 	<-chan data.Issue,
+	<-chan bool,
 	<-chan int,
 ) {
 	cissues := make(chan data.Issue)
@@ -97,7 +99,7 @@ func (c *Connector) Issues(
 		}
 	}()
 
-	return cissues, nil
+	return cissues, nil, nil
 }
 
 // MRs implements the connectors.Connector interface
@@ -106,6 +108,7 @@ func (c *Connector) MRs(
 	cerr chan<- error,
 ) (
 	<-chan data.MR,
+	<-chan bool,
 	<-chan int,
 ) {
 	cmrs := make(chan data.MR)
@@ -118,7 +121,7 @@ func (c *Connector) MRs(
 		}
 	}()
 
-	return cmrs, nil
+	return cmrs, nil, nil
 }
 
 // GetNewTagURL implements the connectors.Connector interface

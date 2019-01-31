@@ -24,54 +24,159 @@ import (
 	"github.com/google/go-github/github"
 )
 
+// IssuesPerPage defined how many Issues are fetched per page
+var IssuesPerPage = 30 // nolint: gochecknoglobals
+
+const (
+	issuesProcessingRoutines = 10
+)
+
 // Issues returns the issues via channels.
 // Returns possible errors via given cerr channel
 // cissues returns issues
+// cissuescounter returns the channel, which ticks when an issue is proceeded
 // cmaxissues returns the max available amount of issues
 func (c *Connector) Issues(
 	ctx context.Context,
 	cerr chan<- error,
 ) (
 	ctags <-chan data.Issue,
+	cissuescounter <-chan bool,
 	cmaxissues <-chan int,
 ) {
-	issues := c.listIssues(ctx, cerr)
-	dissues := c.processIssues(ctx, cerr, issues)
+	// for detailed comments, please see the tags.go
+	issues := make(chan []*github.Issue)
+	maxissues := make(chan int)
+	issuescounter := make(chan bool, 100)
 
-	return dissues, nil
-}
+	sctx, cancel := context.WithCancel(ctx)
+	scerr := make(chan error)
 
-func (c *Connector) listIssues(
-	ctx context.Context,
-	cerr chan<- error,
-) <-chan []*github.Issue {
-	ret := make(chan []*github.Issue)
+	var wgTP, wgT sync.WaitGroup
 
 	go func() {
-		defer close(ret)
-
-		opt := &github.IssueListByRepoOptions{State: "closed"}
-
-		for {
-			issues, resp, err := c.client.Issues.ListByRepo(ctx, c.Owner, c.Repo, opt)
-			if err != nil {
+		select {
+		case <-ctx.Done():
+			return
+		case err, ok := <-scerr:
+			if ok {
+				cancel()
 				cerr <- err
-				return
 			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case ret <- issues:
-			}
-
-			if resp.NextPage == 0 {
-				break
-			}
-
-			opt.Page = resp.NextPage
 		}
 	}()
+
+	wgTP.Add(1)
+	go func() {
+		var wg sync.WaitGroup
+
+		closeCh := func() {
+			close(issues)
+			close(maxissues)
+		}
+
+		resp, n, err := c.processIssuesPage(sctx, 1, issues)
+		if err != nil {
+			nonBlockingErrSend(sctx, scerr, err)
+			closeCh()
+			return
+		}
+
+		if resp.LastPage == 0 {
+			maxissues <- n
+		} else {
+			cpages := c.processIssuesPages(sctx, scerr, maxissues, issues, &wg, resp.LastPage)
+
+			for i := resp.LastPage; i >= 2; i-- {
+				cpages <- i
+			}
+			close(cpages)
+		}
+
+		go func() {
+			wg.Wait()
+			closeCh()
+			wgTP.Done()
+		}()
+	}()
+
+	dissues := c.processIssues(ctx, cerr, issues, issuescounter, &wgT)
+
+	go func() {
+		wgTP.Wait()
+		wgT.Wait()
+		close(scerr)
+		close(issuescounter)
+	}()
+
+	return dissues, issuescounter, maxissues
+}
+
+// processIssuesPage gets the Issues from GitHub for given page and returns them via
+// given channel. IssuesCount contains the amount of PRs in the current response
+func (c *Connector) processIssuesPage(
+	ctx context.Context,
+	page int,
+	ret chan<- []*github.Issue,
+) (
+	resp *github.Response,
+	issuesCount int,
+	err error,
+) {
+
+	issues, resp, err := c.client.Issues.ListByRepo(
+		ctx,
+		c.Owner,
+		c.Repo,
+		&github.IssueListByRepoOptions{
+			State:       "closed",
+			ListOptions: github.ListOptions{Page: page, PerPage: IssuesPerPage},
+		},
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	select {
+	case <-ctx.Done():
+		return nil, 0, nil
+	case ret <- issues:
+		return resp, len(issues), nil
+	}
+}
+
+// processIssuesPages processes GitHub Issues page numbers, given in the cpages channel and returns
+// the GH Issues data structures via channel
+// possible errors are returned via given cerr channel
+func (c *Connector) processIssuesPages(
+	ctx context.Context,
+	cerr chan<- error,
+	cmaxissues chan<- int,
+	issues chan<- []*github.Issue,
+	wg *sync.WaitGroup,
+	lastPage int,
+) (cpages chan<- int) {
+	ret := make(chan int)
+
+	for i := 0; i < issuesProcessingRoutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for page := range ret {
+				_, n, err := c.processIssuesPage(ctx, page, issues)
+
+				if err != nil {
+					nonBlockingErrSend(ctx, cerr, err)
+					return
+				}
+
+				if page == lastPage {
+					cmaxissues <- n + (lastPage-1)*IssuesPerPage
+				}
+			}
+		}()
+	}
 
 	return ret
 }
@@ -80,10 +185,11 @@ func (c *Connector) processIssues(
 	ctx context.Context,
 	_ chan<- error,
 	cissues <-chan []*github.Issue,
+	cissuescounter chan<- bool,
+	wg *sync.WaitGroup,
 ) <-chan data.Issue {
 
 	ret := make(chan data.Issue)
-	var wg sync.WaitGroup
 
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
@@ -92,6 +198,7 @@ func (c *Connector) processIssues(
 
 			for issues := range cissues {
 				for _, issue := range issues {
+					cissuescounter <- true
 					//ensure we have an issue and not PR
 					if issue.PullRequestLinks.GetURL() != "" {
 						continue

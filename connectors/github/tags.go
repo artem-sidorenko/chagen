@@ -35,16 +35,21 @@ const (
 // Tags returns the git tags via channels.
 // Returns possible errors via given cerr channel
 // ctags returns tags
+// ctagscounter returns the channel, which ticks when a tag is proceeded
 // cmaxtags returns the max available amount of tags
 func (c *Connector) Tags(
 	ctx context.Context,
 	cerr chan<- error,
 ) (
 	ctags <-chan data.Tag,
+	ctagscounter <-chan bool,
 	cmaxtags <-chan int,
 ) {
 	tags := make(chan []*github.RepositoryTag)
 	maxtags := make(chan int)
+	// we do not care much about this counter, but we want to avoid blocks in the tests
+	// so lets have it buffered
+	tagscounter := make(chan bool, 100)
 
 	// establshing the local error handling with local context
 	// if we get any local errors, cancel all local running routines,
@@ -64,9 +69,11 @@ func (c *Connector) Tags(
 		select {
 		case <-ctx.Done():
 			return
-		case err := <-scerr:
-			cancel()
-			cerr <- err
+		case err, ok := <-scerr:
+			if ok {
+				cancel()
+				cerr <- err
+			}
 		}
 	}()
 
@@ -122,7 +129,7 @@ func (c *Connector) Tags(
 		}()
 	}()
 
-	dtags := c.processTags(sctx, scerr, tags, &wgT)
+	dtags := c.processTags(sctx, scerr, tags, tagscounter, &wgT)
 
 	// close the local error channel when nobody needs them
 	go func() {
@@ -131,7 +138,7 @@ func (c *Connector) Tags(
 		close(scerr)
 	}()
 
-	return dtags, maxtags
+	return dtags, tagscounter, maxtags
 }
 
 // processTagPage gets the tags from GitHub for given page and returns them via
@@ -163,7 +170,7 @@ func (c *Connector) processTagPage(
 	}
 }
 
-// processTagPages processes  GitHub tag page numbers, given in the cpages channel and returns
+// processTagPages processes GitHub tag page numbers, given in the cpages channel and returns
 // the GH RepositoryTag data structures via channel
 // possible errors are returned via given cerr channel
 func (c *Connector) processTagPages(
@@ -205,6 +212,7 @@ func (c *Connector) processTags(
 	ctx context.Context,
 	cerr chan<- error,
 	ctags <-chan []*github.RepositoryTag,
+	ctagscounter chan<- bool,
 	wg *sync.WaitGroup,
 ) <-chan data.Tag {
 
@@ -217,6 +225,7 @@ func (c *Connector) processTags(
 
 			for tags := range ctags {
 				for _, tag := range tags {
+					ctagscounter <- true
 					tagName := tag.GetName()
 
 					commit, _, err := c.client.Repositories.GetCommit(ctx,

@@ -124,11 +124,8 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 func collectData( // nolint: gocyclo
 	ctx context.Context,
 	ctags <-chan data.Tag,
-	ctagscounter chan<- bool,
 	cissues <-chan data.Issue,
-	cissuescounter chan<- bool,
 	cmrs <-chan data.MR,
-	cmrscounter chan<- bool,
 	cerr <-chan error,
 ) (
 	data.Tags,
@@ -153,21 +150,18 @@ func collectData( // nolint: gocyclo
 		case t, ok := <-ctags:
 			if ok {
 				tags = append(tags, t)
-				ctagscounter <- true
 			} else { // tags are finished, nil the channel
 				ctags = nil
 			}
 		case i, ok := <-cissues:
 			if ok {
 				issues = append(issues, i)
-				cissuescounter <- true
 			} else { // issues are finished, nil the channel
 				cissues = nil
 			}
 		case m, ok := <-cmrs:
 			if ok {
 				mrs = append(mrs, m)
-				cmrscounter <- true
 			} else { // MRs are finished, nil the channel
 				cmrs = nil
 			}
@@ -202,15 +196,9 @@ func getConnectorData(
 	// we use cerr to track the possible errors in all goroutines invoked here
 	cerr := make(chan error)
 
-	ctags, cmaxtags := conn.Tags(ctx, cerr)
-	cissues, cmaxissues := conn.Issues(ctx, cerr)
-	cmrs, cmaxmrs := conn.MRs(ctx, cerr)
-
-	// create progress counters
-	// each send operation increments the displayed counter
-	ctagscounter := make(chan bool)
-	cissuescounter := make(chan bool)
-	cmrscounter := make(chan bool)
+	ctags, ctagscounter, cmaxtags := conn.Tags(ctx, cerr)
+	cissues, cissuescounter, cmaxissues := conn.Issues(ctx, cerr)
+	cmrs, cmrscounter, cmaxmrs := conn.MRs(ctx, cerr)
 
 	// invoke the progress printer
 	printProgress(
@@ -223,17 +211,11 @@ func getConnectorData(
 	tags, issues, mrs, err := collectData(
 		ctx,
 		ctags,
-		ctagscounter,
 		cissues,
-		cissuescounter,
 		cmrs,
-		cmrscounter,
 		cerr,
 	)
-	// release the progress counters and err channel and only then process the possible errors
-	close(ctagscounter)
-	close(cissuescounter)
-	close(cmrscounter)
+	// release the err channel and only then process the possible errors
 	close(cerr)
 	if err != nil {
 		return nil, nil, nil, err

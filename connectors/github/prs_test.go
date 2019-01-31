@@ -20,11 +20,14 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
+	"github.com/artem-sidorenko/chagen/connectors/github"
 	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/helpers"
 )
 
 func TestConnector_MRs(t *testing.T) {
@@ -33,89 +36,27 @@ func TestConnector_MRs(t *testing.T) {
 		returnValue testclient.ReturnValueStr
 		want        data.MRs
 		wantErr     error
+		wantMaxMRs  []int
 	}{
 		{
 			name: "API returns proper data",
 			want: data.MRs{
 				data.MR{
-					ID:         2214,
-					Name:       "Test PR title 1",
-					URL:        "https://example.com/pulls/2214",
-					Author:     "test-user",
-					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2047094647, 0),
+					ID:         2344,
+					Name:       "Test PR title 14",
+					URL:        "https://example.com/pulls/2344",
+					Author:     "te77st-user",
+					AuthorURL:  "https://example.com/users/te77st-user",
+					MergedDate: time.Unix(2048394647, 0),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
-					ID:         2224,
-					Name:       "Test PR title 2",
-					URL:        "https://example.com/pulls/2224",
-					Author:     "test-user2",
-					AuthorURL:  "https://example.com/users/test-user2",
-					MergedDate: time.Unix(2047194647, 0),
-					Labels:     []string(nil),
-				},
-				data.MR{
-					ID:         2234,
-					Name:       "Test PR title 3",
-					URL:        "https://example.com/pulls/2234",
+					ID:         2334,
+					Name:       "Test PR title 13",
+					URL:        "https://example.com/pulls/2334",
 					Author:     "test-user",
 					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2047294647, 0),
-					Labels:     []string{"enhancement", "bugfix"},
-				},
-				data.MR{
-					ID:         2254,
-					Name:       "Test PR title 5",
-					URL:        "https://example.com/pulls/2254",
-					Author:     "test-user",
-					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2047494647, 0),
-					Labels:     []string{"bugfix"},
-				},
-				data.MR{
-					ID:         2264,
-					Name:       "Test PR title 6",
-					URL:        "https://example.com/pulls/2264",
-					Author:     "test-user",
-					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2047594647, 0),
-					Labels:     []string{"enhancement"},
-				},
-				data.MR{
-					ID:         2274,
-					Name:       "Test PR title 7",
-					URL:        "https://example.com/pulls/2274",
-					Author:     "test5-user",
-					AuthorURL:  "https://example.com/users/test5-user",
-					MergedDate: time.Unix(2047694647, 0),
-					Labels:     []string{"bugfix"},
-				},
-				data.MR{
-					ID:         2284,
-					Name:       "Test PR title 8",
-					URL:        "https://example.com/pulls/2284",
-					Author:     "test-user",
-					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2047794647, 0),
-					Labels:     []string{"invalid"},
-				},
-				data.MR{
-					ID:         2294,
-					Name:       "Test PR title 9",
-					URL:        "https://example.com/pulls/2294",
-					Author:     "test-user",
-					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2047894647, 0),
-					Labels:     []string{"bugfix"},
-				},
-				data.MR{
-					ID:         2304,
-					Name:       "Test PR title 10",
-					URL:        "https://example.com/pulls/2304",
-					Author:     "test-user",
-					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2047994647, 0),
+					MergedDate: time.Unix(2048294647, 0),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
@@ -128,24 +69,90 @@ func TestConnector_MRs(t *testing.T) {
 					Labels:     []string{"no changelog"},
 				},
 				data.MR{
-					ID:         2334,
-					Name:       "Test PR title 13",
-					URL:        "https://example.com/pulls/2334",
+					ID:         2304,
+					Name:       "Test PR title 10",
+					URL:        "https://example.com/pulls/2304",
 					Author:     "test-user",
 					AuthorURL:  "https://example.com/users/test-user",
-					MergedDate: time.Unix(2048294647, 0),
+					MergedDate: time.Unix(2047994647, 0),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
-					ID:         2344,
-					Name:       "Test PR title 14",
-					URL:        "https://example.com/pulls/2344",
-					Author:     "te77st-user",
-					AuthorURL:  "https://example.com/users/te77st-user",
-					MergedDate: time.Unix(2048394647, 0),
+					ID:         2294,
+					Name:       "Test PR title 9",
+					URL:        "https://example.com/pulls/2294",
+					Author:     "test-user",
+					AuthorURL:  "https://example.com/users/test-user",
+					MergedDate: time.Unix(2047894647, 0),
+					Labels:     []string{"bugfix"},
+				},
+				data.MR{
+					ID:         2284,
+					Name:       "Test PR title 8",
+					URL:        "https://example.com/pulls/2284",
+					Author:     "test-user",
+					AuthorURL:  "https://example.com/users/test-user",
+					MergedDate: time.Unix(2047794647, 0),
+					Labels:     []string{"invalid"},
+				},
+				data.MR{
+					ID:         2274,
+					Name:       "Test PR title 7",
+					URL:        "https://example.com/pulls/2274",
+					Author:     "test5-user",
+					AuthorURL:  "https://example.com/users/test5-user",
+					MergedDate: time.Unix(2047694647, 0),
+					Labels:     []string{"bugfix"},
+				},
+				data.MR{
+					ID:         2264,
+					Name:       "Test PR title 6",
+					URL:        "https://example.com/pulls/2264",
+					Author:     "test-user",
+					AuthorURL:  "https://example.com/users/test-user",
+					MergedDate: time.Unix(2047594647, 0),
+					Labels:     []string{"enhancement"},
+				},
+				data.MR{
+					ID:         2254,
+					Name:       "Test PR title 5",
+					URL:        "https://example.com/pulls/2254",
+					Author:     "test-user",
+					AuthorURL:  "https://example.com/users/test-user",
+					MergedDate: time.Unix(2047494647, 0),
+					Labels:     []string{"bugfix"},
+				},
+				data.MR{
+					ID:         2234,
+					Name:       "Test PR title 3",
+					URL:        "https://example.com/pulls/2234",
+					Author:     "test-user",
+					AuthorURL:  "https://example.com/users/test-user",
+					MergedDate: time.Unix(2047294647, 0),
+					Labels:     []string{"enhancement", "bugfix"},
+				},
+				data.MR{
+					ID:         2224,
+					Name:       "Test PR title 2",
+					URL:        "https://example.com/pulls/2224",
+					Author:     "test-user2",
+					AuthorURL:  "https://example.com/users/test-user2",
+					MergedDate: time.Unix(2047194647, 0),
+					Labels:     []string(nil),
+				},
+				data.MR{
+					ID:         2214,
+					Name:       "Test PR title 1",
+					URL:        "https://example.com/pulls/2214",
+					Author:     "test-user",
+					AuthorURL:  "https://example.com/users/test-user",
+					MergedDate: time.Unix(2047094647, 0),
 					Labels:     []string{"bugfix"},
 				},
 			},
+			// wantMaxMRs > len(want), as we sorting out the closed non-merged PRs
+			// but we still get them from the API
+			wantMaxMRs: []int{14},
 		},
 		{
 			name: "ListPRs call fails",
@@ -157,15 +164,22 @@ func TestConnector_MRs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			github.PRsPerPage = 5
 			c := setupTestConnector(tt.returnValue, false)
 			cerr := make(chan error, 1)
 
-			cgot, _ := c.MRs(context.Background(), cerr)
+			cgot, _, cmaxmrs := c.MRs(context.Background(), cerr)
+			gotmaxmrs := helpers.GetChannelValuesInt(cmaxmrs)
+
 			var got data.MRs
 			for t := range cgot {
 				got = append(got, t)
 			}
+			// sort the mrs to have the stable order
+			sort.Sort(&got)
 
+			// sleep and allow the possible error to be delivered to the channel
+			time.Sleep(time.Millisecond * 200)
 			var err error
 			select {
 			case err = <-cerr:
@@ -179,6 +193,12 @@ func TestConnector_MRs(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Connector.MRs() = %+v, want %+v", got, tt.want)
+			}
+
+			if err == nil { // compare the processed MRs only in non-error situation
+				if !reflect.DeepEqual(gotmaxmrs, tt.wantMaxMRs) {
+					t.Errorf("Connector.MRs() maxmrs = %v, want %v", gotmaxmrs, tt.wantMaxMRs)
+				}
 			}
 		})
 	}

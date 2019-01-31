@@ -25,74 +25,184 @@ import (
 	"github.com/google/go-github/github"
 )
 
+// PRsPerPage defined how many PRs are fetched per page
+var PRsPerPage = 30 // nolint: gochecknoglobals
+
+const (
+	prsProcessingRoutines = 10
+)
+
 // MRs returns the PRs via channels.
 // Returns possible errors via given cerr channel
 // cmrs returns MRs
+// cmrscounter returns the channel, which ticks when a PR is proceeded
 // cmaxmrs returns the max available amount of MRs
 func (c *Connector) MRs(
 	ctx context.Context,
 	cerr chan<- error,
 ) (
 	cmrs <-chan data.MR,
+	cmrscounter <-chan bool,
 	cmaxmrs <-chan int,
 ) {
-	mrs := c.listPRs(ctx, cerr)
-	dmrs := c.processPRs(ctx, cerr, mrs)
+	// for detailed comments, please see the tags.go
+	mrs := make(chan []*github.PullRequest)
+	maxmrs := make(chan int)
+	mrscounter := make(chan bool, 100)
 
-	return dmrs, nil
-}
+	sctx, cancel := context.WithCancel(ctx)
+	scerr := make(chan error)
 
-func (c *Connector) listPRs(
-	ctx context.Context,
-	cerr chan<- error,
-) <-chan []*github.PullRequest {
-	ret := make(chan []*github.PullRequest)
+	var wgTP, wgT sync.WaitGroup
 
 	go func() {
-		defer close(ret)
-
-		opt := &github.PullRequestListOptions{State: "closed"}
-
-		for {
-			prs, resp, err := c.client.PullRequests.List(ctx, c.Owner, c.Repo, opt)
-			if err != nil {
+		select {
+		case <-ctx.Done():
+			return
+		case err, ok := <-scerr:
+			if ok {
+				cancel()
 				cerr <- err
-				return
 			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case ret <- prs:
-			}
-
-			if resp.NextPage == 0 {
-				break
-			}
-
-			opt.Page = resp.NextPage
 		}
 	}()
+
+	wgTP.Add(1)
+	go func() {
+		var wg sync.WaitGroup
+
+		closeCh := func() {
+			close(mrs)
+			close(maxmrs)
+		}
+
+		resp, n, err := c.processPRPage(sctx, 1, mrs)
+		if err != nil {
+			nonBlockingErrSend(sctx, scerr, err)
+			closeCh()
+			return
+		}
+
+		if resp.LastPage == 0 {
+			maxmrs <- n
+		} else {
+			cpages := c.processPRPages(sctx, scerr, maxmrs, mrs, &wg, resp.LastPage)
+
+			for i := resp.LastPage; i >= 2; i-- {
+				cpages <- i
+			}
+			close(cpages)
+		}
+
+		go func() {
+			wg.Wait()
+			closeCh()
+			wgTP.Done()
+		}()
+	}()
+
+	dmrs := c.processPRs(ctx, cerr, mrs, mrscounter, &wgT)
+
+	go func() {
+		wgTP.Wait()
+		wgT.Wait()
+		close(scerr)
+		close(mrscounter)
+	}()
+
+	return dmrs, mrscounter, maxmrs
+}
+
+// processPRPage gets the PRs from GitHub for given page and returns them via
+// given channel. PRsCount contains the amount of PRs in the current response
+func (c *Connector) processPRPage(
+	ctx context.Context,
+	page int,
+	ret chan<- []*github.PullRequest,
+) (
+	resp *github.Response,
+	prsCount int,
+	err error,
+) {
+
+	prs, resp, err := c.client.PullRequests.List(
+		ctx,
+		c.Owner,
+		c.Repo,
+		&github.PullRequestListOptions{
+			State:       "closed",
+			ListOptions: github.ListOptions{Page: page, PerPage: PRsPerPage},
+		},
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	select {
+	case <-ctx.Done():
+		return nil, 0, nil
+	case ret <- prs:
+		return resp, len(prs), nil
+	}
+}
+
+// processPRPages processes GitHub PR page numbers, given in the cpages channel and returns
+// the GH PullRequest data structures via channel
+// possible errors are returned via given cerr channel
+func (c *Connector) processPRPages(
+	ctx context.Context,
+	cerr chan<- error,
+	cmaxprs chan<- int,
+	prs chan<- []*github.PullRequest,
+	wg *sync.WaitGroup,
+	lastPage int,
+) (cpages chan<- int) {
+	ret := make(chan int)
+
+	for i := 0; i < prsProcessingRoutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for page := range ret {
+				_, n, err := c.processPRPage(ctx, page, prs)
+
+				if err != nil {
+					nonBlockingErrSend(ctx, cerr, err)
+					return
+				}
+
+				if page == lastPage {
+					cmaxprs <- n + (lastPage-1)*PRsPerPage
+				}
+			}
+		}()
+	}
 
 	return ret
 }
 
+// processPRs processes given GitHub PRs in the cprs channel and returns
+// the PRs in our data structure via channel
+// possible errors are returned via given cerr channel
 func (c *Connector) processPRs(
 	ctx context.Context,
 	_ chan<- error,
 	cprs <-chan []*github.PullRequest,
+	cmrscounter chan<- bool,
+	wg *sync.WaitGroup,
 ) <-chan data.MR {
 
 	ret := make(chan data.MR)
-	var wg sync.WaitGroup
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < prsProcessingRoutines; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
 			for prs := range cprs {
 				for _, pr := range prs {
+					cmrscounter <- true
 					// we need only merged PRs, skip everything else
 					if pr.GetMergedAt() == (time.Time{}) {
 						continue

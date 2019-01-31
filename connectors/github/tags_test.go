@@ -139,7 +139,7 @@ func TestConnector_Tags(t *testing.T) {
 			c := setupTestConnector(tt.returnValue, false)
 			cerr := make(chan error, 1)
 
-			cgot, cmaxtags := c.Tags(context.Background(), cerr)
+			cgot, _, cmaxtags := c.Tags(context.Background(), cerr)
 			gotmaxtags := helpers.GetChannelValuesInt(cmaxtags)
 
 			var got data.Tags
@@ -149,7 +149,13 @@ func TestConnector_Tags(t *testing.T) {
 			// sort the tags to have the stable order
 			sort.Sort(&got)
 
-			err := <-cerr
+			// sleep and allow the possible error to be delivered to the channel
+			time.Sleep(time.Millisecond * 200)
+			var err error
+			select {
+			case err = <-cerr:
+			default:
+			}
 
 			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Connector.Tags() error = %v, wantErr %v", err, tt.wantErr)
