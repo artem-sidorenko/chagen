@@ -22,8 +22,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/source/connectors"
 
 	"github.com/urfave/cli"
 )

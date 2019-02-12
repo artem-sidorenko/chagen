@@ -23,8 +23,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/artem-sidorenko/chagen/connectors"
-	"github.com/artem-sidorenko/chagen/connectors/github/internal/client"
+	"github.com/artem-sidorenko/chagen/source/connectors"
+	"github.com/artem-sidorenko/chagen/source/connectors/github/internal/client"
 
 	"github.com/urfave/cli"
 )

@@ -22,10 +22,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/artem-sidorenko/chagen/connectors"
-	"github.com/artem-sidorenko/chagen/connectors/github"
-	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
 	tcli "github.com/artem-sidorenko/chagen/internal/testing/cli"
+	"github.com/artem-sidorenko/chagen/source/connectors"
+	"github.com/artem-sidorenko/chagen/source/connectors/github"
+	"github.com/artem-sidorenko/chagen/source/connectors/github/internal/testclient"
 )
 
 func setupTestConnector(

@@ -27,10 +27,12 @@ import (
 	"time"
 
 	"github.com/artem-sidorenko/chagen/cli/commands"
-	"github.com/artem-sidorenko/chagen/connectors"
-	_ "github.com/artem-sidorenko/chagen/connectors/github" //enable github
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/generator"
+
+	// some of connectors control functionality will be moved to source at some point
+	_ "github.com/artem-sidorenko/chagen/source"
+	"github.com/artem-sidorenko/chagen/source/connectors"
 
 	"github.com/urfave/cli"
 )
