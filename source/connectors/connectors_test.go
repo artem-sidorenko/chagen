@@ -109,6 +109,7 @@ func TestCLIFlags(t *testing.T) {
 }
 
 func TestNewConnector(t *testing.T) {
+	connectors.ResetConnectors()
 	connectors.RegisterConnector("testexisting", "TestExisting", NewTestConnector, nil)
 
 	type args struct {
@@ -144,6 +145,40 @@ func TestNewConnector(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewConnector() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestConnectorRegistered(t *testing.T) {
+	tests := []struct {
+		name          string
+		regConnectors []string
+		id            string
+		want          bool
+	}{
+		{
+			name:          "Registered connector is requested",
+			regConnectors: []string{"testconn1", "testconn2"},
+			id:            "testconn2",
+			want:          true,
+		},
+		{
+			name:          "Not registered connector is requested",
+			regConnectors: []string{"testconn1"},
+			id:            "testconn2",
+			want:          false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			connectors.ResetConnectors()
+			for _, conn := range tt.regConnectors {
+				connectors.RegisterConnector(conn, conn, NewTestConnector, nil)
+			}
+
+			if got := connectors.ConnectorRegistered(tt.id); got != tt.want {
+				t.Errorf("ConnectorRegistered() = %v, want %v", got, tt.want)
 			}
 		})
 	}
