@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/artem-sidorenko/chagen/data"
@@ -50,6 +51,13 @@ func (t *testConnector) RepositoryExists() (bool, error)     { return true, nil 
 
 func NewTestConnector(_ *cli.Context) (connectors.Connector, error) {
 	return &testConnector{}, nil
+}
+
+func registerConnectors(ids []string) {
+	connectors.ResetConnectors()
+	for _, conn := range ids {
+		connectors.RegisterConnector(conn, conn, NewTestConnector, nil)
+	}
 }
 
 func CLIFlags() []cli.Flag {
@@ -172,13 +180,35 @@ func TestConnectorRegistered(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			connectors.ResetConnectors()
-			for _, conn := range tt.regConnectors {
-				connectors.RegisterConnector(conn, conn, NewTestConnector, nil)
-			}
+			registerConnectors(tt.regConnectors)
 
 			if got := connectors.ConnectorRegistered(tt.id); got != tt.want {
 				t.Errorf("ConnectorRegistered() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRegisteredConnectors(t *testing.T) {
+	tests := []struct {
+		name          string
+		regConnectors []string
+		want          []string
+	}{
+		{
+			name:          "Registered connectors",
+			regConnectors: []string{"testconn1", "testconn2"},
+			want:          []string{"testconn1", "testconn2"},
+		}}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			registerConnectors(tt.regConnectors)
+
+			got := connectors.RegisteredConnectors()
+			sort.Strings(got)
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("RegisteredConnectors() = %v, want %v", got, tt.want)
 			}
 		})
 	}

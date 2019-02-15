@@ -96,3 +96,12 @@ func ConnectorRegistered(id string) bool {
 func ResetConnectors() {
 	connectors = make(map[string]connector)
 }
+
+// RegisteredConnectors returns a slice of registered connector ids
+func RegisteredConnectors() []string {
+	var ret []string
+	for k := range connectors {
+		ret = append(ret, k)
+	}
+	return ret
+}
