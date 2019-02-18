@@ -49,14 +49,14 @@ func (t *testConnector) MRs(_ context.Context, _ chan<- error) (
 func (t *testConnector) GetNewTagURL(string) (string, error) { return "", nil }
 func (t *testConnector) RepositoryExists() (bool, error)     { return true, nil }
 
-func NewTestConnector(_ *cli.Context) (connectors.Connector, error) {
+func newTestConnector(_ *cli.Context) (connectors.Connector, error) {
 	return &testConnector{}, nil
 }
 
 func registerConnectors(ids []string) {
 	connectors.ResetConnectors()
 	for _, conn := range ids {
-		connectors.RegisterConnector(conn, conn, NewTestConnector, nil)
+		connectors.RegisterConnector(conn, conn, newTestConnector, nil)
 	}
 }
 
@@ -70,7 +70,7 @@ func CLIFlags() []cli.Flag {
 }
 
 func TestCLIFlags(t *testing.T) {
-	connectors.RegisterConnector("testexisting", "TestExisting", NewTestConnector, CLIFlags)
+	connectors.RegisterConnector("testexisting", "TestExisting", newTestConnector, CLIFlags)
 
 	type args struct {
 		id string
@@ -118,7 +118,7 @@ func TestCLIFlags(t *testing.T) {
 
 func TestNewConnector(t *testing.T) {
 	connectors.ResetConnectors()
-	connectors.RegisterConnector("testexisting", "TestExisting", NewTestConnector, nil)
+	connectors.RegisterConnector("testexisting", "TestExisting", newTestConnector, nil)
 
 	type args struct {
 		id string
