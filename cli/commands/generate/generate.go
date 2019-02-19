@@ -42,14 +42,20 @@ var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
 // ProgressStdout references the Stdout writer for progress information
 var ProgressStdout io.Writer = os.Stdout // nolint: gochecknoglobals
 
-// Connector references the connector ID used for generation
-var Connector = "github" // nolint: gochecknoglobals
-
 // Generate implements the CLI subcommand generate
 func Generate(ctx *cli.Context) error { // nolint: gocyclo
 	var filterRe *regexp.Regexp
 	var excludeLabels []string
 	var err error
+
+	// verify the given endpoint, it should be one of supported connectors
+	if ctx.String("endpoint") == "" {
+		return fmt.Errorf("endpoint type is missing")
+	}
+	connector := ctx.String("endpoint")
+	if !connectors.ConnectorRegistered(connector) {
+		return fmt.Errorf("given endpoint isn't supported: %v", connector)
+	}
 
 	if !ctx.Bool("no-filter-tags") { // if the flag is not there, lets apply the filter
 		filterReStr := ctx.String("filter-tags")
@@ -70,7 +76,7 @@ func Generate(ctx *cli.Context) error { // nolint: gocyclo
 		}
 	}
 
-	conn, err := connectors.NewConnector(Connector, ctx)
+	conn, err := connectors.NewConnector(connector, ctx)
 	if err != nil {
 		return err
 	}
@@ -277,18 +283,25 @@ func CLIFlags() []cli.Flag {
 			Usage: "Exclude issues and MRs/PRs with specified labels `x,y,z`",
 			Value: "duplicate, question, invalid, wontfix, no changelog",
 		},
+		cli.StringFlag{
+			Name:  "endpoint",
+			Usage: "API endpoint type: " + strings.Join(connectors.RegisteredConnectors(), ", "),
+			Value: "github",
+		},
 	}
 }
 
 func init() { // nolint: gochecknoinits
 	flags := CLIFlags()
 
-	connectorFlags, err := connectors.CLIFlags(Connector)
-	if err != nil {
-		panic(err)
-	}
+	for _, conn := range connectors.RegisteredConnectors() {
+		connectorFlags, err := connectors.CLIFlags(conn)
+		if err != nil {
+			panic(err)
+		}
 
-	flags = append(flags, connectorFlags...)
+		flags = append(flags, connectorFlags...)
+	}
 
 	commands.RegisterCommand(cli.Command{
 		Name:      "generate",
