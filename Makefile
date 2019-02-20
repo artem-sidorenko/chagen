@@ -17,7 +17,7 @@ prepare-env: ## Prepare the development/test environment
 	go get -u github.com/tcnksm/ghr
 
 test: ## Run the tests
-	go test -timeout 10s -race -cpu 4 -count 1 $$(go list ./... | grep -v /vendor/)
+	go test -timeout 30s -race -cpu 4 -count 10 $$(go list ./... | grep -v /vendor/)
 	gometalinter --enable-all --disable=dupl --deadline=300s --line-length=100 -s vendor ./...
 # calculate the coverage only if everything was ok (see go test, coverage can have side effects)
 	go test -timeout 10s -cover -race -cpu 4 -count 1  $$(go list ./... | grep -v /vendor/)
