@@ -122,6 +122,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		noFilterTags  bool
 		filterExpr    string
 		excludeLabels string
+		endpoint      string
 	}
 
 	tests := []struct {
@@ -176,10 +177,21 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 			repositoryExistsFail: true,
 			wantErr:              errors.New("project not found"),
 		},
+		{
+			name: "With wrong endpoint type",
+			cliParams: cliParams{
+				endpoint: "wrongendpoint",
+			},
+			wantErr: errors.New("given endpoint isn't supported: wrongendpoint"),
+		},
 	}
 	for _, tt := range tests {
 		cliFlags := map[string]string{
-			"file": "-",
+			"file":     "-",
+			"endpoint": "testconnector",
+		}
+		if tt.cliParams.endpoint != "" {
+			cliFlags["endpoint"] = tt.cliParams.endpoint
 		}
 		if tt.cliParams.newRelease != "" {
 			cliFlags["new-release"] = tt.cliParams.newRelease
@@ -202,7 +214,6 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		progressOutput := &bytes.Buffer{}
 		generate.ProgressStdout = progressOutput
 
-		generate.Connector = "testconnector"
 		testconnector.RetTestingTag = true
 		testconnector.RepositoryExistsFail = tt.repositoryExistsFail
 

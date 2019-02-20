@@ -19,35 +19,37 @@ package github
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/artem-sidorenko/chagen/data"
+
 	"github.com/google/go-github/github"
 )
 
-// IssuesPerPage defined how many Issues are fetched per page
-var IssuesPerPage = 30 // nolint: gochecknoglobals
+// PRsPerPage defined how many PRs are fetched per page
+var PRsPerPage = 30 // nolint: gochecknoglobals
 
 const (
-	issuesProcessingRoutines = 10
+	prsProcessingRoutines = 10
 )
 
-// Issues returns the issues via channels.
+// MRs returns the PRs via channels.
 // Returns possible errors via given cerr channel
-// cissues returns issues
-// cissuescounter returns the channel, which ticks when an issue is proceeded
-// cmaxissues returns the max available amount of issues
-func (c *Connector) Issues(
+// cmrs returns MRs
+// cmrscounter returns the channel, which ticks when a PR is proceeded
+// cmaxmrs returns the max available amount of MRs
+func (c *Connector) MRs(
 	ctx context.Context,
 	cerr chan<- error,
 ) (
-	ctags <-chan data.Issue,
-	cissuescounter <-chan bool,
-	cmaxissues <-chan int,
+	cmrs <-chan data.MR,
+	cmrscounter <-chan bool,
+	cmaxmrs <-chan int,
 ) {
 	// for detailed comments, please see the tags.go
-	issues := make(chan []*github.Issue)
-	maxissues := make(chan int)
-	issuescounter := make(chan bool, 100)
+	mrs := make(chan []*github.PullRequest)
+	maxmrs := make(chan int)
+	mrscounter := make(chan bool, 100)
 
 	sctx, cancel := context.WithCancel(ctx)
 	scerr := make(chan error)
@@ -71,11 +73,11 @@ func (c *Connector) Issues(
 		var wg sync.WaitGroup
 
 		closeCh := func() {
-			close(issues)
-			close(maxissues)
+			close(mrs)
+			close(maxmrs)
 		}
 
-		resp, n, err := c.processIssuesPage(sctx, 1, issues)
+		resp, n, err := c.processPRPage(sctx, 1, mrs)
 		if err != nil {
 			nonBlockingErrSend(sctx, scerr, err)
 			closeCh()
@@ -83,9 +85,9 @@ func (c *Connector) Issues(
 		}
 
 		if resp.LastPage == 0 {
-			maxissues <- n
+			maxmrs <- n
 		} else {
-			cpages := c.processIssuesPages(sctx, scerr, maxissues, issues, &wg, resp.LastPage)
+			cpages := c.processPRPages(sctx, scerr, maxmrs, mrs, &wg, resp.LastPage)
 
 			for i := resp.LastPage; i >= 2; i-- {
 				cpages <- i
@@ -100,37 +102,37 @@ func (c *Connector) Issues(
 		}()
 	}()
 
-	dissues := c.processIssues(ctx, cerr, issues, issuescounter, &wgT)
+	dmrs := c.processPRs(ctx, cerr, mrs, mrscounter, &wgT)
 
 	go func() {
 		wgTP.Wait()
 		wgT.Wait()
 		close(scerr)
-		close(issuescounter)
+		close(mrscounter)
 	}()
 
-	return dissues, issuescounter, maxissues
+	return dmrs, mrscounter, maxmrs
 }
 
-// processIssuesPage gets the Issues from GitHub for given page and returns them via
-// given channel. IssuesCount contains the amount of PRs in the current response
-func (c *Connector) processIssuesPage(
+// processPRPage gets the PRs from GitHub for given page and returns them via
+// given channel. PRsCount contains the amount of PRs in the current response
+func (c *Connector) processPRPage(
 	ctx context.Context,
 	page int,
-	ret chan<- []*github.Issue,
+	ret chan<- []*github.PullRequest,
 ) (
 	resp *github.Response,
-	issuesCount int,
+	prsCount int,
 	err error,
 ) {
 
-	issues, resp, err := c.client.Issues.ListByRepo(
+	prs, resp, err := c.client.PullRequests.List(
 		ctx,
 		c.Owner,
 		c.Repo,
-		&github.IssueListByRepoOptions{
+		&github.PullRequestListOptions{
 			State:       "closed",
-			ListOptions: github.ListOptions{Page: page, PerPage: IssuesPerPage},
+			ListOptions: github.ListOptions{Page: page, PerPage: PRsPerPage},
 		},
 	)
 	if err != nil {
@@ -140,31 +142,31 @@ func (c *Connector) processIssuesPage(
 	select {
 	case <-ctx.Done():
 		return nil, 0, nil
-	case ret <- issues:
-		return resp, len(issues), nil
+	case ret <- prs:
+		return resp, len(prs), nil
 	}
 }
 
-// processIssuesPages processes GitHub Issues page numbers, given in the cpages channel and returns
-// the GH Issues data structures via channel
+// processPRPages processes GitHub PR page numbers, given in the cpages channel and returns
+// the GH PullRequest data structures via channel
 // possible errors are returned via given cerr channel
-func (c *Connector) processIssuesPages(
+func (c *Connector) processPRPages(
 	ctx context.Context,
 	cerr chan<- error,
-	cmaxissues chan<- int,
-	issues chan<- []*github.Issue,
+	cmaxprs chan<- int,
+	prs chan<- []*github.PullRequest,
 	wg *sync.WaitGroup,
 	lastPage int,
 ) (cpages chan<- int) {
 	ret := make(chan int)
 
-	for i := 0; i < issuesProcessingRoutines; i++ {
+	for i := 0; i < prsProcessingRoutines; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
 			for page := range ret {
-				_, n, err := c.processIssuesPage(ctx, page, issues)
+				_, n, err := c.processPRPage(ctx, page, prs)
 
 				if err != nil {
 					nonBlockingErrSend(ctx, cerr, err)
@@ -172,7 +174,7 @@ func (c *Connector) processIssuesPages(
 				}
 
 				if page == lastPage {
-					cmaxissues <- n + (lastPage-1)*IssuesPerPage
+					cmaxprs <- n + (lastPage-1)*PRsPerPage
 				}
 			}
 		}()
@@ -181,48 +183,53 @@ func (c *Connector) processIssuesPages(
 	return ret
 }
 
-func (c *Connector) processIssues(
+// processPRs processes given GitHub PRs in the cprs channel and returns
+// the PRs in our data structure via channel
+// possible errors are returned via given cerr channel
+func (c *Connector) processPRs(
 	ctx context.Context,
 	_ chan<- error,
-	cissues <-chan []*github.Issue,
-	cissuescounter chan<- bool,
+	cprs <-chan []*github.PullRequest,
+	cmrscounter chan<- bool,
 	wg *sync.WaitGroup,
-) <-chan data.Issue {
+) <-chan data.MR {
 
-	ret := make(chan data.Issue)
+	ret := make(chan data.MR)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < prsProcessingRoutines; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
-			for issues := range cissues {
-				for _, issue := range issues {
-					cissuescounter <- true
-					//ensure we have an issue and not PR
-					if issue.PullRequestLinks.GetURL() != "" {
+			for prs := range cprs {
+				for _, pr := range prs {
+					cmrscounter <- true
+					// we need only merged PRs, skip everything else
+					if pr.GetMergedAt() == (time.Time{}) {
 						continue
 					}
 
 					var lbs []string
-					if issue.Labels != nil && len(issue.Labels) > 0 {
-						for _, l := range issue.Labels {
+					if pr.Labels != nil && len(pr.Labels) > 0 {
+						for _, l := range pr.Labels {
 							lbs = append(lbs, *l.Name)
 						}
 					}
 
-					issue := data.Issue{
-						ID:         issue.GetNumber(),
-						Name:       issue.GetTitle(),
-						ClosedDate: issue.GetClosedAt(),
-						URL:        issue.GetHTMLURL(),
+					pr := data.MR{
+						ID:         pr.GetNumber(),
+						Name:       pr.GetTitle(),
+						MergedDate: pr.GetMergedAt(),
+						URL:        pr.GetHTMLURL(),
+						Author:     pr.User.GetLogin(),
+						AuthorURL:  pr.User.GetHTMLURL(),
 						Labels:     lbs,
 					}
 
 					select {
 					case <-ctx.Done():
 						return
-					case ret <- issue:
+					case ret <- pr:
 					}
 				}
 			}

@@ -24,11 +24,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/connectors/github"
-	"github.com/artem-sidorenko/chagen/internal/testing/helpers"
-
-	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/helpers"
+	"github.com/artem-sidorenko/chagen/source/connectors/github"
+	"github.com/artem-sidorenko/chagen/source/connectors/github/internal/testclient"
 )
 
 func TestConnector_Issues(t *testing.T) {

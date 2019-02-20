@@ -78,8 +78,30 @@ func CLIFlags(id string) ([]cli.Flag, error) {
 // checkConnector checks if given connector is registered.
 // Returns nil if everything ok, error otherwise
 func checkConnector(id string) error {
-	if _, ok := connectors[id]; !ok {
-		return fmt.Errorf("unknown connector: %s", id)
+	if ConnectorRegistered(id) {
+		return nil
 	}
-	return nil
+	return fmt.Errorf("unknown connector: %s", id)
+}
+
+// ConnectorRegistered verifies if given connector is registered
+// returns true if yes, false otherwise
+func ConnectorRegistered(id string) bool {
+	_, ok := connectors[id]
+	return ok
+}
+
+// ResetConnectors resets all registered connectors
+// this is mainly used in the tests
+func ResetConnectors() {
+	connectors = make(map[string]connector)
+}
+
+// RegisteredConnectors returns a slice of registered connector ids
+func RegisteredConnectors() []string {
+	var ret []string
+	for k := range connectors {
+		ret = append(ret, k)
+	}
+	return ret
 }

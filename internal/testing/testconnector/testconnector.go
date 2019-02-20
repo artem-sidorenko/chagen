@@ -22,9 +22,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/artem-sidorenko/chagen/connectors"
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/internal/testing/testconnector/testdata"
+	"github.com/artem-sidorenko/chagen/source/connectors"
 
 	"github.com/urfave/cli"
 )

@@ -19,7 +19,7 @@ package github_test
 import (
 	"testing"
 
-	"github.com/artem-sidorenko/chagen/connectors/github/internal/testclient"
+	"github.com/artem-sidorenko/chagen/source/connectors/github/internal/testclient"
 )
 
 func TestGetNewTagURL(t *testing.T) {
