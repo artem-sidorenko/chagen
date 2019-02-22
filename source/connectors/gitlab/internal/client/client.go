@@ -29,5 +29,6 @@ func New(ctx context.Context, AccessToken string) *Client {
 
 	return &Client{
 		Projects: client.Projects,
+		Tags:     client.Tags,
 	}
 }

@@ -18,9 +18,24 @@ package testclient
 
 import (
 	"net/http"
+	"time"
 
 	gitlab "github.com/xanzy/go-gitlab"
 )
+
+func genTag(name string, commitSha string, commitDate time.Time) *gitlab.Tag {
+	return &gitlab.Tag{
+		Name:   name,
+		Commit: genCommit(commitSha, commitDate),
+	}
+}
+
+func genCommit(sha string, commitDate time.Time) *gitlab.Commit {
+	return &gitlab.Commit{
+		ID:           sha,
+		AuthoredDate: &commitDate,
+	}
+}
 
 func genResponse(statusCode int) *gitlab.Response {
 	return &gitlab.Response{

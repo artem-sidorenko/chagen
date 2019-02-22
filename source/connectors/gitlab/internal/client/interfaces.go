@@ -29,7 +29,18 @@ type ProjectsService interface {
 	) (*gitlab.Project, *gitlab.Response, error)
 }
 
+// TagsService describes the methods we use from
+// gitlab.TagsService
+type TagsService interface {
+	ListTags(
+		pid interface{},
+		opt *gitlab.ListTagsOptions,
+		options ...gitlab.OptionFunc,
+	) ([]*gitlab.Tag, *gitlab.Response, error)
+}
+
 // Client wraps the gitlab.Client with interfaces we are using
 type Client struct {
 	Projects ProjectsService
+	Tags     TagsService
 }
