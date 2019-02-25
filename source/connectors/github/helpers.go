@@ -18,9 +18,10 @@ package github
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"path"
+
+	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
 )
 
 // nonBlockingErrSend sends the err to the error channel cerr
@@ -34,7 +35,7 @@ func nonBlockingErrSend(ctx context.Context, cerr chan<- error, err error) {
 
 // formatErrorCode formats the error message for this connector
 func formatErrorCode(query string, err error) error {
-	return fmt.Errorf("GitHub query '%s' failed: %s", query, err)
+	return helpers.FormatErrorCode("GitHub", query, err)
 }
 
 // getTagURL returns the URL for a given tag.

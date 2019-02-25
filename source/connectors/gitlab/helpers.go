@@ -2,14 +2,15 @@ package gitlab
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"path"
+
+	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
 )
 
 // formatErrorCode formats the error message for this connector
-func formatErrorCode(query string, err error) error {
-	return fmt.Errorf("GitLab query '%s' failed: %s", query, err)
+func formatErrorCode(query string, err error) error { // nolint: unparam
+	return helpers.FormatErrorCode("GitLab", query, err)
 }
 
 // nonBlockingErrSend sends the err to the error channel cerr
