@@ -21,9 +21,9 @@ package testclient
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/artem-sidorenko/chagen/source/connectors/github/internal/client"
+	"github.com/artem-sidorenko/chagen/source/connectors/internal/testing/apitestdata"
 
 	"github.com/google/go-github/github"
 )
@@ -158,26 +158,19 @@ func (g *GitHubPullRequestsService) List(
 	return g.RetPRs[start:end], resp, nil
 }
 
-type gitHubRepoServiceInput struct {
-	tag            string
-	commit         string
-	time           time.Time
-	releasePresent bool
-}
-
 // newGitHubRepoService returns initialized instance of GitHubRepoService
-// completely filled with provided testdata
-func newGitHubRepoService(rsinput []gitHubRepoServiceInput) *GitHubRepoService {
+func newGitHubRepoService() *GitHubRepoService {
 	rtags := []*github.RepositoryTag{}
 	rcommits := map[string]*github.RepositoryCommit{}
 	rreleases := map[string]*github.RepositoryRelease{}
-	for _, v := range rsinput {
-		rtags = append(rtags, genRepositoryTag(v.tag, v.commit, v.time))
-		rcommits[v.commit] = genRepositoryCommit(v.commit, v.time)
-		if v.releasePresent {
-			rreleases[v.tag] = genRepositoryRelease(
-				v.tag,
-				fmt.Sprintf("https://github.com/testowner/testrepo/releases/%v", v.tag),
+
+	for _, v := range apitestdata.Tags() {
+		rtags = append(rtags, genRepositoryTag(v.Tag, v.Commit, v.Time))
+		rcommits[v.Commit] = genRepositoryCommit(v.Commit, v.Time)
+		if v.ReleasePresent {
+			rreleases[v.Tag] = genRepositoryRelease(
+				v.Tag,
+				fmt.Sprintf("https://github.com/testowner/testrepo/releases/%v", v.Tag),
 			)
 		}
 	}
@@ -190,30 +183,21 @@ func newGitHubRepoService(rsinput []gitHubRepoServiceInput) *GitHubRepoService {
 	}
 }
 
-type gitHubIssueServiceInput struct {
-	id       int
-	title    string
-	closedAt time.Time
-	labels   []string
-	PR       bool
-}
-
 // newGitHubIssueService returns initialized instance of GitHubIssueService
-// completely filled with provided testdata
-func newGitHubIssueService(isinput []gitHubIssueServiceInput) *GitHubIssueService {
+func newGitHubIssueService() *GitHubIssueService {
 	rissues := []*github.Issue{}
 
-	for _, v := range isinput {
+	for _, v := range apitestdata.Issues() {
 		var i *github.Issue
 		if v.PR {
 			i = genIssuePR(
-				v.id, v.title, fmt.Sprintf("https://example.com/prs/%v", v.id),
+				v.ID, v.Title, fmt.Sprintf("https://example.com/prs/%v", v.ID),
 			)
 		} else {
 			i = genIssue(
-				v.id, v.title, v.closedAt,
-				fmt.Sprintf("http://example.com/issues/%v", v.id),
-				v.labels,
+				v.ID, v.Title, v.ClosedAt,
+				fmt.Sprintf("http://example.com/issues/%v", v.ID),
+				v.Labels,
 			)
 		}
 		rissues = append(rissues, i)
@@ -225,28 +209,17 @@ func newGitHubIssueService(isinput []gitHubIssueServiceInput) *GitHubIssueServic
 	}
 }
 
-type gitHubPullRequestsServiceInput struct {
-	id       int
-	title    string
-	username string
-	mergedAt time.Time
-	labels   []string
-}
-
 // newGitHubPullRequestsService returns initialized instance of GitHubPullRequestsService
 // completely filled with provided testdata
-func newGitHubPullRequestsService(
-	psinput []gitHubPullRequestsServiceInput,
-) *GitHubPullRequestsService {
-
+func newGitHubPullRequestsService() *GitHubPullRequestsService {
 	rprs := []*github.PullRequest{}
 
-	for _, v := range psinput {
+	for _, v := range apitestdata.MRs() {
 		rprs = append(rprs, genPR(
-			v.id, v.title,
-			fmt.Sprintf("https://example.com/pulls/%v", v.id),
-			v.username, fmt.Sprintf("https://example.com/users/%v", v.username),
-			v.mergedAt, v.labels,
+			v.ID, v.Title,
+			fmt.Sprintf("https://example.com/pulls/%v", v.ID),
+			v.Username, fmt.Sprintf("https://example.com/users/%v", v.Username),
+			v.MergedAt, v.Labels,
 		))
 	}
 
@@ -258,58 +231,9 @@ func newGitHubPullRequestsService(
 
 // New returns the configured simulated github API client
 func New(_ context.Context, _ string) *client.GitHubClient {
-	r := newGitHubRepoService([]gitHubRepoServiceInput{
-		{"v0.0.1", "7d84cdb2f7c2d4619cda4b8adeb1897097b5c8fc", time.Unix(2047083647, 0), true},
-		{"v0.0.2", "b3622b516b8ad70ce5dc3fa422fb90c3b58fa9da", time.Unix(2047183647, 0), false},
-		{"v0.0.3", "52f214dc3bf6c0e2a87eae6eab363a317c5a665f", time.Unix(2047283647, 0), true},
-		{"v0.0.4", "d4ff341587bc80a9c897c28340df9fe8f9fc6309", time.Unix(2047383647, 0), false},
-		{"v0.0.5", "746e45ea014e257bcb7caa2c100ed1e5f63ed234", time.Unix(2047483647, 0), false},
-		{"v0.0.6", "ddde800c451bae606713ae0f8418badcf31db120", time.Unix(2047583647, 0), false},
-		{"v0.0.7", "d21438494dd0722c1d13dc496ae1f60fb85084c1", time.Unix(2047683647, 0), true},
-		{"v0.0.8", "8d8d817a530bc1c3f792d9508c187b5769c434c5", time.Unix(2047783647, 0), false},
-		{"v0.0.9", "fc9f16ecc043e3fe422834cd127311d11d423668", time.Unix(2047883647, 0), false},
-		{"v0.1.0", "dbbf36ffaae700a2ce03ef849d6f944031f34b95", time.Unix(2047983647, 0), true},
-		{"v0.1.1", "fc5d68ff1cf691e09f6ead044813274953c9b843", time.Unix(2048083647, 0), true},
-		{"v0.1.2", "d8351413f688c96c2c5d6fe58ebf5ac17f545bc0", time.Unix(2048183647, 0), true},
-	})
-
-	i := newGitHubIssueService([]gitHubIssueServiceInput{
-		{1214, "Test issue title 1", time.Unix(2047093647, 0), []string{"enhancement"}, false},
-		{1227, "Test issue title 2", time.Unix(2047193647, 0), []string{"enhancement", "bugfix"}, false},
-		{1239, "Test PR title 3", time.Unix(2047293647, 0), nil, true},
-		{1244, "Test issue title 4", time.Unix(2047393647, 0), nil, false},
-		{1254, "Test PR title 5", time.Unix(2047493647, 0), []string{"wontfix"}, true},
-		{1264, "Test issue title 6", time.Unix(2047593647, 0), []string{"invalid"}, false},
-		{1274, "Test issue title 7", time.Unix(2047693647, 0), []string{"no changelog"}, false},
-		{1284, "Test PR title 8", time.Unix(2047793647, 0), []string{"enhancement"}, true},
-		{1294, "Test issue title 9", time.Unix(2047893647, 0), []string{}, false},
-		{1304, "Test issue title 10", time.Unix(2047993647, 0), []string{"wontfix"}, false},
-		{1214, "Test PR title 11", time.Unix(2048093647, 0), []string{"enhancement"}, true},
-		{1224, "Test issue title 12", time.Unix(2048193647, 0), nil, false},
-		{1234, "Test issue title 13", time.Unix(2048293647, 0), []string{"enhancement"}, false},
-	})
-
-	p := newGitHubPullRequestsService([]gitHubPullRequestsServiceInput{
-		{2214, "Test PR title 1", "test-user", time.Unix(2047094647, 0), []string{"bugfix"}},
-		{2224, "Test PR title 2", "test-user2", time.Unix(2047194647, 0), nil},
-		{2234, "Test PR title 3", "test-user", time.Unix(2047294647, 0),
-			[]string{"enhancement", "bugfix"}},
-		{2244, "Test PR title 4 closed", "test-user", time.Time{}, []string{"wontfix"}},
-		{2254, "Test PR title 5", "test-user", time.Unix(2047494647, 0), []string{"bugfix"}},
-		{2264, "Test PR title 6", "test-user", time.Unix(2047594647, 0), []string{"enhancement"}},
-		{2274, "Test PR title 7", "test5-user", time.Unix(2047694647, 0), []string{"bugfix"}},
-		{2284, "Test PR title 8", "test-user", time.Unix(2047794647, 0), []string{"invalid"}},
-		{2294, "Test PR title 9", "test-user", time.Unix(2047894647, 0), []string{"bugfix"}},
-		{2304, "Test PR title 10", "test-user", time.Unix(2047994647, 0), []string{"bugfix"}},
-		{2314, "Test PR title 11", "test-user8", time.Unix(2048094647, 0), []string{"no changelog"}},
-		{2324, "Test PR title 12 closed", "test-user", time.Time{}, []string{"bugfix"}},
-		{2334, "Test PR title 13", "test-user", time.Unix(2048294647, 0), []string{"bugfix"}},
-		{2344, "Test PR title 14", "te77st-user", time.Unix(2048394647, 0), []string{"bugfix"}},
-	})
-
 	return &client.GitHubClient{
-		Repositories: r,
-		Issues:       i,
-		PullRequests: p,
+		Repositories: newGitHubRepoService(),
+		Issues:       newGitHubIssueService(),
+		PullRequests: newGitHubPullRequestsService(),
 	}
 }
