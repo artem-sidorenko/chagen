@@ -17,21 +17,11 @@
 package github
 
 import (
-	"context"
 	"net/url"
 	"path"
 
 	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
 )
-
-// nonBlockingErrSend sends the err to the error channel cerr
-// on the way, where the block might be released via context
-func nonBlockingErrSend(ctx context.Context, cerr chan<- error, err error) {
-	select {
-	case <-ctx.Done():
-	case cerr <- err:
-	}
-}
 
 // formatErrorCode formats the error message for this connector
 func formatErrorCode(query string, err error) error {

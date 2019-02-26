@@ -20,6 +20,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
+
 	"github.com/artem-sidorenko/chagen/data"
 
 	"github.com/google/go-github/github"
@@ -78,7 +80,7 @@ func (c *Connector) Issues(
 
 		resp, n, err := c.processIssuesPage(sctx, 1, issues)
 		if err != nil {
-			nonBlockingErrSend(sctx, scerr, err)
+			helpers.NonBlockingErrSend(sctx, scerr, err)
 			closeCh()
 			return
 		}
@@ -168,7 +170,7 @@ func (c *Connector) processIssuesPages(
 				_, n, err := c.processIssuesPage(ctx, page, issues)
 
 				if err != nil {
-					nonBlockingErrSend(ctx, cerr, err)
+					helpers.NonBlockingErrSend(ctx, cerr, err)
 					return
 				}
 

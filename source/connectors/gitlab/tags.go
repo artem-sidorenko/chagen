@@ -20,6 +20,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
+
 	"github.com/artem-sidorenko/chagen/data"
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -77,7 +79,7 @@ func (c *Connector) Tags(
 
 		resp, n, err := c.processTagPage(sctx, 1, tags)
 		if err != nil {
-			nonBlockingErrSend(sctx, scerr, err)
+			helpers.NonBlockingErrSend(sctx, scerr, err)
 			closeCh()
 			return
 		}
@@ -161,7 +163,7 @@ func (c *Connector) processTagPages(
 			for page := range ret {
 				_, n, err := c.processTagPage(ctx, page, tags)
 				if err != nil {
-					nonBlockingErrSend(ctx, cerr, err)
+					helpers.NonBlockingErrSend(ctx, cerr, err)
 					return
 				}
 
@@ -202,7 +204,7 @@ func (c *Connector) processTags(
 
 					tagURL, err := c.getTagURL(tagName)
 					if err != nil {
-						nonBlockingErrSend(ctx, cerr, err)
+						helpers.NonBlockingErrSend(ctx, cerr, err)
 						return
 					}
 

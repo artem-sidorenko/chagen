@@ -18,8 +18,18 @@
 package helpers
 
 import (
+	"context"
 	"fmt"
 )
+
+// NonBlockingErrSend sends the err to the error channel cerr
+// on the way, where the block might be released via context
+func NonBlockingErrSend(ctx context.Context, cerr chan<- error, err error) {
+	select {
+	case <-ctx.Done():
+	case cerr <- err:
+	}
+}
 
 // FormatErrorCode formats the error message
 func FormatErrorCode(conn, query string, err error) error {
