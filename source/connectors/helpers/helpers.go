@@ -35,3 +35,8 @@ func NonBlockingErrSend(ctx context.Context, cerr chan<- error, err error) {
 func FormatErrorCode(conn, query string, err error) error {
 	return fmt.Errorf("%s query '%s' failed: %s", conn, query, err)
 }
+
+// StringPtr returns a pointer for a given string
+func StringPtr(s string) *string {
+	return &s
+}

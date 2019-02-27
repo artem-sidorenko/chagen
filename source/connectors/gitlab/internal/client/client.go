@@ -28,7 +28,8 @@ func New(ctx context.Context, AccessToken string) *Client {
 	client := gitlab.NewClient(nil, AccessToken)
 
 	return &Client{
-		Projects: client.Projects,
-		Tags:     client.Tags,
+		Projects:      client.Projects,
+		Tags:          client.Tags,
+		MergeRequests: client.MergeRequests,
 	}
 }

@@ -39,8 +39,18 @@ type TagsService interface {
 	) ([]*gitlab.Tag, *gitlab.Response, error)
 }
 
+// MergeRequestsService describes the methods we use from gitlab.MergeRequestsService
+type MergeRequestsService interface {
+	ListProjectMergeRequests(
+		pid interface{},
+		opt *gitlab.ListProjectMergeRequestsOptions,
+		options ...gitlab.OptionFunc,
+	) ([]*gitlab.MergeRequest, *gitlab.Response, error)
+}
+
 // Client wraps the gitlab.Client with interfaces we are using
 type Client struct {
-	Projects ProjectsService
-	Tags     TagsService
+	Projects      ProjectsService
+	Tags          TagsService
+	MergeRequests MergeRequestsService
 }

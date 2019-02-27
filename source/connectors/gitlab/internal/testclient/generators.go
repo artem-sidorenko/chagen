@@ -23,6 +23,26 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
+func genMR(
+	number int,
+	title, webURL, userLogin string,
+	mergedAt time.Time, labels []string,
+) *gitlab.MergeRequest {
+	mr := &gitlab.MergeRequest{
+		IID:    number,
+		Title:  title,
+		Labels: labels,
+		WebURL: webURL,
+	}
+	mr.Author.Username = userLogin
+
+	if (mergedAt != time.Time{}) {
+		mr.MergedAt = &mergedAt
+	}
+
+	return mr
+}
+
 func genTag(name string, commitSha string, commitDate time.Time) *gitlab.Tag {
 	return &gitlab.Tag{
 		Name:   name,

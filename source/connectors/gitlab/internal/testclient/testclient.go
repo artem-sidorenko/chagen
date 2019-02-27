@@ -19,6 +19,7 @@ package testclient
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/artem-sidorenko/chagen/source/connectors/gitlab/internal/client"
 	"github.com/artem-sidorenko/chagen/source/connectors/internal/testing/apitestdata"
@@ -29,9 +30,10 @@ import (
 // ReturnValueStr represents the possible error return values of API
 // if some field is true - error is return, otherise not
 type ReturnValueStr struct {
-	ProjectsServiceGetProjectRespCode int
-	ProjectsServiceGetProjectErr      bool
-	TagsServiceListTagsErr            bool
+	ProjectsServiceGetProjectRespCode               int
+	ProjectsServiceGetProjectErr                    bool
+	TagsServiceListTagsErr                          bool
+	MergeRequestsServiceListProjectMergeRequestsErr bool
 }
 
 // ReturnValue controls the error return values of API for testclient instances
@@ -84,6 +86,28 @@ func (t *TagsService) ListTags(
 	return t.RetListTags[start:end], resp, nil
 }
 
+// MergeRequestsService sumulates the gitlab.MergeRequestsService
+type MergeRequestsService struct {
+	RetListProjectMergeRequests []*gitlab.MergeRequest
+	ReturnValue                 ReturnValueStr
+}
+
+// ListProjectMergeRequests simulates the (gitlab.MergeRequestsService).ListProjectMergeRequests
+func (m *MergeRequestsService) ListProjectMergeRequests(
+	_ interface{},
+	opt *gitlab.ListProjectMergeRequestsOptions,
+	_ ...gitlab.OptionFunc,
+) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
+
+	if m.ReturnValue.MergeRequestsServiceListProjectMergeRequestsErr {
+		return nil, nil, fmt.Errorf("can't fetch the MRs")
+	}
+
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(m.RetListProjectMergeRequests))
+
+	return m.RetListProjectMergeRequests[start:end], resp, nil
+}
+
 func newProjectService() *ProjectsService {
 	return &ProjectsService{
 		ReturnValue: ReturnValue,
@@ -103,10 +127,31 @@ func newTagsService() *TagsService {
 	}
 }
 
+func newMergeRequestsService() *MergeRequestsService {
+	ret := []*gitlab.MergeRequest{}
+
+	for _, mr := range apitestdata.MRs() {
+		// return only merged MRs, because of filter sent to API in the request
+		if mr.MergedAt != (time.Time{}) {
+			ret = append(ret, genMR(
+				mr.ID, mr.Title,
+				fmt.Sprintf("https://example.com/pulls/%v", mr.ID),
+				mr.Username, mr.MergedAt, mr.Labels,
+			))
+		}
+	}
+
+	return &MergeRequestsService{
+		ReturnValue:                 ReturnValue,
+		RetListProjectMergeRequests: ret,
+	}
+}
+
 // New returns the configured simulated gitlab API client
 func New(_ context.Context, _ string) *client.Client {
 	return &client.Client{
-		Projects: newProjectService(),
-		Tags:     newTagsService(),
+		Projects:      newProjectService(),
+		Tags:          newTagsService(),
+		MergeRequests: newMergeRequestsService(),
 	}
 }

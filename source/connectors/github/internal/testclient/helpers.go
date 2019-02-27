@@ -22,11 +22,6 @@ import (
 	"github.com/google/go-github/github"
 )
 
-// getStringPtr returns a pointer for a given string
-func getStringPtr(s string) *string {
-	return &s
-}
-
 // getIntPtr returns a pointer for a given int
 func getIntPtr(i int) *int {
 	return &i
