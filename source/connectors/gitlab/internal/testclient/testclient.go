@@ -117,8 +117,14 @@ func newProjectService() *ProjectsService {
 func newTagsService() *TagsService {
 	rtags := []*gitlab.Tag{}
 
+	commits := apitestdata.CommitsBySHA()
+
 	for _, tag := range apitestdata.Tags() {
-		rtags = append(rtags, genTag(tag.Tag, tag.Commit, tag.Time))
+		commit := commits[tag.Commit]
+		rtags = append(rtags, genTag(
+			tag.Tag,
+			genCommit(commit.SHA, commit.AuthoredDate),
+		))
 	}
 
 	return &TagsService{

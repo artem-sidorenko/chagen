@@ -43,10 +43,10 @@ func genMR(
 	return mr
 }
 
-func genTag(name string, commitSha string, commitDate time.Time) *gitlab.Tag {
+func genTag(name string, commit *gitlab.Commit) *gitlab.Tag {
 	return &gitlab.Tag{
 		Name:   name,
-		Commit: genCommit(commitSha, commitDate),
+		Commit: commit,
 	}
 }
 

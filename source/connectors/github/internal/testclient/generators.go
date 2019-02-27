@@ -43,10 +43,10 @@ func genRepositoryCommit(sha string, commitDate time.Time) *github.RepositoryCom
 	}
 }
 
-func genRepositoryTag(name string, commitSha string, commitDate time.Time) *github.RepositoryTag {
+func genRepositoryTag(name string, commit *github.Commit) *github.RepositoryTag {
 	return &github.RepositoryTag{
 		Name:   helpers.StringPtr(name),
-		Commit: genCommit(commitSha, commitDate),
+		Commit: commit,
 	}
 }
 

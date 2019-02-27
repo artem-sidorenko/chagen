@@ -164,10 +164,14 @@ func newGitHubRepoService() *GitHubRepoService {
 	rcommits := map[string]*github.RepositoryCommit{}
 	rreleases := map[string]*github.RepositoryRelease{}
 
+	for _, v := range apitestdata.Commits() {
+		rcommits[v.SHA] = genRepositoryCommit(v.SHA, v.AuthoredDate)
+	}
+
 	for _, v := range apitestdata.Tags() {
-		rtags = append(rtags, genRepositoryTag(v.Tag, v.Commit, v.Time))
-		rcommits[v.Commit] = genRepositoryCommit(v.Commit, v.Time)
-		if v.ReleasePresent {
+		rtags = append(rtags, genRepositoryTag(v.Tag, rcommits[v.Commit].Commit))
+
+		if v.ReleaseTime != nil {
 			rreleases[v.Tag] = genRepositoryRelease(
 				v.Tag,
 				fmt.Sprintf("https://github.com/testowner/testrepo/releases/%v", v.Tag),
