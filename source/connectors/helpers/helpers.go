@@ -20,6 +20,7 @@ package helpers
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
 // NonBlockingErrSend sends the err to the error channel cerr
@@ -39,4 +40,9 @@ func FormatErrorCode(conn, query string, err error) error {
 // StringPtr returns a pointer for a given string
 func StringPtr(s string) *string {
 	return &s
+}
+
+// TimePtr returns a pointer for a given time
+func TimePtr(t time.Time) *time.Time {
+	return &t
 }

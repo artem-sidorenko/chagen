@@ -17,19 +17,12 @@
 package testclient
 
 import (
-	"time"
-
 	"github.com/google/go-github/github"
 )
 
 // getIntPtr returns a pointer for a given int
 func getIntPtr(i int) *int {
 	return &i
-}
-
-// getTimePtr returns a pointer for a given Time
-func getTimePtr(t time.Time) *time.Time {
-	return &t
 }
 
 // calcPaging calculates the paging options for simulation

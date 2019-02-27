@@ -26,7 +26,7 @@ import (
 
 func genCommitAuthor(commitDate time.Time) *github.CommitAuthor {
 	return &github.CommitAuthor{
-		Date: getTimePtr(commitDate),
+		Date: helpers.TimePtr(commitDate),
 	}
 }
 
@@ -82,7 +82,7 @@ func genIssue(
 	return &github.Issue{
 		Number:   getIntPtr(number),
 		Title:    helpers.StringPtr(title),
-		ClosedAt: getTimePtr(closedAt),
+		ClosedAt: helpers.TimePtr(closedAt),
 		HTMLURL:  helpers.StringPtr(htmlURL),
 		Labels:   lbs,
 	}
@@ -126,7 +126,7 @@ func genPR(
 	}
 
 	if (mergedAt != time.Time{}) {
-		pr.MergedAt = getTimePtr(mergedAt)
+		pr.MergedAt = helpers.TimePtr(mergedAt)
 	}
 
 	return pr
