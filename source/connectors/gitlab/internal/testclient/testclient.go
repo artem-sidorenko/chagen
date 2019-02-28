@@ -31,9 +31,11 @@ import (
 // if some field is true - error is return, otherise not
 type ReturnValueStr struct {
 	ProjectsServiceGetProjectRespCode               int
+	CommitsServiceGetCommitRespCode                 int
 	ProjectsServiceGetProjectErr                    bool
 	TagsServiceListTagsErr                          bool
 	MergeRequestsServiceListProjectMergeRequestsErr bool
+	CommitsServiceGetCommitErr                      bool
 }
 
 // ReturnValue controls the error return values of API for testclient instances
@@ -108,6 +110,38 @@ func (m *MergeRequestsService) ListProjectMergeRequests(
 	return m.RetListProjectMergeRequests[start:end], resp, nil
 }
 
+// CommitsService simulates the gitlab.CommitsService
+type CommitsService struct {
+	RetGetCommit map[string]*gitlab.Commit
+	ReturnValue  ReturnValueStr
+}
+
+// GetCommit simulates the (gitlab.CommitsService).GetCommit
+func (c *CommitsService) GetCommit(
+	_ interface{},
+	sha string,
+	_ ...gitlab.OptionFunc,
+) (*gitlab.Commit, *gitlab.Response, error) {
+
+	//if return code not defined, return 200 for Ok
+	respCode := 200
+	if c.ReturnValue.CommitsServiceGetCommitRespCode != 0 {
+		respCode = c.ReturnValue.CommitsServiceGetCommitRespCode
+	}
+
+	response := genResponse(respCode)
+
+	if c.ReturnValue.CommitsServiceGetCommitErr {
+		return nil, response, fmt.Errorf("can't fetch the commit")
+	}
+
+	if cm, ok := c.RetGetCommit[sha]; ok {
+		return cm, response, nil
+	}
+
+	return nil, response, fmt.Errorf("commit %v is not present", sha)
+}
+
 func newProjectService() *ProjectsService {
 	return &ProjectsService{
 		ReturnValue: ReturnValue,
@@ -142,8 +176,17 @@ func newMergeRequestsService() *MergeRequestsService {
 			ret = append(ret, genMR(
 				mr.ID, mr.Title,
 				fmt.Sprintf("https://example.com/pulls/%v", mr.ID),
-				mr.Username, mr.MergedAt, mr.Labels,
+				mr.Username, mr.MergedAt, mr.MergeCommitSHA,
+				mr.Labels,
 			))
+		}
+	}
+
+	// remove merged_at information based on some pseudo-random order
+	// this simulates the GitLab bug https://gitlab.com/gitlab-org/gitlab-ce/issues/58061
+	for i := range ret {
+		if i%3 == 0 {
+			ret[i].MergedAt = nil
 		}
 	}
 
@@ -153,11 +196,25 @@ func newMergeRequestsService() *MergeRequestsService {
 	}
 }
 
+func newCommitsService() *CommitsService {
+	ret := map[string]*gitlab.Commit{}
+
+	for _, commit := range apitestdata.Commits() {
+		ret[commit.SHA] = genCommit(commit.SHA, commit.AuthoredDate)
+	}
+
+	return &CommitsService{
+		ReturnValue:  ReturnValue,
+		RetGetCommit: ret,
+	}
+}
+
 // New returns the configured simulated gitlab API client
 func New(_ context.Context, _ string) *client.Client {
 	return &client.Client{
 		Projects:      newProjectService(),
 		Tags:          newTagsService(),
 		MergeRequests: newMergeRequestsService(),
+		Commits:       newCommitsService(),
 	}
 }

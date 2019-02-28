@@ -26,13 +26,14 @@ import (
 func genMR(
 	number int,
 	title, webURL, userLogin string,
-	mergedAt time.Time, labels []string,
+	mergedAt time.Time, mergeCommitSHA string, labels []string,
 ) *gitlab.MergeRequest {
 	mr := &gitlab.MergeRequest{
-		IID:    number,
-		Title:  title,
-		Labels: labels,
-		WebURL: webURL,
+		IID:            number,
+		Title:          title,
+		Labels:         labels,
+		WebURL:         webURL,
+		MergeCommitSHA: mergeCommitSHA,
 	}
 	mr.Author.Username = userLogin
 

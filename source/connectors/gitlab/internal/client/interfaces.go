@@ -48,9 +48,19 @@ type MergeRequestsService interface {
 	) ([]*gitlab.MergeRequest, *gitlab.Response, error)
 }
 
+// CommitsService describes the methods we use from gitlab.CommitsService
+type CommitsService interface {
+	GetCommit(
+		pid interface{},
+		sha string,
+		options ...gitlab.OptionFunc,
+	) (*gitlab.Commit, *gitlab.Response, error)
+}
+
 // Client wraps the gitlab.Client with interfaces we are using
 type Client struct {
 	Projects      ProjectsService
 	Tags          TagsService
 	MergeRequests MergeRequestsService
+	Commits       CommitsService
 }
