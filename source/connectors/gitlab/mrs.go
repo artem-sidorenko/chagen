@@ -210,11 +210,17 @@ func (c *Connector) processMRs(
 						return
 					}
 
+					commit, _, err := c.client.Commits.GetCommit(c.Owner+"/"+c.Repo, mr.MergeCommitSHA)
+					if err != nil {
+						helpers.NonBlockingErrSend(ctx, cerr, err)
+						return
+					}
+
 					rmr := data.MR{
 						ID:         mr.IID,
 						Name:       mr.Title,
 						URL:        mr.WebURL,
-						MergedDate: *mr.MergedAt,
+						MergedDate: *commit.AuthoredDate,
 						Author:     mr.Author.Username,
 						AuthorURL:  authorURL,
 						Labels:     mr.Labels,
