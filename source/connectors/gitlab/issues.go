@@ -198,6 +198,14 @@ func (c *Connector) processIssues(
 				for _, issue := range issues {
 					cissuescounter <- true
 
+					// GitLab issue:
+					// https://gitlab.com/gitlab-org/gitlab-ce/issues/58061#note_147492378
+					// We do not have any other source of information about closed state of issue
+					// we have to skip the entire issue :-(
+					if issue.ClosedAt == nil {
+						continue
+					}
+
 					issue := data.Issue{
 						ID:         issue.IID,
 						Name:       issue.Title,
