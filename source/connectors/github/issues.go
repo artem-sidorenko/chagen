@@ -20,6 +20,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
+
 	"github.com/artem-sidorenko/chagen/data"
 
 	"github.com/google/go-github/github"
@@ -78,7 +80,7 @@ func (c *Connector) Issues(
 
 		resp, n, err := c.processIssuesPage(sctx, 1, issues)
 		if err != nil {
-			nonBlockingErrSend(sctx, scerr, err)
+			helpers.NonBlockingErrSend(sctx, scerr, err)
 			closeCh()
 			return
 		}
@@ -114,7 +116,7 @@ func (c *Connector) Issues(
 }
 
 // processIssuesPage gets the Issues from GitHub for given page and returns them via
-// given channel. IssuesCount contains the amount of PRs in the current response
+// given channel. IssuesCount contains the amount of issues in the current response
 func (c *Connector) processIssuesPage(
 	ctx context.Context,
 	page int,
@@ -168,7 +170,7 @@ func (c *Connector) processIssuesPages(
 				_, n, err := c.processIssuesPage(ctx, page, issues)
 
 				if err != nil {
-					nonBlockingErrSend(ctx, cerr, err)
+					helpers.NonBlockingErrSend(ctx, cerr, err)
 					return
 				}
 

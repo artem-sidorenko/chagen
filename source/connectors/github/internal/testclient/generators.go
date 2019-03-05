@@ -20,18 +20,19 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
 	"github.com/google/go-github/github"
 )
 
 func genCommitAuthor(commitDate time.Time) *github.CommitAuthor {
 	return &github.CommitAuthor{
-		Date: getTimePtr(commitDate),
+		Date: helpers.TimePtr(commitDate),
 	}
 }
 
 func genCommit(sha string, commitDate time.Time) *github.Commit {
 	return &github.Commit{
-		SHA:       getStringPtr(sha),
+		SHA:       helpers.StringPtr(sha),
 		Committer: genCommitAuthor(commitDate),
 	}
 }
@@ -42,18 +43,18 @@ func genRepositoryCommit(sha string, commitDate time.Time) *github.RepositoryCom
 	}
 }
 
-func genRepositoryTag(name string, commitSha string, commitDate time.Time) *github.RepositoryTag {
+func genRepositoryTag(name string, commit *github.Commit) *github.RepositoryTag {
 	return &github.RepositoryTag{
-		Name:   getStringPtr(name),
-		Commit: genCommit(commitSha, commitDate),
+		Name:   helpers.StringPtr(name),
+		Commit: commit,
 	}
 }
 
 // nolint: unparam
 func genRepositoryRelease(tagName, htmlURL string) *github.RepositoryRelease {
 	return &github.RepositoryRelease{
-		TagName: getStringPtr(tagName),
-		HTMLURL: getStringPtr(htmlURL),
+		TagName: helpers.StringPtr(tagName),
+		HTMLURL: helpers.StringPtr(htmlURL),
 	}
 }
 
@@ -74,15 +75,15 @@ func genIssue(
 
 	for _, l := range labels {
 		lbs = append(lbs, github.Label{
-			Name: getStringPtr(l),
+			Name: helpers.StringPtr(l),
 		})
 	}
 
 	return &github.Issue{
 		Number:   getIntPtr(number),
-		Title:    getStringPtr(title),
-		ClosedAt: getTimePtr(closedAt),
-		HTMLURL:  getStringPtr(htmlURL),
+		Title:    helpers.StringPtr(title),
+		ClosedAt: helpers.TimePtr(closedAt),
+		HTMLURL:  helpers.StringPtr(htmlURL),
 		Labels:   lbs,
 	}
 }
@@ -93,8 +94,8 @@ func genIssuePR(
 ) *github.Issue {
 	return &github.Issue{
 		Number:           getIntPtr(number),
-		Title:            getStringPtr(title),
-		PullRequestLinks: &github.PullRequestLinks{URL: getStringPtr(prLink)},
+		Title:            helpers.StringPtr(title),
+		PullRequestLinks: &github.PullRequestLinks{URL: helpers.StringPtr(prLink)},
 	}
 }
 
@@ -109,23 +110,23 @@ func genPR(
 
 	for _, l := range labels {
 		lbs = append(lbs, &github.Label{
-			Name: getStringPtr(l),
+			Name: helpers.StringPtr(l),
 		})
 	}
 
 	pr := &github.PullRequest{
 		Number:  getIntPtr(number),
-		Title:   getStringPtr(title),
-		HTMLURL: getStringPtr(htmlURL),
+		Title:   helpers.StringPtr(title),
+		HTMLURL: helpers.StringPtr(htmlURL),
 		User: &github.User{
-			Login:   getStringPtr(userLogin),
-			HTMLURL: getStringPtr(userHTMLURL),
+			Login:   helpers.StringPtr(userLogin),
+			HTMLURL: helpers.StringPtr(userHTMLURL),
 		},
 		Labels: lbs,
 	}
 
 	if (mergedAt != time.Time{}) {
-		pr.MergedAt = getTimePtr(mergedAt)
+		pr.MergedAt = helpers.TimePtr(mergedAt)
 	}
 
 	return pr

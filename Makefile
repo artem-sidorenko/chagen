@@ -16,6 +16,12 @@ prepare-env: ## Prepare the development/test environment
 	gometalinter --install
 	go get -u github.com/tcnksm/ghr
 
+lint: ## Run the linters
+	gometalinter --enable-all --disable=dupl --deadline=300s --line-length=100 -s vendor ./...
+
+fasttest: ## Run the fast tests
+	go test -timeout 30s -count 1 $$(go list ./... | grep -v /vendor/)
+
 test: ## Run the tests
 	go test -timeout 30s -race -cpu 4 -count 10 $$(go list ./... | grep -v /vendor/)
 	gometalinter --enable-all --disable=dupl --deadline=300s --line-length=100 -s vendor ./...

@@ -21,6 +21,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/artem-sidorenko/chagen/source/connectors/helpers"
+
 	"github.com/artem-sidorenko/chagen/data"
 
 	"github.com/google/go-github/github"
@@ -79,7 +81,7 @@ func (c *Connector) MRs(
 
 		resp, n, err := c.processPRPage(sctx, 1, mrs)
 		if err != nil {
-			nonBlockingErrSend(sctx, scerr, err)
+			helpers.NonBlockingErrSend(sctx, scerr, err)
 			closeCh()
 			return
 		}
@@ -169,7 +171,7 @@ func (c *Connector) processPRPages(
 				_, n, err := c.processPRPage(ctx, page, prs)
 
 				if err != nil {
-					nonBlockingErrSend(ctx, cerr, err)
+					helpers.NonBlockingErrSend(ctx, cerr, err)
 					return
 				}
 

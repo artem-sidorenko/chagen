@@ -1,5 +1,5 @@
-hash: 330d5b7918a755de93beadf8df70ac57fde0dac5920b0f02ca7995c811e9ab80
-updated: 2019-01-03T22:35:41.722336+01:00
+hash: 1fdca0012b79f984c9693ff7fc0cb92f004c49cebfe57bf8fa8641118158cba3
+updated: 2019-02-03T20:18:10.249204+01:00
 imports:
 - name: github.com/golang/protobuf
   version: 1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f
@@ -15,6 +15,8 @@ imports:
   - query
 - name: github.com/urfave/cli
   version: b67dcf995b6a7b7f14fad5fcb7cc5441b05e814b
+- name: github.com/xanzy/go-gitlab
+  version: cd1e3f03a766cd7f9a7d2257926039b77f2c7710
 - name: golang.org/x/net
   version: 927f97764cc334a6575f4b7a1584a147864d5723
   subpackages:
