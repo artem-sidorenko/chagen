@@ -19,4 +19,5 @@ package source
 
 import (
 	_ "github.com/artem-sidorenko/chagen/source/connectors/github" //enable github
+	_ "github.com/artem-sidorenko/chagen/source/connectors/gitlab" //enable gitlab
 )
