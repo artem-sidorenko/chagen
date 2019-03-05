@@ -26,9 +26,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// NewGitHubClient intialized and returns a new gitHubClient
+// New intialized and returns a new gitHubClient
 // Uses AccessToken for oauth2 authentication if not empty
-func NewGitHubClient(ctx context.Context, AccessToken string) *GitHubClient {
+func New(ctx context.Context, AccessToken string) *Client {
 	var tc *http.Client
 
 	if AccessToken != "" {
@@ -40,7 +40,7 @@ func NewGitHubClient(ctx context.Context, AccessToken string) *GitHubClient {
 
 	client := github.NewClient(tc)
 
-	return &GitHubClient{
+	return &Client{
 		Repositories: client.Repositories,
 		Issues:       client.Issues,
 		PullRequests: client.PullRequests,

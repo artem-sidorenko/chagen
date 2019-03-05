@@ -69,7 +69,7 @@ func (p *ProjectsService) GetProject(
 
 // TagsService sumulates the gitlab.TagsService
 type TagsService struct {
-	RetListTags []*gitlab.Tag
+	Tags        []*gitlab.Tag
 	ReturnValue ReturnValueStr
 }
 
@@ -84,15 +84,15 @@ func (t *TagsService) ListTags(
 		return nil, nil, fmt.Errorf("can't fetch the tags")
 	}
 
-	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(t.RetListTags))
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(t.Tags))
 
-	return t.RetListTags[start:end], resp, nil
+	return t.Tags[start:end], resp, nil
 }
 
 // MergeRequestsService sumulates the gitlab.MergeRequestsService
 type MergeRequestsService struct {
-	RetListProjectMergeRequests []*gitlab.MergeRequest
-	ReturnValue                 ReturnValueStr
+	MRs         []*gitlab.MergeRequest
+	ReturnValue ReturnValueStr
 }
 
 // ListProjectMergeRequests simulates the (gitlab.MergeRequestsService).ListProjectMergeRequests
@@ -106,15 +106,15 @@ func (m *MergeRequestsService) ListProjectMergeRequests(
 		return nil, nil, fmt.Errorf("can't fetch the MRs")
 	}
 
-	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(m.RetListProjectMergeRequests))
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(m.MRs))
 
-	return m.RetListProjectMergeRequests[start:end], resp, nil
+	return m.MRs[start:end], resp, nil
 }
 
 // CommitsService simulates the gitlab.CommitsService
 type CommitsService struct {
-	RetGetCommit map[string]*gitlab.Commit
-	ReturnValue  ReturnValueStr
+	Commits     map[string]*gitlab.Commit
+	ReturnValue ReturnValueStr
 }
 
 // GetCommit simulates the (gitlab.CommitsService).GetCommit
@@ -136,7 +136,7 @@ func (c *CommitsService) GetCommit(
 		return nil, response, fmt.Errorf("can't fetch the commit")
 	}
 
-	if cm, ok := c.RetGetCommit[sha]; ok {
+	if cm, ok := c.Commits[sha]; ok {
 		return cm, response, nil
 	}
 
@@ -145,8 +145,8 @@ func (c *CommitsService) GetCommit(
 
 // IssuesService simulates the gitlab.IssuesService
 type IssuesService struct {
-	RetListProjectIssues []*gitlab.Issue
-	ReturnValue          ReturnValueStr
+	Issues      []*gitlab.Issue
+	ReturnValue ReturnValueStr
 }
 
 // ListProjectIssues simulates the (gitlab.IssuesService).ListProjectIssues
@@ -159,9 +159,9 @@ func (i *IssuesService) ListProjectIssues(
 		return nil, nil, fmt.Errorf("can't fetch the issues")
 	}
 
-	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(i.RetListProjectIssues))
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(i.Issues))
 
-	return i.RetListProjectIssues[start:end], resp, nil
+	return i.Issues[start:end], resp, nil
 }
 
 func newProjectService() *ProjectsService {
@@ -185,7 +185,7 @@ func newTagsService() *TagsService {
 
 	return &TagsService{
 		ReturnValue: ReturnValue,
-		RetListTags: rtags,
+		Tags:        rtags,
 	}
 }
 
@@ -213,8 +213,8 @@ func newMergeRequestsService() *MergeRequestsService {
 	}
 
 	return &MergeRequestsService{
-		ReturnValue:                 ReturnValue,
-		RetListProjectMergeRequests: ret,
+		ReturnValue: ReturnValue,
+		MRs:         ret,
 	}
 }
 
@@ -226,8 +226,8 @@ func newCommitsService() *CommitsService {
 	}
 
 	return &CommitsService{
-		ReturnValue:  ReturnValue,
-		RetGetCommit: ret,
+		ReturnValue: ReturnValue,
+		Commits:     ret,
 	}
 }
 
@@ -248,8 +248,8 @@ func newIssuesService() *IssuesService {
 	}
 
 	return &IssuesService{
-		ReturnValue:          ReturnValue,
-		RetListProjectIssues: ret,
+		ReturnValue: ReturnValue,
+		Issues:      ret,
 	}
 }
 

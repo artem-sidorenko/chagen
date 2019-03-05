@@ -157,7 +157,7 @@ func TestConnector_MRs(t *testing.T) {
 		{
 			name: "ListPRs call fails",
 			returnValue: testclient.ReturnValueStr{
-				RetPullRequestsListErr: true,
+				PullRequestsListErr: true,
 			},
 			wantErr: errors.New("can't fetch the PRs"),
 		},

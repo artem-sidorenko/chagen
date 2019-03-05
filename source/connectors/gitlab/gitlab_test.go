@@ -32,7 +32,7 @@ func setupTestConnector(
 	returnValue testclient.ReturnValueStr,
 ) connectors.Connector {
 
-	gitlab.NewClientFunc = testclient.New
+	gitlab.NewClient = testclient.New
 	cliFlags := map[string]string{
 		"gitlab-owner": "testowner",
 		"gitlab-repo":  "testrepo",
@@ -153,7 +153,7 @@ func TestNew(t *testing.T) {
 
 			ctx := tcli.TestContext(gitlab.CLIFlags(), cliFlags)
 
-			gitlab.NewClientFunc = testclient.New
+			gitlab.NewClient = testclient.New
 			testclient.ReturnValue = tt.retErrControl
 			_, err := gitlab.New(ctx)
 
