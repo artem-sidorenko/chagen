@@ -63,3 +63,17 @@ func genResponse(statusCode int) *gitlab.Response {
 		Response: &http.Response{StatusCode: statusCode},
 	}
 }
+
+func genIssue(number int,
+	title, webURL string,
+	closedDate time.Time, labels []string,
+) *gitlab.Issue {
+
+	return &gitlab.Issue{
+		IID:      number,
+		Title:    title,
+		WebURL:   webURL,
+		ClosedAt: &closedDate,
+		Labels:   labels,
+	}
+}

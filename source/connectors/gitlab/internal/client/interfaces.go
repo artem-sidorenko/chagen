@@ -57,10 +57,20 @@ type CommitsService interface {
 	) (*gitlab.Commit, *gitlab.Response, error)
 }
 
+// IssuesService describes the methods we use from gitlab.IssuesService
+type IssuesService interface {
+	ListProjectIssues(
+		pid interface{},
+		opt *gitlab.ListProjectIssuesOptions,
+		options ...gitlab.OptionFunc,
+	) ([]*gitlab.Issue, *gitlab.Response, error)
+}
+
 // Client wraps the gitlab.Client with interfaces we are using
 type Client struct {
 	Projects      ProjectsService
 	Tags          TagsService
 	MergeRequests MergeRequestsService
 	Commits       CommitsService
+	Issues        IssuesService
 }

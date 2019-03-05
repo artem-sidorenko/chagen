@@ -32,5 +32,6 @@ func New(ctx context.Context, AccessToken string) *Client {
 		Tags:          client.Tags,
 		MergeRequests: client.MergeRequests,
 		Commits:       client.Commits,
+		Issues:        client.Issues,
 	}
 }

@@ -36,6 +36,7 @@ type ReturnValueStr struct {
 	TagsServiceListTagsErr                          bool
 	MergeRequestsServiceListProjectMergeRequestsErr bool
 	CommitsServiceGetCommitErr                      bool
+	IssuesServiceListProjectIssuesErr               bool
 }
 
 // ReturnValue controls the error return values of API for testclient instances
@@ -142,6 +143,27 @@ func (c *CommitsService) GetCommit(
 	return nil, response, fmt.Errorf("commit %v is not present", sha)
 }
 
+// IssuesService simulates the gitlab.IssuesService
+type IssuesService struct {
+	RetListProjectIssues []*gitlab.Issue
+	ReturnValue          ReturnValueStr
+}
+
+// ListProjectIssues simulates the (gitlab.IssuesService).ListProjectIssues
+func (i *IssuesService) ListProjectIssues(
+	_ interface{},
+	opt *gitlab.ListProjectIssuesOptions,
+	_ ...gitlab.OptionFunc,
+) ([]*gitlab.Issue, *gitlab.Response, error) {
+	if i.ReturnValue.IssuesServiceListProjectIssuesErr {
+		return nil, nil, fmt.Errorf("can't fetch the issues")
+	}
+
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(i.RetListProjectIssues))
+
+	return i.RetListProjectIssues[start:end], resp, nil
+}
+
 func newProjectService() *ProjectsService {
 	return &ProjectsService{
 		ReturnValue: ReturnValue,
@@ -209,6 +231,28 @@ func newCommitsService() *CommitsService {
 	}
 }
 
+func newIssuesService() *IssuesService {
+	ret := []*gitlab.Issue{}
+
+	for _, is := range apitestdata.Issues() {
+		// proceed only issues as GitLab API returns no MRs here
+		if !is.PR {
+			ret = append(ret, genIssue(
+				is.ID,
+				is.Title,
+				fmt.Sprintf("https://example.com/issues/%v", is.ID),
+				is.ClosedAt,
+				is.Labels,
+			))
+		}
+	}
+
+	return &IssuesService{
+		ReturnValue:          ReturnValue,
+		RetListProjectIssues: ret,
+	}
+}
+
 // New returns the configured simulated gitlab API client
 func New(_ context.Context, _ string) *client.Client {
 	return &client.Client{
@@ -216,5 +260,6 @@ func New(_ context.Context, _ string) *client.Client {
 		Tags:          newTagsService(),
 		MergeRequests: newMergeRequestsService(),
 		Commits:       newCommitsService(),
+		Issues:        newIssuesService(),
 	}
 }

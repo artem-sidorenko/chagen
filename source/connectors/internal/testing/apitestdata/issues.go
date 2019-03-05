@@ -38,7 +38,7 @@ func Issues() []Issue {
 		{1264, "Test issue title 6", time.Unix(2047593647, 0), []string{"invalid"}, false},
 		{1274, "Test issue title 7", time.Unix(2047693647, 0), []string{"no changelog"}, false},
 		{1284, "Test PR title 8", time.Unix(2047793647, 0), []string{"enhancement"}, true},
-		{1294, "Test issue title 9", time.Unix(2047893647, 0), []string{}, false},
+		{1294, "Test issue title 9", time.Unix(2047893647, 0), nil, false},
 		{1304, "Test issue title 10", time.Unix(2047993647, 0), []string{"wontfix"}, false},
 		{1214, "Test PR title 11", time.Unix(2048093647, 0), []string{"enhancement"}, true},
 		{1224, "Test issue title 12", time.Unix(2048193647, 0), nil, false},
