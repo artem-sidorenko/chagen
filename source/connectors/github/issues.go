@@ -116,7 +116,7 @@ func (c *Connector) Issues(
 }
 
 // processIssuesPage gets the Issues from GitHub for given page and returns them via
-// given channel. IssuesCount contains the amount of PRs in the current response
+// given channel. IssuesCount contains the amount of issues in the current response
 func (c *Connector) processIssuesPage(
 	ctx context.Context,
 	page int,
