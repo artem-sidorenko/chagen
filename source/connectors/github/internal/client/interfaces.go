@@ -25,9 +25,9 @@ import (
 // inspired by https://github.com/google/go-github/issues/113
 // lets have interfaces and structs which allow easy testing
 
-// GithubRepoService describes the methods we use from
+// RepoService describes the methods we use from
 // github.RepositoriesService
-type GithubRepoService interface {
+type RepoService interface {
 	ListTags(
 		ctx context.Context,
 		owner, repo string,
@@ -43,26 +43,26 @@ type GithubRepoService interface {
 		owner, repo string) (*github.Repository, *github.Response, error)
 }
 
-// GithubIssuesService describes the methods we use from
+// IssuesService describes the methods we use from
 // github.IssuesService
-type GithubIssuesService interface {
+type IssuesService interface {
 	ListByRepo(
 		ctx context.Context,
 		owner string, repo string,
 		opt *github.IssueListByRepoOptions) ([]*github.Issue, *github.Response, error)
 }
 
-// GitHubPullRequestsService describes the methods we use from
+// PullRequestsService describes the methods we use from
 // github.PullRequestsService
-type GitHubPullRequestsService interface {
+type PullRequestsService interface {
 	List(
 		ctx context.Context, owner string, repo string,
 		opt *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
 }
 
-// GitHubClient wraps the github.Client with interfaces we are using
-type GitHubClient struct {
-	Repositories GithubRepoService
-	Issues       GithubIssuesService
-	PullRequests GitHubPullRequestsService
+// Client wraps the github.Client with interfaces we are using
+type Client struct {
+	Repositories RepoService
+	Issues       IssuesService
+	PullRequests PullRequestsService
 }

@@ -36,15 +36,15 @@ const AccessTokenEnvVar = "CHAGEN_GITHUB_TOKEN" // nolint: gosec
 // Connector implements the GitHub connector
 type Connector struct {
 	context             context.Context
-	client              *client.GitHubClient
+	client              *client.Client
 	Owner               string
 	Repo                string
 	ProjectURL          string
 	NewTagUseReleaseURL bool
 }
 
-// NewGitHubClientFunc links to the constructor, which is used to create Connector.client
-var NewGitHubClientFunc = client.NewGitHubClient // nolint: gochecknoglobals
+// NewClient links to the constructor, which is used to create Connector.client
+var NewClient = client.New // nolint: gochecknoglobals
 
 // RepositoryExists checks if referenced repository is present
 func (c *Connector) RepositoryExists() (bool, error) {
@@ -80,7 +80,7 @@ func New(ctx *cli.Context) (connectors.Connector, error) {
 
 	return &Connector{
 		context:             context.Background(),
-		client:              NewGitHubClientFunc(context.Background(), os.Getenv(AccessTokenEnvVar)),
+		client:              NewClient(context.Background(), os.Getenv(AccessTokenEnvVar)),
 		Owner:               owner,
 		Repo:                repo,
 		NewTagUseReleaseURL: newTagUseReleaseURL,

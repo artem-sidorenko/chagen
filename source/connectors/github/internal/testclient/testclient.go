@@ -31,64 +31,64 @@ import (
 // ReturnValueStr represents the possible error controlling of API calls for testing
 // if a field is set to true - return error, otherwise not
 type ReturnValueStr struct {
-	RetRepoServiceListTagsErr    bool
-	RetRepoServiceGetCommitsErr  bool
-	RetIssueServiceListByRepoErr bool
-	RetPullRequestsListErr       bool
-	RetRepoServiceGetErr         bool
-	RetRepoServiceGetRespCode    int
+	RepoServiceListTagsErr    bool
+	RepoServiceGetCommitsErr  bool
+	IssueServiceListByRepoErr bool
+	PullRequestsListErr       bool
+	RepoServiceGetErr         bool
+	RepoServiceGetRespCode    int
 }
 
 // ReturnValue controls the error return values of API calls
 // for testclient instances created by New
 var ReturnValue = ReturnValueStr{} // nolint: gochecknoglobals
 
-// GitHubRepoService simulates the github.RepositoriesService
-type GitHubRepoService struct {
-	RetRepositoryTags     []*github.RepositoryTag
-	RetRepositoryCommits  map[string]*github.RepositoryCommit
-	RetRepositoryReleases map[string]*github.RepositoryRelease
-	ReturnValue           ReturnValueStr
+// RepoService simulates the github.RepositoriesService
+type RepoService struct {
+	RepositoryTags     []*github.RepositoryTag
+	RepositoryCommits  map[string]*github.RepositoryCommit
+	RepositoryReleases map[string]*github.RepositoryRelease
+	ReturnValue        ReturnValueStr
 }
 
 // ListTags simulates the (github.RepositoriesService) ListTags call
-func (g *GitHubRepoService) ListTags(
+func (g *RepoService) ListTags(
 	ctx context.Context,
 	owner, repo string,
 	opt *github.ListOptions,
 ) ([]*github.RepositoryTag, *github.Response, error) {
 
-	if g.ReturnValue.RetRepoServiceListTagsErr {
+	if g.ReturnValue.RepoServiceListTagsErr {
 		return nil, nil, fmt.Errorf("can't fetch the tags")
 	}
 
-	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetRepositoryTags))
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RepositoryTags))
 
-	return g.RetRepositoryTags[start:end], resp, nil
+	return g.RepositoryTags[start:end], resp, nil
 }
 
 // GetCommit simulates the (github.RepositoriesService) GetCommit call
-func (g *GitHubRepoService) GetCommit(
+func (g *RepoService) GetCommit(
 	ctx context.Context,
 	owner, repo, sha string,
 ) (*github.RepositoryCommit, *github.Response, error) {
 
-	if g.ReturnValue.RetRepoServiceGetCommitsErr {
+	if g.ReturnValue.RepoServiceGetCommitsErr {
 		return nil, nil, fmt.Errorf("can't fetch the commit")
 	}
 
-	if cm, ok := g.RetRepositoryCommits[sha]; ok {
+	if cm, ok := g.RepositoryCommits[sha]; ok {
 		return cm, nil, nil
 	}
 	return nil, nil, fmt.Errorf("commit %v is not present", sha)
 }
 
 // GetReleaseByTag simulates the (github.RepositoriesService) GetCommit call
-func (g *GitHubRepoService) GetReleaseByTag(
+func (g *RepoService) GetReleaseByTag(
 	ctx context.Context,
 	owner, repo, tag string,
 ) (*github.RepositoryRelease, *github.Response, error) {
-	if re, ok := g.RetRepositoryReleases[tag]; ok {
+	if re, ok := g.RepositoryReleases[tag]; ok {
 		return re, genResponse(200), nil
 	}
 
@@ -96,70 +96,70 @@ func (g *GitHubRepoService) GetReleaseByTag(
 }
 
 // Get simulates the (github.RepositoriesService) Get call
-func (g *GitHubRepoService) Get(
+func (g *RepoService) Get(
 	ctx context.Context,
 	owner, repo string) (*github.Repository, *github.Response, error) {
 
 	//if return code not defined, return 200 for Ok
 	respCode := 200
-	if g.ReturnValue.RetRepoServiceGetRespCode != 0 {
-		respCode = g.ReturnValue.RetRepoServiceGetRespCode
+	if g.ReturnValue.RepoServiceGetRespCode != 0 {
+		respCode = g.ReturnValue.RepoServiceGetRespCode
 	}
 
 	response := genResponse(respCode)
 
-	if g.ReturnValue.RetRepoServiceGetErr {
+	if g.ReturnValue.RepoServiceGetErr {
 		return nil, response, fmt.Errorf("can't fetch the repo data")
 	}
 
 	return nil, response, nil
 }
 
-// GitHubIssueService simulates the github.IssuesService
-type GitHubIssueService struct {
-	RetIssues     []*github.Issue
-	RetErrControl ReturnValueStr
+// IssueService simulates the github.IssuesService
+type IssueService struct {
+	Issues      []*github.Issue
+	ReturnValue ReturnValueStr
 }
 
 // ListByRepo simulates the (github.IssuesService) ListByRepo call
-func (g *GitHubIssueService) ListByRepo(
+func (g *IssueService) ListByRepo(
 	ctx context.Context,
 	owner string, repo string,
 	opt *github.IssueListByRepoOptions,
 ) ([]*github.Issue, *github.Response, error) {
 
-	if g.RetErrControl.RetIssueServiceListByRepoErr {
+	if g.ReturnValue.IssueServiceListByRepoErr {
 		return nil, nil, fmt.Errorf("can't fetch the issues")
 	}
 
-	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetIssues))
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.Issues))
 
-	return g.RetIssues[start:end], resp, nil
+	return g.Issues[start:end], resp, nil
 }
 
-// GitHubPullRequestsService simulates the github.PullRequestsService
-type GitHubPullRequestsService struct {
-	RetPRs        []*github.PullRequest
-	RetErrControl ReturnValueStr
+// PullRequestsService simulates the github.PullRequestsService
+type PullRequestsService struct {
+	PRs         []*github.PullRequest
+	ReturnValue ReturnValueStr
 }
 
 // List simulates the (github.PullRequestsService) ListByRepo call
-func (g *GitHubPullRequestsService) List(
+func (g *PullRequestsService) List(
 	ctx context.Context, owner string, repo string,
 	opt *github.PullRequestListOptions,
 ) ([]*github.PullRequest, *github.Response, error) {
 
-	if g.RetErrControl.RetPullRequestsListErr {
+	if g.ReturnValue.PullRequestsListErr {
 		return nil, nil, fmt.Errorf("can't fetch the PRs")
 	}
 
-	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.RetPRs))
+	resp, start, end := calcPaging(opt.Page, opt.PerPage, len(g.PRs))
 
-	return g.RetPRs[start:end], resp, nil
+	return g.PRs[start:end], resp, nil
 }
 
 // newGitHubRepoService returns initialized instance of GitHubRepoService
-func newGitHubRepoService() *GitHubRepoService {
+func newGitHubRepoService() *RepoService {
 	rtags := []*github.RepositoryTag{}
 	rcommits := map[string]*github.RepositoryCommit{}
 	rreleases := map[string]*github.RepositoryRelease{}
@@ -179,16 +179,16 @@ func newGitHubRepoService() *GitHubRepoService {
 		}
 	}
 
-	return &GitHubRepoService{
-		ReturnValue:           ReturnValue,
-		RetRepositoryTags:     rtags,
-		RetRepositoryCommits:  rcommits,
-		RetRepositoryReleases: rreleases,
+	return &RepoService{
+		ReturnValue:        ReturnValue,
+		RepositoryTags:     rtags,
+		RepositoryCommits:  rcommits,
+		RepositoryReleases: rreleases,
 	}
 }
 
 // newGitHubIssueService returns initialized instance of GitHubIssueService
-func newGitHubIssueService() *GitHubIssueService {
+func newGitHubIssueService() *IssueService {
 	rissues := []*github.Issue{}
 
 	for _, v := range apitestdata.Issues() {
@@ -207,15 +207,15 @@ func newGitHubIssueService() *GitHubIssueService {
 		rissues = append(rissues, i)
 	}
 
-	return &GitHubIssueService{
-		RetErrControl: ReturnValue,
-		RetIssues:     rissues,
+	return &IssueService{
+		ReturnValue: ReturnValue,
+		Issues:      rissues,
 	}
 }
 
 // newGitHubPullRequestsService returns initialized instance of GitHubPullRequestsService
 // completely filled with provided testdata
-func newGitHubPullRequestsService() *GitHubPullRequestsService {
+func newGitHubPullRequestsService() *PullRequestsService {
 	rprs := []*github.PullRequest{}
 
 	for _, v := range apitestdata.MRs() {
@@ -227,15 +227,15 @@ func newGitHubPullRequestsService() *GitHubPullRequestsService {
 		))
 	}
 
-	return &GitHubPullRequestsService{
-		RetErrControl: ReturnValue,
-		RetPRs:        rprs,
+	return &PullRequestsService{
+		ReturnValue: ReturnValue,
+		PRs:         rprs,
 	}
 }
 
 // New returns the configured simulated github API client
-func New(_ context.Context, _ string) *client.GitHubClient {
-	return &client.GitHubClient{
+func New(_ context.Context, _ string) *client.Client {
+	return &client.Client{
 		Repositories: newGitHubRepoService(),
 		Issues:       newGitHubIssueService(),
 		PullRequests: newGitHubPullRequestsService(),

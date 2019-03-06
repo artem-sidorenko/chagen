@@ -32,7 +32,7 @@ func setupTestConnector(
 	returnValue testclient.ReturnValueStr, newTagUseReleaseURL bool,
 ) connectors.Connector {
 
-	github.NewGitHubClientFunc = testclient.New
+	github.NewClient = testclient.New
 	cliFlags := map[string]string{
 		"github-owner": "testowner",
 		"github-repo":  "testrepo",
@@ -64,29 +64,29 @@ func TestConnector_RepositoryExists(t *testing.T) {
 		{
 			name: "API returns 200 for Ok",
 			returnValue: testclient.ReturnValueStr{
-				RetRepoServiceGetRespCode: 200,
+				RepoServiceGetRespCode: 200,
 			},
 			want: true,
 		},
 		{
 			name: "API returns 404",
 			returnValue: testclient.ReturnValueStr{
-				RetRepoServiceGetRespCode: 404,
-				RetRepoServiceGetErr:      true,
+				RepoServiceGetRespCode: 404,
+				RepoServiceGetErr:      true,
 			},
 			want: false,
 		},
 		{
 			name: "API returns unhandled error code 500",
 			returnValue: testclient.ReturnValueStr{
-				RetRepoServiceGetRespCode: 500,
+				RepoServiceGetRespCode: 500,
 			},
 			wantErr: errors.New("GitHub query 'RepositoryExists' failed: unhandled HTTP response code 500"),
 		},
 		{
 			name: "Get returns an error",
 			returnValue: testclient.ReturnValueStr{
-				RetRepoServiceGetErr: true,
+				RepoServiceGetErr: true,
 			},
 			wantErr: errors.New("GitHub query 'RepositoryExists' failed: can't fetch the repo data"),
 		},
@@ -158,7 +158,7 @@ func TestNew(t *testing.T) {
 
 			ctx := tcli.TestContext(github.CLIFlags(), cliFlags)
 
-			github.NewGitHubClientFunc = testclient.New
+			github.NewClient = testclient.New
 			testclient.ReturnValue = tt.retErrControl
 			_, err := github.New(ctx)
 

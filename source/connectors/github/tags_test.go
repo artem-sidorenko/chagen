@@ -119,14 +119,14 @@ func TestConnector_Tags(t *testing.T) {
 		{
 			name: "ListTags call fails",
 			returnValue: testclient.ReturnValueStr{
-				RetRepoServiceListTagsErr: true,
+				RepoServiceListTagsErr: true,
 			},
 			wantErr: errors.New("can't fetch the tags"),
 		},
 		{
 			name: "GetCommit call fails",
 			returnValue: testclient.ReturnValueStr{
-				RetRepoServiceGetCommitsErr: true,
+				RepoServiceGetCommitsErr: true,
 			},
 			wantErr: errors.New("can't fetch the commit"),
 		},

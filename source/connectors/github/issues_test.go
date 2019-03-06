@@ -112,7 +112,7 @@ func TestConnector_Issues(t *testing.T) {
 		{
 			name: "ListIssues call fails",
 			returnValue: testclient.ReturnValueStr{
-				RetIssueServiceListByRepoErr: true,
+				IssueServiceListByRepoErr: true,
 			},
 			wantErr: errors.New("can't fetch the issues"),
 		},

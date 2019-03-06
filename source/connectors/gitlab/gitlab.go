@@ -42,8 +42,8 @@ type Connector struct {
 	ProjectURL string
 }
 
-// NewClientFunc links to the constructor, which is used to create Connector.client
-var NewClientFunc = client.New // nolint: gochecknoglobals
+// NewClient links to the constructor, which is used to create Connector.client
+var NewClient = client.New // nolint: gochecknoglobals
 
 // RepositoryExists checks if referenced repository is present
 func (c *Connector) RepositoryExists() (bool, error) {
@@ -78,7 +78,7 @@ func New(ctx *cli.Context) (connectors.Connector, error) {
 
 	return &Connector{
 		context:    context.Background(),
-		client:     NewClientFunc(context.Background(), os.Getenv(AccessTokenEnvVar)),
+		client:     NewClient(context.Background(), os.Getenv(AccessTokenEnvVar)),
 		Owner:      owner,
 		Repo:       repo,
 		ProjectURL: fmt.Sprintf("https://gitlab.com/%s/%s", owner, repo),
