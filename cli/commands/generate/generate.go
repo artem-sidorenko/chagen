@@ -31,8 +31,8 @@ import (
 	"github.com/artem-sidorenko/chagen/generator"
 
 	// some of connectors control functionality will be moved to source at some point
-	_ "github.com/artem-sidorenko/chagen/source"
-	"github.com/artem-sidorenko/chagen/source/connectors"
+	_ "github.com/artem-sidorenko/chagen/datasource"
+	"github.com/artem-sidorenko/chagen/datasource/connectors"
 
 	"github.com/urfave/cli"
 )
