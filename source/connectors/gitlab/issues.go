@@ -126,7 +126,7 @@ func (c *Connector) processIssuesPage(
 ) {
 
 	issues, resp, err := c.client.Issues.ListProjectIssues(
-		c.Owner+"/"+c.Repo,
+		c.ProjectID(),
 		&gitlab.ListProjectIssuesOptions{
 			State:       helpers.StringPtr("closed"),
 			ListOptions: gitlab.ListOptions{Page: page, PerPage: IssuesPerPage}},

@@ -128,7 +128,7 @@ func (c *Connector) processMRPage(
 ) {
 
 	mrs, resp, err := c.client.MergeRequests.ListProjectMergeRequests(
-		c.Owner+"/"+c.Repo,
+		c.ProjectID(),
 		&gitlab.ListProjectMergeRequestsOptions{
 			State:       helpers.StringPtr("merged"),
 			ListOptions: gitlab.ListOptions{Page: page, PerPage: MRsPerPage}},
@@ -210,7 +210,7 @@ func (c *Connector) processMRs(
 						return
 					}
 
-					commit, _, err := c.client.Commits.GetCommit(c.Owner+"/"+c.Repo, mr.MergeCommitSHA)
+					commit, _, err := c.client.Commits.GetCommit(c.ProjectID(), mr.MergeCommitSHA)
 					if err != nil {
 						helpers.NonBlockingErrSend(ctx, cerr, err)
 						return
