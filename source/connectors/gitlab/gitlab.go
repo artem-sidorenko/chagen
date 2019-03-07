@@ -45,9 +45,14 @@ type Connector struct {
 // NewClient links to the constructor, which is used to create Connector.client
 var NewClient = client.New // nolint: gochecknoglobals
 
+// ProjectID returns the project ID of repository
+func (c *Connector) ProjectID() string {
+	return c.Owner + "/" + c.Repo
+}
+
 // RepositoryExists checks if referenced repository is present
 func (c *Connector) RepositoryExists() (bool, error) {
-	_, resp, err := c.client.Projects.GetProject(c.Owner + "/" + c.Repo)
+	_, resp, err := c.client.Projects.GetProject(c.ProjectID())
 	if err != nil {
 		if resp.StatusCode == 404 { // not found isn't an error
 			return false, nil

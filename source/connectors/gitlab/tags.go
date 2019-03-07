@@ -125,7 +125,7 @@ func (c *Connector) processTagPage(
 	err error,
 ) {
 	tags, resp, err := c.client.Tags.ListTags(
-		c.Owner+"/"+c.Repo,
+		c.ProjectID(),
 		&gitlab.ListTagsOptions{
 			ListOptions: gitlab.ListOptions{Page: page, PerPage: TagsPerPage}},
 	)
