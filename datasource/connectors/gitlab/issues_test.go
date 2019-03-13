@@ -19,7 +19,6 @@ package gitlab_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -147,9 +146,6 @@ func TestConnector_Issues(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Connector.Issues() = %+v, want %+v", got, tt.want)
-				for i, g := range got {
-					fmt.Printf("%#v \n %#v \n\n", g, tt.want[i])
-				}
 			}
 
 			if err == nil { // compare the processed Issues only in non-error situation
