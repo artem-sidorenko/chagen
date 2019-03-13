@@ -14,5 +14,5 @@
    limitations under the License.
 */
 
-// Package apitestdata provides some data for test clients of APIs
-package apitestdata
+// Package testdata provides some data for testing purposes
+package testdata

@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-package apitestdata
+package testdata
 
 import "time"
 

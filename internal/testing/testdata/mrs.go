@@ -14,9 +14,14 @@
    limitations under the License.
 */
 
-package apitestdata
+package testdata
 
-import "time"
+import (
+	"fmt"
+	"time"
+
+	"github.com/artem-sidorenko/chagen/data"
+)
 
 // MR describes a struct with PR/MR information
 type MR struct {
@@ -61,4 +66,21 @@ func MRs() []MR {
 		{2344, "Test PR title 14", "te77st-user", time.Unix(2048394647, 0),
 			"9618c791ab1f643aeffb7c5e1abe5877223aaa91", []string{"bugfix"}},
 	}
+}
+
+// DataMRs returns the tags in the data.MR format
+func DataMRs() []data.MR {
+	var r []data.MR
+	for _, m := range MRs() {
+		r = append(r, data.MR{
+			ID:         m.ID,
+			Author:     m.Username,
+			AuthorURL:  fmt.Sprintf("https://test.example.com/authors/%v", m.Username),
+			Labels:     m.Labels,
+			MergedDate: m.MergedAt,
+			Name:       m.Title,
+			URL:        fmt.Sprintf("https://test.example.com/mrs/%v", m.ID),
+		})
+	}
+	return r
 }

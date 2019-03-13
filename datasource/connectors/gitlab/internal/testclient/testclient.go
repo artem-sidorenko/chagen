@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/artem-sidorenko/chagen/datasource/connectors/gitlab/internal/client"
-	"github.com/artem-sidorenko/chagen/datasource/connectors/internal/testing/apitestdata"
+	"github.com/artem-sidorenko/chagen/internal/testing/testdata"
 
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -173,9 +173,9 @@ func newProjectService() *ProjectsService {
 func newTagsService() *TagsService {
 	rtags := []*gitlab.Tag{}
 
-	commits := apitestdata.CommitsBySHA()
+	commits := testdata.CommitsBySHA()
 
-	for _, tag := range apitestdata.Tags() {
+	for _, tag := range testdata.Tags() {
 		commit := commits[tag.Commit]
 		rtags = append(rtags, genTag(
 			tag.Tag,
@@ -192,7 +192,7 @@ func newTagsService() *TagsService {
 func newMergeRequestsService() *MergeRequestsService {
 	ret := []*gitlab.MergeRequest{}
 
-	for _, mr := range apitestdata.MRs() {
+	for _, mr := range testdata.MRs() {
 		// return only merged MRs, because of filter sent to API in the request
 		if mr.MergedAt != (time.Time{}) {
 			ret = append(ret, genMR(
@@ -221,7 +221,7 @@ func newMergeRequestsService() *MergeRequestsService {
 func newCommitsService() *CommitsService {
 	ret := map[string]*gitlab.Commit{}
 
-	for _, commit := range apitestdata.Commits() {
+	for _, commit := range testdata.Commits() {
 		ret[commit.SHA] = genCommit(commit.SHA, commit.AuthoredDate)
 	}
 
@@ -234,7 +234,7 @@ func newCommitsService() *CommitsService {
 func newIssuesService() *IssuesService {
 	ret := []*gitlab.Issue{}
 
-	for _, is := range apitestdata.Issues() {
+	for _, is := range testdata.Issues() {
 		// proceed only issues as GitLab API returns no MRs here
 		if !is.PR {
 			ret = append(ret, genIssue(

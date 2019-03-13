@@ -23,7 +23,7 @@ import (
 	"fmt"
 
 	"github.com/artem-sidorenko/chagen/datasource/connectors/github/internal/client"
-	"github.com/artem-sidorenko/chagen/datasource/connectors/internal/testing/apitestdata"
+	"github.com/artem-sidorenko/chagen/internal/testing/testdata"
 
 	"github.com/google/go-github/github"
 )
@@ -164,11 +164,11 @@ func newGitHubRepoService() *RepoService {
 	rcommits := map[string]*github.RepositoryCommit{}
 	rreleases := map[string]*github.RepositoryRelease{}
 
-	for _, v := range apitestdata.Commits() {
+	for _, v := range testdata.Commits() {
 		rcommits[v.SHA] = genRepositoryCommit(v.SHA, v.AuthoredDate)
 	}
 
-	for _, v := range apitestdata.Tags() {
+	for _, v := range testdata.Tags() {
 		rtags = append(rtags, genRepositoryTag(v.Tag, rcommits[v.Commit].Commit))
 
 		if v.ReleaseTime != nil {
@@ -191,7 +191,7 @@ func newGitHubRepoService() *RepoService {
 func newGitHubIssueService() *IssueService {
 	rissues := []*github.Issue{}
 
-	for _, v := range apitestdata.Issues() {
+	for _, v := range testdata.Issues() {
 		var i *github.Issue
 		if v.PR {
 			i = genIssuePR(
@@ -218,7 +218,7 @@ func newGitHubIssueService() *IssueService {
 func newGitHubPullRequestsService() *PullRequestsService {
 	rprs := []*github.PullRequest{}
 
-	for _, v := range apitestdata.MRs() {
+	for _, v := range testdata.MRs() {
 		rprs = append(rprs, genPR(
 			v.ID, v.Title,
 			fmt.Sprintf("https://example.com/pulls/%v", v.ID),

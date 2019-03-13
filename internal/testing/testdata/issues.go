@@ -14,9 +14,14 @@
    limitations under the License.
 */
 
-package apitestdata
+package testdata
 
-import "time"
+import (
+	"fmt"
+	"time"
+
+	"github.com/artem-sidorenko/chagen/data"
+)
 
 // Issue describes a struct with issue information
 type Issue struct {
@@ -44,4 +49,22 @@ func Issues() []Issue {
 		{1224, "Test issue title 12", time.Unix(2048193647, 0), nil, false},
 		{1234, "Test issue title 13", time.Unix(2048293647, 0), []string{"enhancement"}, false},
 	}
+}
+
+// DataIssues returns the tags in the data.Issue format
+func DataIssues() []data.Issue {
+	var r []data.Issue
+	for _, i := range Issues() {
+		if i.PR {
+			continue
+		}
+		r = append(r, data.Issue{
+			ID:         i.ID,
+			Name:       i.Title,
+			URL:        fmt.Sprintf("http://test.example.com/issues/%v", i.ID),
+			Labels:     i.Labels,
+			ClosedDate: i.ClosedAt,
+		})
+	}
+	return r
 }

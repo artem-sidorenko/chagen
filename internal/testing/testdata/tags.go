@@ -14,11 +14,13 @@
    limitations under the License.
 */
 
-package apitestdata
+package testdata
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/datasource/connectors/helpers"
 )
 
@@ -26,7 +28,7 @@ import (
 type Tag struct {
 	Tag         string
 	Commit      string
-	ReleaseTime *time.Time
+	ReleaseTime *time.Time // if its nil -> there is no Release present, just the tag
 }
 
 // Tags returns different tags
@@ -45,4 +47,19 @@ func Tags() []Tag {
 		{"v0.1.1", "fc5d68ff1cf691e09f6ead044813274953c9b843", helpers.TimePtr(time.Unix(2048083657, 0))},
 		{"v0.1.2", "d8351413f688c96c2c5d6fe58ebf5ac17f545bc0", helpers.TimePtr(time.Unix(2048183657, 0))},
 	}
+}
+
+// DataTags returns the tags in the data.Tag format
+func DataTags() []data.Tag {
+	var r []data.Tag
+	commits := CommitsBySHA()
+	for _, t := range Tags() {
+		r = append(r, data.Tag{
+			Commit: t.Commit,
+			Date:   commits[t.Commit].AuthoredDate,
+			Name:   t.Tag,
+			URL:    fmt.Sprintf("https://test.example.com/tags/%v", t.Tag),
+		})
+	}
+	return r
 }
