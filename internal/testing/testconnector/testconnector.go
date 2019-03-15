@@ -61,7 +61,7 @@ func (c *Connector) Tags(
 	if RetTestingTag {
 		tags = append(tags, data.Tag{
 			Name:   "testingtag",
-			Date:   time.Unix(1147783647, 0),
+			Date:   time.Unix(1047591647, 0),
 			Commit: "ad59c6b54ba53f54383d7c4661bdd4e29fe87c15",
 			URL:    "https://test.example.com/tags/testingtag",
 		})

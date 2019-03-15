@@ -53,7 +53,7 @@ func TestConnector_Issues(t *testing.T) {
 					Name:       "Test issue title 12",
 					ClosedDate: time.Unix(1048193647, 0),
 					URL:        "http://example.com/issues/1224",
-					Labels:     []string(nil),
+					Labels:     []string{"issue12"},
 				},
 				data.Issue{
 					ID:         1304,

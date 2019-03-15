@@ -31,7 +31,7 @@ import (
 	_ "github.com/artem-sidorenko/chagen/internal/testing/testconnector"
 )
 
-func genOutput(newRelease, testingTag, secondTag, excludedIssue bool) string {
+func genOutput(newRelease, testingTag, minorTags, excludedIssue bool) string {
 	// nolint: lll
 	tpl := `Changelog
 =========
@@ -42,59 +42,99 @@ func genOutput(newRelease, testingTag, secondTag, excludedIssue bool) string {
 
 Closed issues
 -------------
-- Issue 3 [\#3](http://test.example.com/issues/3)
-{{- if .ExcludedIssue }}
-- Issue 6 [\#6](http://test.example.com/issues/6)
-{{- else }}
-- Issue 5 [\#5](http://test.example.com/issues/5)
+- Test issue title 13 [\#1234](http://test.example.com/issues/1234)
+{{- if not .ExcludedIssue }}
+- Test issue title 12 [\#1224](http://test.example.com/issues/1224)
 {{- end }}
-- Issue 4 [\#4](http://test.example.com/issues/4)
 
 Merged pull requests
 --------------------
-- MR 4 [\#4](https://test.example.com/mrs/4) ([testauthor](https://test.example.com/authors/testauthor))
-
-{{- end }}
-
-## [v0.0.3](https://test.example.com/tags/v0.0.3) (13.07.2009)
-
-Closed issues
--------------
-- Issue 2 [\#2](http://test.example.com/issues/2)
-
-Merged pull requests
---------------------
-- MR 2 [\#2](https://test.example.com/mrs/2) ([testauthor](https://test.example.com/authors/testauthor))
-
-{{- if not .SecondTag }}
-- MR 3 [\#3](https://test.example.com/mrs/3) ([testauthor](https://test.example.com/authors/testauthor))
-{{- end }}
-
-{{- if .TestingTag }}
-
-## [testingtag](https://test.example.com/tags/testingtag) (16.05.2006)
+- Test PR title 14 [\#2344](https://test.example.com/mrs/2344) ([te77st-user](https://test.example.com/authors/te77st-user))
+- Test PR title 13 [\#2334](https://test.example.com/mrs/2334) ([test-user](https://test.example.com/authors/test-user))
 
 {{- end }}
 
 {{- if .SecondTag }}
 
-## [v0.0.2](https://test.example.com/tags/v0.0.2) (13.05.2006)
+## [v0.1.2](https://test.example.com/tags/v0.1.2) (20.03.2003)
+
+## [v0.1.1](https://test.example.com/tags/v0.1.1) (19.03.2003)
 
 Merged pull requests
 --------------------
-- MR 3 [\#3](https://test.example.com/mrs/3) ([testauthor](https://test.example.com/authors/testauthor))
+- Test PR title 10 [\#2304](https://test.example.com/mrs/2304) ([test-user](https://test.example.com/authors/test-user))
 
-{{- end }}
-
-## [v0.0.1](https://test.example.com/tags/v0.0.1) (12.03.2003)
+## [v0.1.0](https://test.example.com/tags/v0.1.0) (18.03.2003)
 
 Closed issues
 -------------
-- Issue 1 [\#1](http://test.example.com/issues/1)
+- Test issue title 9 [\#1294](http://test.example.com/issues/1294)
 
 Merged pull requests
 --------------------
-- MR 1 [\#1](https://test.example.com/mrs/1) ([testauthor](https://test.example.com/authors/testauthor))
+- Test PR title 9 [\#2294](https://test.example.com/mrs/2294) ([test-user](https://test.example.com/authors/test-user))
+
+{{- end }}
+
+## [v0.0.9](https://test.example.com/tags/v0.0.9) (17.03.2003)
+
+## [v0.0.8](https://test.example.com/tags/v0.0.8) (16.03.2003)
+
+Merged pull requests
+--------------------
+- Test PR title 7 [\#2274](https://test.example.com/mrs/2274) ([test5-user](https://test.example.com/authors/test5-user))
+
+## [v0.0.7](https://test.example.com/tags/v0.0.7) (15.03.2003)
+
+Merged pull requests
+--------------------
+- Test PR title 6 [\#2264](https://test.example.com/mrs/2264) ([test-user](https://test.example.com/authors/test-user))
+
+{{- if .TestingTag }}
+
+## [testingtag](https://test.example.com/tags/testingtag) (13.03.2003)
+
+{{- end }}
+
+## [v0.0.6](https://test.example.com/tags/v0.0.6) (13.03.2003)
+
+Merged pull requests
+--------------------
+- Test PR title 5 [\#2254](https://test.example.com/mrs/2254) ([test-user](https://test.example.com/authors/test-user))
+
+## [v0.0.5](https://test.example.com/tags/v0.0.5) (12.03.2003)
+
+Closed issues
+-------------
+- Test issue title 4 [\#1244](http://test.example.com/issues/1244)
+
+## [v0.0.4](https://test.example.com/tags/v0.0.4) (11.03.2003)
+
+Merged pull requests
+--------------------
+- Test PR title 3 [\#2234](https://test.example.com/mrs/2234) ([test-user](https://test.example.com/authors/test-user))
+
+## [v0.0.3](https://test.example.com/tags/v0.0.3) (10.03.2003)
+
+Closed issues
+-------------
+- Test issue title 2 [\#1227](http://test.example.com/issues/1227)
+
+Merged pull requests
+--------------------
+- Test PR title 2 [\#2224](https://test.example.com/mrs/2224) ([test-user2](https://test.example.com/authors/test-user2))
+
+## [v0.0.2](https://test.example.com/tags/v0.0.2) (09.03.2003)
+
+Closed issues
+-------------
+- Test issue title 1 [\#1214](http://test.example.com/issues/1214)
+
+Merged pull requests
+--------------------
+- Test PR title 1 [\#2214](https://test.example.com/mrs/2214) ([test-user](https://test.example.com/authors/test-user))
+
+## [v0.0.1](https://test.example.com/tags/v0.0.1) (08.03.2003)
 
 *This Changelog was automatically generated with [chagen unknown](https://github.com/artem-sidorenko/chagen)*
 `
@@ -105,7 +145,7 @@ Merged pull requests
 		TestingTag     bool
 		SecondTag      bool
 		ExcludedIssue  bool
-	}{newRelease, time.Now().Format("02.01.2006"), testingTag, secondTag, excludedIssue}
+	}{newRelease, time.Now().Format("02.01.2006"), testingTag, minorTags, excludedIssue}
 
 	t := template.Must(template.New("Output template").Parse(tpl))
 
@@ -153,7 +193,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		{
 			name: "With customized filter",
 			cliParams: cliParams{
-				filterExpr: `^v\d+\.\d+\.(1|3)+$`,
+				filterExpr: `^v\d+\.0\.\d+$`,
 			},
 			wantOutput: genOutput(false, false, false, false),
 		},
@@ -167,7 +207,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 		{
 			name: "With customized labels",
 			cliParams: cliParams{
-				excludeLabels: "issue5",
+				excludeLabels: "issue12, duplicate, question, invalid, wontfix, no changelog",
 				newRelease:    "v10.10.0",
 			},
 			wantOutput: genOutput(true, false, true, true),

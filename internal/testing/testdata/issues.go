@@ -46,7 +46,7 @@ func Issues() []Issue {
 		{1294, "Test issue title 9", time.Unix(1047893647, 0), nil, false},
 		{1304, "Test issue title 10", time.Unix(1047993647, 0), []string{"wontfix"}, false},
 		{1214, "Test PR title 11", time.Unix(1048093647, 0), []string{"enhancement"}, true},
-		{1224, "Test issue title 12", time.Unix(1048193647, 0), nil, false},
+		{1224, "Test issue title 12", time.Unix(1048193647, 0), []string{"issue12"}, false},
 		{1234, "Test issue title 13", time.Unix(1048293647, 0), []string{"enhancement"}, false},
 	}
 }
