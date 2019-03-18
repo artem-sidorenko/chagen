@@ -246,7 +246,7 @@ func (c *Connector) processTags(
 					tag := data.Tag{
 						Name:   tagName,
 						Commit: commit.Commit.GetSHA(),
-						Date:   commit.Commit.Committer.GetDate(),
+						Date:   commit.Commit.Committer.GetDate().UTC(),
 						URL:    tagURL,
 					}
 

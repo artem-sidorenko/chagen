@@ -221,7 +221,7 @@ func (c *Connector) processPRs(
 					pr := data.MR{
 						ID:         pr.GetNumber(),
 						Name:       pr.GetTitle(),
-						MergedDate: pr.GetMergedAt(),
+						MergedDate: pr.GetMergedAt().UTC(),
 						URL:        pr.GetHTMLURL(),
 						Author:     pr.User.GetLogin(),
 						AuthorURL:  pr.User.GetHTMLURL(),

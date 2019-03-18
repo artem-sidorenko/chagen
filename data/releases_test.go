@@ -19,9 +19,9 @@ package data_test
 import (
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/helpers"
 	"github.com/artem-sidorenko/chagen/internal/testing/testdata"
 )
 
@@ -42,7 +42,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2314,
 							Name:       "Test PR title 11",
 							URL:        "https://test.example.com/mrs/2314",
-							MergedDate: time.Unix(1048094647, 0),
+							MergedDate: helpers.Time(1048094647),
 							Author:     "test-user8",
 							AuthorURL:  "https://test.example.com/authors/test-user8",
 							Labels:     []string{"no changelog"},
@@ -57,7 +57,7 @@ func TestNewReleases(t *testing.T) {
 						data.Issue{
 							ID:         1304,
 							Name:       "Test issue title 10",
-							ClosedDate: time.Unix(1047993647, 0),
+							ClosedDate: helpers.Time(1047993647),
 							URL:        "http://test.example.com/issues/1304",
 							Labels:     []string{"wontfix"},
 						},
@@ -67,7 +67,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2304,
 							Name:       "Test PR title 10",
 							URL:        "https://test.example.com/mrs/2304",
-							MergedDate: time.Unix(1047994647, 0),
+							MergedDate: helpers.Time(1047994647),
 							Author:     "test-user",
 							AuthorURL:  "https://test.example.com/authors/test-user",
 							Labels:     []string{"bugfix"},
@@ -82,7 +82,7 @@ func TestNewReleases(t *testing.T) {
 						data.Issue{
 							ID:         1294,
 							Name:       "Test issue title 9",
-							ClosedDate: time.Unix(1047893647, 0),
+							ClosedDate: helpers.Time(1047893647),
 							URL:        "http://test.example.com/issues/1294",
 						},
 					},
@@ -91,7 +91,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2294,
 							Name:       "Test PR title 9",
 							URL:        "https://test.example.com/mrs/2294",
-							MergedDate: time.Unix(1047894647, 0),
+							MergedDate: helpers.Time(1047894647),
 							Author:     "test-user",
 							AuthorURL:  "https://test.example.com/authors/test-user",
 							Labels:     []string{"bugfix"},
@@ -107,7 +107,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2284,
 							Name:       "Test PR title 8",
 							URL:        "https://test.example.com/mrs/2284",
-							MergedDate: time.Unix(1047794647, 0),
+							MergedDate: helpers.Time(1047794647),
 							Author:     "test-user",
 							AuthorURL:  "https://test.example.com/authors/test-user",
 							Labels:     []string{"invalid"},
@@ -122,7 +122,7 @@ func TestNewReleases(t *testing.T) {
 						data.Issue{
 							ID:         1274,
 							Name:       "Test issue title 7",
-							ClosedDate: time.Unix(1047693647, 0),
+							ClosedDate: helpers.Time(1047693647),
 							URL:        "http://test.example.com/issues/1274",
 							Labels:     []string{"no changelog"},
 						},
@@ -132,7 +132,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2274,
 							Name:       "Test PR title 7",
 							URL:        "https://test.example.com/mrs/2274",
-							MergedDate: time.Unix(1047694647, 0),
+							MergedDate: helpers.Time(1047694647),
 							Author:     "test5-user",
 							AuthorURL:  "https://test.example.com/authors/test5-user",
 							Labels:     []string{"bugfix"},
@@ -141,13 +141,13 @@ func TestNewReleases(t *testing.T) {
 				},
 				data.Release{
 					Release:    "v0.0.7",
-					Date:       "15.03.2003",
+					Date:       "14.03.2003",
 					ReleaseURL: "https://test.example.com/tags/v0.0.7",
 					Issues: data.Issues{
 						data.Issue{
 							ID:         1264,
 							Name:       "Test issue title 6",
-							ClosedDate: time.Unix(1047593647, 0),
+							ClosedDate: helpers.Time(1047593647),
 							URL:        "http://test.example.com/issues/1264",
 							Labels:     []string{"invalid"},
 						},
@@ -157,7 +157,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2264,
 							Name:       "Test PR title 6",
 							URL:        "https://test.example.com/mrs/2264",
-							MergedDate: time.Unix(1047594647, 0),
+							MergedDate: helpers.Time(1047594647),
 							Author:     "test-user",
 							AuthorURL:  "https://test.example.com/authors/test-user",
 							Labels:     []string{"enhancement"},
@@ -173,7 +173,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2254,
 							Name:       "Test PR title 5",
 							URL:        "https://test.example.com/mrs/2254",
-							MergedDate: time.Unix(1047494647, 0),
+							MergedDate: helpers.Time(1047494647),
 							Author:     "test-user",
 							AuthorURL:  "https://test.example.com/authors/test-user",
 							Labels:     []string{"bugfix"},
@@ -188,7 +188,7 @@ func TestNewReleases(t *testing.T) {
 						data.Issue{
 							ID:         1244,
 							Name:       "Test issue title 4",
-							ClosedDate: time.Unix(1047393647, 0),
+							ClosedDate: helpers.Time(1047393647),
 							URL:        "http://test.example.com/issues/1244",
 						},
 					},
@@ -202,7 +202,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2234,
 							Name:       "Test PR title 3",
 							URL:        "https://test.example.com/mrs/2234",
-							MergedDate: time.Unix(1047294647, 0),
+							MergedDate: helpers.Time(1047294647),
 							Author:     "test-user",
 							AuthorURL:  "https://test.example.com/authors/test-user",
 							Labels:     []string{"enhancement", "bugfix"},
@@ -217,7 +217,7 @@ func TestNewReleases(t *testing.T) {
 						data.Issue{
 							ID:         1227,
 							Name:       "Test issue title 2",
-							ClosedDate: time.Unix(1047193647, 0),
+							ClosedDate: helpers.Time(1047193647),
 							URL:        "http://test.example.com/issues/1227",
 							Labels:     []string{"enhancement", "bugfix"},
 						},
@@ -227,7 +227,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2224,
 							Name:       "Test PR title 2",
 							URL:        "https://test.example.com/mrs/2224",
-							MergedDate: time.Unix(1047194647, 0),
+							MergedDate: helpers.Time(1047194647),
 							Author:     "test-user2",
 							AuthorURL:  "https://test.example.com/authors/test-user2",
 						},
@@ -241,7 +241,7 @@ func TestNewReleases(t *testing.T) {
 						data.Issue{
 							ID:         1214,
 							Name:       "Test issue title 1",
-							ClosedDate: time.Unix(1047093647, 0),
+							ClosedDate: helpers.Time(1047093647),
 							URL:        "http://test.example.com/issues/1214",
 							Labels:     []string{"enhancement"},
 						},
@@ -251,7 +251,7 @@ func TestNewReleases(t *testing.T) {
 							ID:         2214,
 							Name:       "Test PR title 1",
 							URL:        "https://test.example.com/mrs/2214",
-							MergedDate: time.Unix(1047094647, 0),
+							MergedDate: helpers.Time(1047094647),
 							Author:     "test-user",
 							AuthorURL:  "https://test.example.com/authors/test-user",
 							Labels:     []string{"bugfix"},

@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/helpers"
 )
 
 func TestMRs_Sort(t *testing.T) {
@@ -36,29 +37,29 @@ func TestMRs_Sort(t *testing.T) {
 			m: &data.MRs{
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 				},
 			},
 			want: &data.MRs{
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 				},
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 				},
 			},
 		},
@@ -67,29 +68,29 @@ func TestMRs_Sort(t *testing.T) {
 			m: &data.MRs{
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 				},
 			},
 			want: &data.MRs{
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 				},
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 				},
 			},
 		},
@@ -121,25 +122,25 @@ func TestMRs_Filter(t *testing.T) {
 			m: data.MRs{
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 				},
 			},
 			args: args{
-				fromDate: time.Unix(1057483647, 0),
-				toDate:   time.Unix(1337483647, 0),
+				fromDate: helpers.Time(1057483647),
+				toDate:   helpers.Time(1337483647),
 			},
 			wantRet: data.MRs{
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 			},
 		},
@@ -148,25 +149,25 @@ func TestMRs_Filter(t *testing.T) {
 			m: data.MRs{
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 				},
 			},
 			args: args{
-				fromDate: time.Unix(1057483647, 0),
-				toDate:   time.Unix(1247483647, 0),
+				fromDate: helpers.Time(1057483647),
+				toDate:   helpers.Time(1247483647),
 			},
 			wantRet: data.MRs{
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 			},
 		},
@@ -197,16 +198,16 @@ func TestFilterMRsByLabel(t *testing.T) {
 				m: data.MRs{
 					{
 						Name:       "MR 1",
-						MergedDate: time.Unix(1047483647, 0),
+						MergedDate: helpers.Time(1047483647),
 						Labels:     []string{"bugfix"},
 					},
 					{
 						Name:       "MR 2",
-						MergedDate: time.Unix(1247483647, 0),
+						MergedDate: helpers.Time(1247483647),
 					},
 					{
 						Name:       "MR 3",
-						MergedDate: time.Unix(1347483647, 0),
+						MergedDate: helpers.Time(1347483647),
 						Labels:     []string{"enhancement"},
 					},
 				},
@@ -215,16 +216,16 @@ func TestFilterMRsByLabel(t *testing.T) {
 			want: data.MRs{
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 					Labels:     []string{"bugfix"},
 				},
 				{
 					Name:       "MR 2",
-					MergedDate: time.Unix(1247483647, 0),
+					MergedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 					Labels:     []string{"enhancement"},
 				},
 			},
@@ -235,27 +236,27 @@ func TestFilterMRsByLabel(t *testing.T) {
 				m: data.MRs{
 					{
 						Name:       "MR 1",
-						MergedDate: time.Unix(1047483647, 0),
+						MergedDate: helpers.Time(1047483647),
 						Labels:     []string{"bugfix", "enhancement"},
 					},
 					{
 						Name:       "MR 2",
-						MergedDate: time.Unix(1247483647, 0),
+						MergedDate: helpers.Time(1247483647),
 						Labels:     []string{"no changelog"},
 					},
 					{
 						Name:       "MR 3",
-						MergedDate: time.Unix(1347483647, 0),
+						MergedDate: helpers.Time(1347483647),
 						Labels:     []string{"enhancement"},
 					},
 					{
 						Name:       "MR 4",
-						MergedDate: time.Unix(1347483647, 0),
+						MergedDate: helpers.Time(1347483647),
 						Labels:     []string{"enhancement", "no changelog"},
 					},
 					{
 						Name:       "MR 5",
-						MergedDate: time.Unix(1347483647, 0),
+						MergedDate: helpers.Time(1347483647),
 						Labels:     []string{"bug", "wontfix"},
 					},
 				},
@@ -264,12 +265,12 @@ func TestFilterMRsByLabel(t *testing.T) {
 			want: data.MRs{
 				{
 					Name:       "MR 1",
-					MergedDate: time.Unix(1047483647, 0),
+					MergedDate: helpers.Time(1047483647),
 					Labels:     []string{"bugfix", "enhancement"},
 				},
 				{
 					Name:       "MR 3",
-					MergedDate: time.Unix(1347483647, 0),
+					MergedDate: helpers.Time(1347483647),
 					Labels:     []string{"enhancement"},
 				},
 			},

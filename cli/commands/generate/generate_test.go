@@ -84,7 +84,7 @@ Merged pull requests
 --------------------
 - Test PR title 7 [\#2274](https://test.example.com/mrs/2274) ([test5-user](https://test.example.com/authors/test5-user))
 
-## [v0.0.7](https://test.example.com/tags/v0.0.7) (15.03.2003)
+## [v0.0.7](https://test.example.com/tags/v0.0.7) (14.03.2003)
 
 Merged pull requests
 --------------------

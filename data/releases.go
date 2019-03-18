@@ -41,6 +41,9 @@ func NewReleases(tags Tags, issues Issues, mrs MRs) Releases {
 	var ret Releases
 	var lastReleaseDate time.Time
 
+	// we should work always with UTC time to avoid surprises
+	UTCDate(tags, issues, mrs)
+
 	// we should have a proper sorted data to avoid surprises
 	sort.Sort(&tags)
 	sort.Sort(&issues)

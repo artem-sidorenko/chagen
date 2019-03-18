@@ -14,28 +14,17 @@
    limitations under the License.
 */
 
-package data
+package helpers
 
-func sliceContains(slice []string, str string) bool {
-	for _, s := range slice {
-		if str == s {
-			return true
-		}
-	}
-	return false
+import "time"
+
+// Time returns a UTC time for given timestamp
+func Time(sec int64) time.Time {
+	return time.Unix(sec, 0).UTC()
 }
 
-// UTCDate sets all time within data to the UTC
-func UTCDate(ts Tags, is Issues, mrs MRs) {
-	for i, t := range ts {
-		ts[i].Date = t.Date.UTC()
-	}
-
-	for i, d := range is {
-		is[i].ClosedDate = d.ClosedDate.UTC()
-	}
-
-	for i, mr := range mrs {
-		mrs[i].MergedDate = mr.MergedDate.UTC()
-	}
+// TimePtr returns a pointer to time.Time for a given timestamp
+func TimePtr(sec int64) *time.Time {
+	t := Time(sec)
+	return &t
 }

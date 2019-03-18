@@ -220,7 +220,7 @@ func (c *Connector) processMRs(
 						ID:         mr.IID,
 						Name:       mr.Title,
 						URL:        mr.WebURL,
-						MergedDate: *commit.AuthoredDate,
+						MergedDate: (*commit.AuthoredDate).UTC(),
 						Author:     mr.Author.Username,
 						AuthorURL:  authorURL,
 						Labels:     mr.Labels,

@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/artem-sidorenko/chagen/data"
+	"github.com/artem-sidorenko/chagen/internal/testing/helpers"
 )
 
 func TestIssues_Sort(t *testing.T) {
@@ -36,29 +37,29 @@ func TestIssues_Sort(t *testing.T) {
 			is: &data.Issues{
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 				},
 			},
 			want: &data.Issues{
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 				},
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 				},
 			},
 		},
@@ -67,29 +68,29 @@ func TestIssues_Sort(t *testing.T) {
 			is: &data.Issues{
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 				},
 			},
 			want: &data.Issues{
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 				},
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 				},
 			},
 		},
@@ -121,25 +122,25 @@ func TestIssues_Filter(t *testing.T) {
 			is: data.Issues{
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 				},
 			},
 			args: args{
-				fromDate: time.Unix(1057483647, 0),
-				toDate:   time.Unix(1337483647, 0),
+				fromDate: helpers.Time(1057483647),
+				toDate:   helpers.Time(1337483647),
 			},
 			wantRet: data.Issues{
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 			},
 		},
@@ -148,25 +149,25 @@ func TestIssues_Filter(t *testing.T) {
 			is: data.Issues{
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 				},
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 				},
 			},
 			args: args{
-				fromDate: time.Unix(1057483647, 0),
-				toDate:   time.Unix(1247483647, 0),
+				fromDate: helpers.Time(1057483647),
+				toDate:   helpers.Time(1247483647),
 			},
 			wantRet: data.Issues{
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 			},
 		},
@@ -197,16 +198,16 @@ func TestFilterIssuesByLabel(t *testing.T) {
 				is: data.Issues{
 					{
 						Name:       "Issue 1",
-						ClosedDate: time.Unix(1047483647, 0),
+						ClosedDate: helpers.Time(1047483647),
 						Labels:     []string{"bugfix"},
 					},
 					{
 						Name:       "Issue 2",
-						ClosedDate: time.Unix(1247483647, 0),
+						ClosedDate: helpers.Time(1247483647),
 					},
 					{
 						Name:       "Issue 3",
-						ClosedDate: time.Unix(1347483647, 0),
+						ClosedDate: helpers.Time(1347483647),
 						Labels:     []string{"enhancement"},
 					},
 				},
@@ -215,16 +216,16 @@ func TestFilterIssuesByLabel(t *testing.T) {
 			want: data.Issues{
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 					Labels:     []string{"bugfix"},
 				},
 				{
 					Name:       "Issue 2",
-					ClosedDate: time.Unix(1247483647, 0),
+					ClosedDate: helpers.Time(1247483647),
 				},
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 					Labels:     []string{"enhancement"},
 				},
 			},
@@ -235,27 +236,27 @@ func TestFilterIssuesByLabel(t *testing.T) {
 				is: data.Issues{
 					{
 						Name:       "Issue 1",
-						ClosedDate: time.Unix(1047483647, 0),
+						ClosedDate: helpers.Time(1047483647),
 						Labels:     []string{"bugfix", "enhancement"},
 					},
 					{
 						Name:       "Issue 2",
-						ClosedDate: time.Unix(1247483647, 0),
+						ClosedDate: helpers.Time(1247483647),
 						Labels:     []string{"no changelog"},
 					},
 					{
 						Name:       "Issue 3",
-						ClosedDate: time.Unix(1347483647, 0),
+						ClosedDate: helpers.Time(1347483647),
 						Labels:     []string{"enhancement"},
 					},
 					{
 						Name:       "Issue 4",
-						ClosedDate: time.Unix(1347483647, 0),
+						ClosedDate: helpers.Time(1347483647),
 						Labels:     []string{"enhancement", "no changelog"},
 					},
 					{
 						Name:       "Issue 5",
-						ClosedDate: time.Unix(1347483647, 0),
+						ClosedDate: helpers.Time(1347483647),
 						Labels:     []string{"bug", "wontfix"},
 					},
 				},
@@ -264,12 +265,12 @@ func TestFilterIssuesByLabel(t *testing.T) {
 			want: data.Issues{
 				{
 					Name:       "Issue 1",
-					ClosedDate: time.Unix(1047483647, 0),
+					ClosedDate: helpers.Time(1047483647),
 					Labels:     []string{"bugfix", "enhancement"},
 				},
 				{
 					Name:       "Issue 3",
-					ClosedDate: time.Unix(1347483647, 0),
+					ClosedDate: helpers.Time(1347483647),
 					Labels:     []string{"enhancement"},
 				},
 			},
