@@ -209,7 +209,7 @@ func (c *Connector) processIssues(
 					issue := data.Issue{
 						ID:         issue.IID,
 						Name:       issue.Title,
-						ClosedDate: *issue.ClosedAt,
+						ClosedDate: (*issue.ClosedAt).UTC(),
 						URL:        issue.WebURL,
 						Labels:     issue.Labels,
 					}

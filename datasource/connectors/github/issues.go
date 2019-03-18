@@ -217,7 +217,7 @@ func (c *Connector) processIssues(
 					issue := data.Issue{
 						ID:         issue.GetNumber(),
 						Name:       issue.GetTitle(),
-						ClosedDate: issue.GetClosedAt(),
+						ClosedDate: issue.GetClosedAt().UTC(),
 						URL:        issue.GetHTMLURL(),
 						Labels:     lbs,
 					}

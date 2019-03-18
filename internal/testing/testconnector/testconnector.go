@@ -24,7 +24,7 @@ import (
 
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/datasource/connectors"
-	"github.com/artem-sidorenko/chagen/internal/testing/testconnector/testdata"
+	"github.com/artem-sidorenko/chagen/internal/testing/testdata"
 
 	"github.com/urfave/cli"
 )
@@ -56,12 +56,12 @@ func (c *Connector) Tags(
 	<-chan bool,
 	<-chan int,
 ) {
-	tags := testdata.Tags()
+	tags := testdata.DataTags()
 
 	if RetTestingTag {
 		tags = append(tags, data.Tag{
 			Name:   "testingtag",
-			Date:   time.Unix(1147783647, 0),
+			Date:   time.Unix(1047591647, 0),
 			Commit: "ad59c6b54ba53f54383d7c4661bdd4e29fe87c15",
 			URL:    "https://test.example.com/tags/testingtag",
 		})
@@ -94,7 +94,7 @@ func (c *Connector) Issues(
 	go func() {
 		defer close(cissues)
 
-		for _, t := range testdata.Issues() {
+		for _, t := range testdata.DataIssues() {
 			cissues <- t
 		}
 	}()
@@ -116,7 +116,7 @@ func (c *Connector) MRs(
 	go func() {
 		defer close(cmrs)
 
-		for _, t := range testdata.MRs() {
+		for _, t := range testdata.DataMRs() {
 			cmrs <- t
 		}
 	}()

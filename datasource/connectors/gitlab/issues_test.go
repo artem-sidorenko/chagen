@@ -19,7 +19,6 @@ package gitlab_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -45,63 +44,63 @@ func TestConnector_Issues(t *testing.T) {
 				data.Issue{
 					ID:         1234,
 					Name:       "Test issue title 13",
-					ClosedDate: time.Unix(2048293647, 0),
+					ClosedDate: helpers.Time(1048293647),
 					URL:        "https://example.com/issues/1234",
 					Labels:     []string{"enhancement"},
 				},
 				data.Issue{
 					ID:         1224,
 					Name:       "Test issue title 12",
-					ClosedDate: time.Unix(2048193647, 0),
+					ClosedDate: helpers.Time(1048193647),
 					URL:        "https://example.com/issues/1224",
-					Labels:     []string(nil),
+					Labels:     []string{"issue12"},
 				},
 				data.Issue{
 					ID:         1304,
 					Name:       "Test issue title 10",
-					ClosedDate: time.Unix(2047993647, 0),
+					ClosedDate: helpers.Time(1047993647),
 					URL:        "https://example.com/issues/1304",
 					Labels:     []string{"wontfix"},
 				},
 				data.Issue{
 					ID:         1294,
 					Name:       "Test issue title 9",
-					ClosedDate: time.Unix(2047893647, 0),
+					ClosedDate: helpers.Time(1047893647),
 					URL:        "https://example.com/issues/1294",
 					Labels:     []string(nil),
 				},
 				data.Issue{
 					ID:         1274,
 					Name:       "Test issue title 7",
-					ClosedDate: time.Unix(2047693647, 0),
+					ClosedDate: helpers.Time(1047693647),
 					URL:        "https://example.com/issues/1274",
 					Labels:     []string{"no changelog"},
 				},
 				data.Issue{
 					ID:         1264,
 					Name:       "Test issue title 6",
-					ClosedDate: time.Unix(2047593647, 0),
+					ClosedDate: helpers.Time(1047593647),
 					URL:        "https://example.com/issues/1264",
 					Labels:     []string{"invalid"},
 				},
 				data.Issue{
 					ID:         1244,
 					Name:       "Test issue title 4",
-					ClosedDate: time.Unix(2047393647, 0),
+					ClosedDate: helpers.Time(1047393647),
 					URL:        "https://example.com/issues/1244",
 					Labels:     []string(nil),
 				},
 				data.Issue{
 					ID:         1227,
 					Name:       "Test issue title 2",
-					ClosedDate: time.Unix(2047193647, 0),
+					ClosedDate: helpers.Time(1047193647),
 					URL:        "https://example.com/issues/1227",
 					Labels:     []string{"enhancement", "bugfix"},
 				},
 				data.Issue{
 					ID:         1214,
 					Name:       "Test issue title 1",
-					ClosedDate: time.Unix(2047093647, 0),
+					ClosedDate: helpers.Time(1047093647),
 					URL:        "https://example.com/issues/1214",
 					Labels:     []string{"enhancement"},
 				},
@@ -147,9 +146,6 @@ func TestConnector_Issues(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Connector.Issues() = %+v, want %+v", got, tt.want)
-				for i, g := range got {
-					fmt.Printf("%#v \n %#v \n\n", g, tt.want[i])
-				}
 			}
 
 			if err == nil { // compare the processed Issues only in non-error situation

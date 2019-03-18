@@ -14,28 +14,5 @@
    limitations under the License.
 */
 
-package data
-
-func sliceContains(slice []string, str string) bool {
-	for _, s := range slice {
-		if str == s {
-			return true
-		}
-	}
-	return false
-}
-
-// UTCDate sets all time within data to the UTC
-func UTCDate(ts Tags, is Issues, mrs MRs) {
-	for i, t := range ts {
-		ts[i].Date = t.Date.UTC()
-	}
-
-	for i, d := range is {
-		is[i].ClosedDate = d.ClosedDate.UTC()
-	}
-
-	for i, mr := range mrs {
-		mrs[i].MergedDate = mr.MergedDate.UTC()
-	}
-}
+// Package testdata provides some data for testing purposes
+package testdata

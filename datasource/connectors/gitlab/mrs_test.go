@@ -47,7 +47,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2344",
 					Author:     "te77st-user",
 					AuthorURL:  "https://gitlab.com/te77st-user",
-					MergedDate: time.Unix(2048394647, 0),
+					MergedDate: helpers.Time(1048394647),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
@@ -56,7 +56,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2334",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2048294647, 0),
+					MergedDate: helpers.Time(1048294647),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
@@ -65,7 +65,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2314",
 					Author:     "test-user8",
 					AuthorURL:  "https://gitlab.com/test-user8",
-					MergedDate: time.Unix(2048094647, 0),
+					MergedDate: helpers.Time(1048094647),
 					Labels:     []string{"no changelog"},
 				},
 				data.MR{
@@ -74,7 +74,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2304",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2047994647, 0),
+					MergedDate: helpers.Time(1047994647),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
@@ -83,7 +83,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2294",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2047894647, 0),
+					MergedDate: helpers.Time(1047894647),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
@@ -92,7 +92,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2284",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2047794647, 0),
+					MergedDate: helpers.Time(1047794647),
 					Labels:     []string{"invalid"},
 				},
 				data.MR{
@@ -101,7 +101,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2274",
 					Author:     "test5-user",
 					AuthorURL:  "https://gitlab.com/test5-user",
-					MergedDate: time.Unix(2047694647, 0),
+					MergedDate: helpers.Time(1047694647),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
@@ -110,7 +110,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2264",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2047594647, 0),
+					MergedDate: helpers.Time(1047594647),
 					Labels:     []string{"enhancement"},
 				},
 				data.MR{
@@ -119,7 +119,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2254",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2047494647, 0),
+					MergedDate: helpers.Time(1047494647),
 					Labels:     []string{"bugfix"},
 				},
 				data.MR{
@@ -128,7 +128,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2234",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2047294647, 0),
+					MergedDate: helpers.Time(1047294647),
 					Labels:     []string{"enhancement", "bugfix"},
 				},
 				data.MR{
@@ -137,7 +137,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2224",
 					Author:     "test-user2",
 					AuthorURL:  "https://gitlab.com/test-user2",
-					MergedDate: time.Unix(2047194647, 0),
+					MergedDate: helpers.Time(1047194647),
 					Labels:     []string(nil),
 				},
 				data.MR{
@@ -146,7 +146,7 @@ func TestConnector_MRs(t *testing.T) {
 					URL:        "https://example.com/pulls/2214",
 					Author:     "test-user",
 					AuthorURL:  "https://gitlab.com/test-user",
-					MergedDate: time.Unix(2047094647, 0),
+					MergedDate: helpers.Time(1047094647),
 					Labels:     []string{"bugfix"},
 				},
 			},

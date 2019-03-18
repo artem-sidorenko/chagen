@@ -14,5 +14,17 @@
    limitations under the License.
 */
 
-// Package apitestdata provides some data for test clients of APIs
-package apitestdata
+package helpers
+
+import "time"
+
+// Time returns a UTC time for given timestamp
+func Time(sec int64) time.Time {
+	return time.Unix(sec, 0).UTC()
+}
+
+// TimePtr returns a pointer to time.Time for a given timestamp
+func TimePtr(sec int64) *time.Time {
+	t := Time(sec)
+	return &t
+}
