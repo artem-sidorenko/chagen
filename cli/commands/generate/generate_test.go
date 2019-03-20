@@ -252,7 +252,7 @@ func TestGenerate(t *testing.T) { // nolint: gocyclo
 
 		// avoid progress output
 		progressOutput := &bytes.Buffer{}
-		generate.ProgressStdout = progressOutput
+		generate.ProgressWriter = progressOutput
 
 		testconnector.RetTestingTag = true
 		testconnector.RepositoryExistsFail = tt.repositoryExistsFail

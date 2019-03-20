@@ -39,8 +39,8 @@ import (
 
 // Stdout references the Stdout writer for generate command
 var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
-// ProgressStdout references the Stdout writer for progress information
-var ProgressStdout io.Writer = os.Stdout // nolint: gochecknoglobals
+// ProgressWriter references the writer for progress information
+var ProgressWriter io.Writer = os.Stderr // nolint: gochecknoglobals
 
 // Generate implements the CLI subcommand generate
 func Generate(ctx *cli.Context) error { // nolint: gocyclo
@@ -210,7 +210,7 @@ func getConnectorData(
 
 	// invoke the progress printer
 	printProgress(
-		ctx, ProgressStdout,
+		ctx, ProgressWriter,
 		ctagscounter, cmaxtags,
 		cissuescounter, cmaxissues,
 		cmrscounter, cmaxmrs)
