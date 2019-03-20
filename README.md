@@ -10,6 +10,26 @@ chagen
 Changelog (cha) generator (-gen) as a tool written in Go, which
 simplifies and automates the Changelog creation/update process.
 
+Installation
+------------
+
+On MacOS:
+
+```bash
+$ brew tap artem-sidorenko/chagen
+...
+$ brew install chagen
+...
+```
+
+On Linux:
+
+Use [openSUSE Build Service](http://software.opensuse.org//download.html?project=home%3Aartem_sidorenko%3Achagen&package=chagen) to get the deb/rpm packages.
+
+On Windows:
+
+[Download](https://github.com/artem-sidorenko/chagen/releases/latest) the Windows binary.
+
 License
 -------
 Licensed under Apache 2.0
