@@ -29,6 +29,7 @@ import (
 	"github.com/artem-sidorenko/chagen/cli/commands"
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/generator"
+	"github.com/artem-sidorenko/chagen/internal/output"
 
 	// some of connectors control functionality will be moved to source at some point
 	_ "github.com/artem-sidorenko/chagen/datasource"
@@ -38,9 +39,9 @@ import (
 )
 
 // Stdout references the Stdout writer for generate command
-var Stdout io.Writer = os.Stdout // nolint: gochecknoglobals
+var Stdout io.Writer = output.Stdout // nolint: gochecknoglobals
 // ProgressWriter references the writer for progress information
-var ProgressWriter io.Writer = os.Stderr // nolint: gochecknoglobals
+var ProgressWriter io.Writer = output.Stderr // nolint: gochecknoglobals
 
 // Generate implements the CLI subcommand generate
 func Generate(ctx *cli.Context) error { // nolint: gocyclo
