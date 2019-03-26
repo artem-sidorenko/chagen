@@ -18,7 +18,10 @@ package gitlab
 
 import (
 	"context"
+	"fmt"
 	"sync"
+
+	"github.com/artem-sidorenko/chagen/internal/output"
 
 	"github.com/artem-sidorenko/chagen/data"
 	"github.com/artem-sidorenko/chagen/datasource/connectors/helpers"
@@ -203,6 +206,8 @@ func (c *Connector) processIssues(
 					// We do not have any other source of information about closed state of issue
 					// we have to skip the entire issue :-(
 					if issue.ClosedAt == nil {
+						output.Warning(fmt.Sprintf("API error on issue %v, no closed date available. Skipping.",
+							issue.IID))
 						continue
 					}
 
